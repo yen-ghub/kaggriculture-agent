@@ -4,7 +4,7 @@ from main import agent
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 48,
+        "episodeSteps": 4,
         "seed": 1,
     },
     debug=True,
@@ -12,11 +12,15 @@ env = make(
 
 env.run([agent, "pass"])
 
-final_step = env.steps[-1]
+#final_step = env.steps[-1]
 
-for player_id, state in enumerate(final_step):
+for step_number, step in enumerate(env.steps):
+    player_state = step[0]
+    obs = player_state.observation
+    
     print(
-        f"Player {player_id}: "
-        f"reward={state.reward}, "
-        f"status={state.status}"
+            f"step={step_number}, "
+            f"action={player_state.action}, "
+            f"money={obs.farms[0].money}, "
+            f"carrot_seeds={obs.private.seeds['CARROT']}"
     )

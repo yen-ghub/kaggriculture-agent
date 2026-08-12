@@ -1,0 +1,21 @@
+# Local python env
+.venv/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Jupyter-generated files
+.ipynb_checkpoints/
+
+# Local outputs
+replays/
+logs/
+*.tar.gz
+*.zip
+
+# Secrets
+.env
+access_token
+kaggle.json

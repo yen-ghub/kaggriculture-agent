@@ -33,9 +33,13 @@ def agent(obs):
     }
     '''
 
+    # Define constants
     CARROT_SEED_COST    = 20
     LAST_HOUR_TODAY     = 23
     MAX_YIELD_DAY_CARROT = 3
+    
+    # Define tiles to manage in (x,y)
+    TILES_MANAGED = [(4,4),(3,4)]
     
     # Get observations
     player_id   = obs["player"]
@@ -44,8 +48,7 @@ def agent(obs):
     shed        = private["shed"]
     farmer_inventory = private["inventories"][0]
     
-    x,y         = farm["farmer"]
-    tile_focus  = farm["tiles"][y][x]
+    pos_current = tuple(farm["farmer"])
     
     # Inventory count
     seed_carrot = private["seeds"].get("CARROT", 0)
@@ -55,28 +58,90 @@ def agent(obs):
     market_orders = []
     farmer_action = ["PASS"]
     
+    # Define moving function
+    def move_to(current,target):
+        x_curr,y_curr = current
+        x_targ,y_targ = target
+        
+        if x_curr > x_targ:
+           return ["WEST"]
+        if x_curr < x_targ:
+            return ["EAST"]
+        if y_curr > x_targ:
+            return ["SOUTH"]
+        if y_curr < y_targ:
+            return ["NORTH"]
+        
+        return ["PASS"]
+        
+    # Convert position (x,y) to tile [y][x]
+    def tile_at(farm,pos):
+        x,y = pos
+        tile = farm["tiles"][y][x] 
+        
+        return tile 
+    
     # Market orders
     # Buy carrot seed if zero in inventory
-    if  seed_carrot == 0 and farm["money"] > CARROT_SEED_COST:
+    if  seed_carrot == 0 and farm["money"] >= CARROT_SEED_COST:
         market_orders.append(["BUY_SEED", "CARROT", 1])
     # Sell carrot of there is any in the shed
     if shed_carrot > 0:
         market_orders.append(["SELL", "CARROT", shed_carrot])
     
-    # Plant carrot or water carrot or harvest carrot
-    if (tile_focus is None 
-            and seed_carrot > 0 
+    ## Logic block to decide what to do. First, find a tile for action.
+    # Initiate empty target position
+    pos_target = None
+    
+    # First priority, keep plants watered. Find an unwatered tile w/ plant.
+    for pos in TILES_MANAGED:
+        tile = tile_at(farm, pos)
+        if (tile is not None
+                and tile["kind"] == "PLANT"
+                and not tile["watered_today"]):  
+            pos_target = pos
+        
+            break
+            
+    # Second priority, harvest. Find a plant ready to harvest.
+    # Only check if there is no unwatered tile w/ plant.
+    if pos_target is None:
+         for pos in TILES_MANAGED:
+             tile = tile_at(farm,pos) 
+             
+             if (tile is not None and tile["kind"] == "PLANT"):
+                 crop_age = obs["day"] - tile["planted_day"]
+                 
+                 if crop_age >= MAX_YIELD_DAY_CARROT:
+                     pos_target = pos
+                     break
+    
+    # Third priority, plant. If there is enough time, find an empty tile to plant.
+    if (pos_target is None
+            and seed_carrot > 0
             and obs["hour"] < LAST_HOUR_TODAY):
-        farmer_action = ["PLANT", "CARROT"]
-    elif (tile_focus is not None
-            and tile_focus["kind"] == "PLANT"
-            and tile_focus["crop"] == "CARROT"):
-        # Check if ready to harvest
-        crop_age = obs["day"] - tile_focus["planted_day"]
-        if not tile_focus["watered_today"]:
-            farmer_action = ["WATER"]
-        elif crop_age >= MAX_YIELD_DAY_CARROT:
-            farmer_action = ["HARVEST"]
+        for pos in TILES_MANAGED:
+            tile =  tile_at(farm,pos)
+            
+            if tile is None:
+                pos_target = pos
+                break
+    
+    # If there is a target position, move. If already at target position, load tile info.
+    if pos_target is not None:
+        if pos_target != pos_current:
+            farmer_action = move_to(pos_current,pos_target)
+        else:
+            tile_target = tile_at(farm,pos_current)
+            
+            # Choose action depending on the tile info
+            if tile_target is None:
+                farmer_action = ["PLANT", "CARROT"]
+            elif tile_target["watered_today"] is False:
+                farmer_action = ["WATER"]
+            else:
+                farmer_action = ["HARVEST"]    
+            
     
     return {
         "farmer": farmer_action,

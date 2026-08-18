@@ -58,7 +58,10 @@ def agent(obs):
     market_orders = []
     farmer_action = ["PASS"]
     
-    # Define moving function
+    ###
+    
+    # Define helper functions
+    ## Moving logic
     def move_to(current,target):
         x_curr,y_curr = current
         x_targ,y_targ = target
@@ -81,52 +84,83 @@ def agent(obs):
         
         return tile 
     
+    # Distance calculator
+    def distance_between(coord1, coord2):
+        x1, y1 = coord1
+        x2, y2 = coord2
+
+        dist_manhattan = abs(x1 - x2) + abs(y1 - y2)
+        
+        return dist_manhattan
+    
+    # Find closest actionable tile to current position
+    def nearest_position(current, positions):
+        pos_nearest = None
+        nearest_distance = None
+
+        for position in positions:
+            distance = distance_between(current, position)
+
+            if pos_nearest is None or distance < nearest_distance:
+                pos_nearest = position
+                nearest_distance = distance
+
+        return pos_nearest
+    
+    ###
+    
     # Market orders
-    # Buy carrot seed if zero in inventory
+    ## Buy carrot seed if zero in inventory
     if  seed_carrot == 0 and farm["money"] >= CARROT_SEED_COST:
         market_orders.append(["BUY_SEED", "CARROT", 1])
-    # Sell carrot of there is any in the shed
+    ## Sell carrot of there is any in the shed
     if shed_carrot > 0:
         market_orders.append(["SELL", "CARROT", shed_carrot])
     
-    ## Logic block to decide what to do. First, find a tile for action.
-    # Initiate empty target position
-    pos_target = None
+    ###
     
-    # First priority, keep plants watered. Find an unwatered tile w/ plant.
+    # Logic block to decide what to do. First, find a tile for action.
+    ## Initiate empty target lists
+    
+    water_targets = []
+    harvest_targets = []
+    plant_targets = []
+    #pos_target = None
+    
+    
+    ## Scan MANAGED_TILES for actionable tiles
     for pos in TILES_MANAGED:
         tile = tile_at(farm, pos)
         if (tile is not None
                 and tile["kind"] == "PLANT"
-                and not tile["watered_today"]):  
-            pos_target = pos
+                and tile["crop"]) == "CARROT":
+            crop_age = obs["day"] - tile["planted_day"]
+            
+            # If there is no tile to water, find a plant ready to harvest.
+            if not tile["watered_today"]:
+                water_targets.append(pos)
+            elif crop_age >= MAX_YIELD_DAY_CARROT:
+                harvest_targets.append(pos)
         
-            break
+        # If there is enough time, find an empty tile to plant (and water).
+        elif (tile is None
+              and seed_carrot > 0
+              and obs["hour"] < LAST_HOUR_TODAY):
+            plant_targets.append(pos)
             
-    # Second priority, harvest. Find a plant ready to harvest.
-    # Only check if there is no unwatered tile w/ plant.
-    if pos_target is None:
-         for pos in TILES_MANAGED:
-             tile = tile_at(farm,pos) 
-             
-             if (tile is not None and tile["kind"] == "PLANT"):
-                 crop_age = obs["day"] - tile["planted_day"]
-                 
-                 if crop_age >= MAX_YIELD_DAY_CARROT:
-                     pos_target = pos
-                     break
     
-    # Third priority, plant. If there is enough time, find an empty tile to plant.
-    if (pos_target is None
-            and seed_carrot > 0
-            and obs["hour"] < LAST_HOUR_TODAY):
-        for pos in TILES_MANAGED:
-            tile =  tile_at(farm,pos)
-            
-            if tile is None:
-                pos_target = pos
-                break
-    
+    ## First priority, keep plants watered. Find an unwatered tile w/ plant.      
+    ## Second priority, harvest. If there is no tile to water, go to a tile ready to harvest.
+    ## Third priority, plant. If no tile to water and no plant ready to harvest, plant.
+    if water_targets:
+        pos_target = nearest_position(pos_current, water_targets)
+    elif harvest_targets:
+        pos_target = nearest_position(pos_current, harvest_targets)
+    elif plant_targets:
+        pos_target = nearest_position(pos_current, plant_targets)
+    else:
+        pos_target = None
+  
     # If there is a target position, move. If already at target position, load tile info.
     if pos_target is not None:
         if pos_target != pos_current:

@@ -40,7 +40,7 @@ def agent(obs):
     
     # Define tiles to manage in (x,y)
     TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
-                     (0,3)]
+                     (1,3),(0,3)]
     
     # Get observations
     player_id   = obs["player"]

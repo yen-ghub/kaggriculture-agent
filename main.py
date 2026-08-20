@@ -39,7 +39,8 @@ def agent(obs):
     MAX_YIELD_DAY_CARROT = 3
     
     # Define tiles to manage in (x,y)
-    TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4)]
+    TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
+                     (0,3)]
     
     # Get observations
     player_id   = obs["player"]
@@ -70,10 +71,10 @@ def agent(obs):
            return ["WEST"]
         if x_curr < x_targ:
             return ["EAST"]
-        if y_curr > x_targ:
-            return ["SOUTH"]
-        if y_curr < y_targ:
+        if y_curr > y_targ:
             return ["NORTH"]
+        if y_curr < y_targ:
+            return ["SOUTH"]
         
         return ["PASS"]
         
@@ -131,7 +132,7 @@ def agent(obs):
     ## Scan MANAGED_TILES for actionable tiles
     for pos in TILES_MANAGED:
         tile = tile_at(farm, pos)
-        if (tile is not None
+        if (isinstance(tile, dict)
                 and tile["kind"] == "PLANT"
                 and tile["crop"]) == "CARROT":
             crop_age = obs["day"] - tile["planted_day"]

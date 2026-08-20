@@ -39,7 +39,7 @@ def agent(obs):
     MAX_YIELD_DAY_CARROT = 3
     
     # Define tiles to manage in (x,y)
-    TILES_MANAGED = [(4,4),(3,4)]
+    TILES_MANAGED = [(4,4),(3,4),(2,4)]
     
     # Get observations
     player_id   = obs["player"]

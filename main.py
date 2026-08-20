@@ -128,32 +128,47 @@ def agent(obs):
     plant_targets = []
     #pos_target = None
     
+    ## To check if current tile is ready to harvest
+    tile_current = tile_at(farm, pos_current)
+    tile_current_harvestable = False
     
-    ## Scan MANAGED_TILES for actionable tiles
-    for pos in TILES_MANAGED:
-        tile = tile_at(farm, pos)
-        if (isinstance(tile, dict)
-                and tile["kind"] == "PLANT"
-                and tile["crop"]) == "CARROT":
-            crop_age = obs["day"] - tile["planted_day"]
+    ## First check if current tile is harvestable (for efficiency)
+    if (isinstance(tile_current, dict)
+                and tile_current["kind"] == "PLANT"
+                and tile_current["crop"] == "CARROT"
+                and tile_current["watered_today"] == True):
+        crop_age = obs["day"] - tile_current["planted_day"]
+        if crop_age >= MAX_YIELD_DAY_CARROT:
+            tile_current_harvestable = True
             
-            # If there is no tile to water, find a plant ready to harvest.
-            if not tile["watered_today"]:
-                water_targets.append(pos)
-            elif crop_age >= MAX_YIELD_DAY_CARROT:
-                harvest_targets.append(pos)
-        
-        # If there is enough time, find an empty tile to plant (and water).
-        elif (tile is None
-              and seed_carrot > 0
-              and obs["hour"] < LAST_HOUR_TODAY):
-            plant_targets.append(pos)
+    ## If not, scan MANAGED_TILES for actionable tiles        
+    if not tile_current_harvestable:      
+        for pos in TILES_MANAGED:
+            tile = tile_at(farm, pos)
+            if (isinstance(tile, dict)
+                    and tile["kind"] == "PLANT"
+                    and tile["crop"] == "CARROT"):
+                crop_age = obs["day"] - tile["planted_day"]
+                
+                # If there is no tile to water, find a plant ready to harvest.
+                if not tile["watered_today"]:
+                    water_targets.append(pos)
+                elif crop_age >= MAX_YIELD_DAY_CARROT:
+                    harvest_targets.append(pos)
+            
+            # If there is enough time, find an empty tile to plant (and water).
+            elif (tile is None
+                and seed_carrot > 0
+                and obs["hour"] < LAST_HOUR_TODAY):
+                plant_targets.append(pos)
             
     
     ## First priority, keep plants watered. Find an unwatered tile w/ plant.      
     ## Second priority, harvest. If there is no tile to water, go to a tile ready to harvest.
     ## Third priority, plant. If no tile to water and no plant ready to harvest, plant.
-    if water_targets:
+    if tile_current_harvestable:
+        pos_target = pos_current
+    elif water_targets:
         pos_target = nearest_position(pos_current, water_targets)
     elif harvest_targets:
         pos_target = nearest_position(pos_current, harvest_targets)

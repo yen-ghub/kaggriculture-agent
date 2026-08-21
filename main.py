@@ -37,23 +37,27 @@ def agent(obs):
     CARROT_SEED_COST    = 20
     LAST_HOUR_TODAY     = 23
     MAX_YIELD_DAY_CARROT = 3
+    FINAL_DAY           = 29
+    LAST_PLANTING_DAY   = 26
+    SHED_ACCESS_TILE    = (4,4)
     
     # Define tiles to manage in (x,y)
     TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
                      (1,3),(0,3)]
     
     # Get observations
-    player_id   = obs["player"]
-    farm        = obs["farms"][player_id]
-    private     = obs["private"]
-    shed        = private["shed"]
+    player_id       = obs["player"]
+    farm            = obs["farms"][player_id]
+    private         = obs["private"]
+    shed            = private["shed"]
     farmer_inventory = private["inventories"][0]
     
     pos_current = tuple(farm["farmer"])
     
-    # Inventory count
-    seed_carrot = private["seeds"].get("CARROT", 0)
-    shed_carrot = shed.get("CARROT", 0)
+    # Inventory count in the shed and in the backpack
+    seed_carrot     = private["seeds"].get("CARROT", 0)
+    shed_carrot     = shed.get("CARROT", 0)
+    backpack_carrot = farmer_inventory.get("CARROT", 0)
     
     # Initialise
     market_orders = []
@@ -112,20 +116,23 @@ def agent(obs):
     
     # Market orders
     ## Buy carrot seed if zero in inventory
-    if  seed_carrot == 0 and farm["money"] >= CARROT_SEED_COST:
+    if  (seed_carrot == 0 
+            and farm["money"] >= CARROT_SEED_COST
+            and obs["day"] <= LAST_PLANTING_DAY):
         market_orders.append(["BUY_SEED", "CARROT", 1])
     ## Sell carrot of there is any in the shed
     if shed_carrot > 0:
         market_orders.append(["SELL", "CARROT", shed_carrot])
     
-    ###
     
+    ####
     # Logic block to decide what to do. First, find a tile for action.
     ## Initiate empty target lists
     
-    water_targets = []
+    water_targets   = []
     harvest_targets = []
-    plant_targets = []
+    plant_targets   = []
+    mature_targets  = []        # Ready to harvest, regardless whether it is watered or not (for endgame)
     #pos_target = None
     
     ## To check if current tile is ready to harvest
@@ -141,7 +148,8 @@ def agent(obs):
         if crop_age >= MAX_YIELD_DAY_CARROT:
             tile_current_harvestable = True
             
-    ## If not, scan MANAGED_TILES for actionable tiles        
+    ## If not, scan MANAGED_TILES for actionable tiles
+    ## First check if the current tile is ready to harvest (mature + watered)        
     if not tile_current_harvestable:      
         for pos in TILES_MANAGED:
             tile = tile_at(farm, pos)
@@ -150,16 +158,23 @@ def agent(obs):
                     and tile["crop"] == "CARROT"):
                 crop_age = obs["day"] - tile["planted_day"]
                 
-                # If there is no tile to water, find a plant ready to harvest.
+                # List mature plants (regardless watered or not)
+                if crop_age >= MAX_YIELD_DAY_CARROT:
+                    mature_targets.append(pos)
+                
+                # Check if there is any tile to water, else, find a plant ready to harvest.
                 if not tile["watered_today"]:
-                    water_targets.append(pos)
+                    # Only water plants that can be harvested
+                    if obs["day"] < FINAL_DAY or crop_age >= MAX_YIELD_DAY_CARROT:
+                        water_targets.append(pos)
                 elif crop_age >= MAX_YIELD_DAY_CARROT:
                     harvest_targets.append(pos)
             
             # If there is enough time, find an empty tile to plant (and water).
             elif (tile is None
                 and seed_carrot > 0
-                and obs["hour"] < LAST_HOUR_TODAY):
+                and obs["hour"] < LAST_HOUR_TODAY
+                and obs["day"] <= LAST_PLANTING_DAY):
                 plant_targets.append(pos)
             
     
@@ -192,6 +207,17 @@ def agent(obs):
             else:
                 farmer_action = ["HARVEST"]    
             
+    # Final liquidation of harvested plants in the backpack
+    ## Check if it is the final day and if farmer is still carrying carrot
+    if (obs["day"] == FINAL_DAY
+            and backpack_carrot > 0
+            and not tile_current_harvestable
+            and not mature_targets):    
+        if pos_current != SHED_ACCESS_TILE:
+            farmer_action = move_to(pos_current, SHED_ACCESS_TILE)
+        else:
+            farmer_action = ["PLACE", "CARROT", backpack_carrot]
+            market_orders.append(["SELL", "CARROT", backpack_carrot])
     
     return {
         "farmer": farmer_action,

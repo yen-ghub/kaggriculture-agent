@@ -3,7 +3,7 @@ TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
                 (1,3),(0,3)]
 
  # Choose crop to plant
-CROP = "CARROT"
+CROP = "MELON"
     
 # Define constants and crop configs (a dict)
 CROP_CONFIGS = {

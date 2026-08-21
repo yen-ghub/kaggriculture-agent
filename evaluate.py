@@ -1,5 +1,5 @@
 from kaggle_environments import make
-from main import agent
+from main import agent, CROP
 from baselines.carrot_v1 import agent as baseline_agent
 
 # Define variables
@@ -38,7 +38,7 @@ def play_match(seed, our_position):
 
 def collect_diagnostics(env, our_position):
     harvest_count = 0
-    carrots_sold = 0
+    crops_sold = 0
 
     for step in env.steps:
         action = step[our_position].action
@@ -55,25 +55,25 @@ def collect_diagnostics(env, our_position):
             if (
                 len(market_order) >= 3
                 and market_order[0] == "SELL"
-                and market_order[1] == "CARROT"
+                and market_order[1] == CROP
             ):
-                carrots_sold += market_order[2]
+                crops_sold += market_order[2]
 
     final_observation = env.steps[-1][our_position].observation
     private = final_observation.private
 
-    carrots_carried = sum(
-        inventory.get("CARROT", 0)
+    crops_carried = sum(
+        inventory.get(CROP, 0)
         for inventory in private.inventories
     )
 
-    carrots_in_shed = private.shed.get("CARROT", 0)
+    crops_in_shed = private.shed.get(CROP, 0)
 
     return {
         "harvests": harvest_count,
-        "sold": carrots_sold,
-        "carried": carrots_carried,
-        "shed": carrots_in_shed,
+        "sold": crops_sold,
+        "carried": crops_carried,
+        "shed": crops_in_shed,
     }
 
 results = {
@@ -152,6 +152,6 @@ print(f"Match score:  {100 * match_score:.1f}%")
 print(f"Average ours: {sum(our_scores) / len(our_scores):.1f}")
 print(f"Average opp:  {sum(opponent_scores) / len(opponent_scores):.1f}")
 print(f"Average harvests:      {sum(harvest_counts) / len(harvest_counts):.1f}")
-print(f"Average carrots sold:  {sum(sold_counts) / len(sold_counts):.1f}")
+print(f"Average {CROP} sold:   {sum(sold_counts) / len(sold_counts):.1f}")
 print(f"Average final carried: {sum(final_carried_counts) / len(final_carried_counts):.1f}")
 print(f"Average final shed:    {sum(final_shed_counts) / len(final_shed_counts):.1f}")

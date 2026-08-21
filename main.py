@@ -1,3 +1,7 @@
+# Define tiles to manage in (x,y)
+TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
+                (1,3),(0,3)]
+
 def agent(obs):
     '''
     The content of `obs`:
@@ -41,9 +45,7 @@ def agent(obs):
     LAST_PLANTING_DAY   = 26
     SHED_ACCESS_TILE    = (4,4)
     
-    # Define tiles to manage in (x,y)
-    TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
-                     (1,3),(0,3)]
+    
     
     # Get observations
     player_id       = obs["player"]
@@ -112,8 +114,8 @@ def agent(obs):
 
         return pos_nearest
     
-    ###
     
+    ####
     # Market orders
     ## Buy carrot seed if zero in inventory
     if  (seed_carrot == 0 
@@ -133,6 +135,7 @@ def agent(obs):
     harvest_targets = []
     plant_targets   = []
     mature_targets  = []        # Ready to harvest, regardless whether it is watered or not (for endgame)
+    weed_targets    = []
     #pos_target = None
     
     ## To check if current tile is ready to harvest
@@ -170,6 +173,12 @@ def agent(obs):
                 elif crop_age >= MAX_YIELD_DAY_CARROT:
                     harvest_targets.append(pos)
             
+            # Before planting, check if there is any weed tile to clear
+            elif (isinstance(tile, dict)
+                    and tile["kind"] == "WEED"
+                    and obs["day"] <= LAST_PLANTING_DAY):
+                weed_targets.append(pos)
+            
             # If there is enough time, find an empty tile to plant (and water).
             elif (tile is None
                 and seed_carrot > 0
@@ -187,6 +196,8 @@ def agent(obs):
         pos_target = nearest_position(pos_current, water_targets)
     elif harvest_targets:
         pos_target = nearest_position(pos_current, harvest_targets)
+    elif weed_targets:
+        pos_target = nearest_position(pos_current, weed_targets)    
     elif plant_targets:
         pos_target = nearest_position(pos_current, plant_targets)
     else:
@@ -202,11 +213,15 @@ def agent(obs):
             # Choose action depending on the tile info
             if tile_target is None:
                 farmer_action = ["PLANT", "CARROT"]
-            elif tile_target["watered_today"] is False:
-                farmer_action = ["WATER"]
-            else:
-                farmer_action = ["HARVEST"]    
-            
+            elif tile_target.get("kind") == "WEED":
+                farmer_action = ["DIG"]
+            # If a plant exist, either harvest or water
+            elif tile_target.get("kind") == "PLANT":
+                if not tile_target["watered_today"]:
+                    farmer_action = ["WATER"]
+                else:
+                    farmer_action = ["HARVEST"]    
+                
     # Final liquidation of harvested plants in the backpack
     ## Check if it is the final day and if farmer is still carrying carrot
     if (obs["day"] == FINAL_DAY

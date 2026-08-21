@@ -1,9 +1,10 @@
 from kaggle_environments import make
 from main import agent
+from baselines.carrot_v1 import agent as baseline_agent
 
 # Define variables
-SEEDS = list(range(1,21))
-OPPONENT = "starter"
+SEEDS = list(range(1,6))
+OPPONENT = baseline_agent
 
 harvest_counts = []
 sold_counts = []
@@ -130,16 +131,24 @@ for seed in SEEDS:
             f"final_carried={diagnostics['carried']}, "
             f"final_shed={diagnostics['shed']}"
         )
-        
-completed_matches = results["WIN"] + results["LOSS"] + results["TIE"]
-win_rate = 100 * results["WIN"] / completed_matches
+
+total_matches = (
+    results["WIN"]
+    + results["LOSS"]
+    + results["TIE"]
+)        
+match_score = (
+    results["WIN"]
+    + 0.5 * results["TIE"]
+) / total_matches
+# win_rate = 100 * results["WIN"] / completed_matches
 
 print("\nSummary")
 print(f"Wins:         {results['WIN']}")
 print(f"Losses:       {results['LOSS']}")
 print(f"Ties:         {results['TIE']}")
 print(f"Errors:       {results['ERROR']}")
-print(f"Win rate:     {win_rate:.1f}%")
+print(f"Match score:  {100 * match_score:.1f}%")
 print(f"Average ours: {sum(our_scores) / len(our_scores):.1f}")
 print(f"Average opp:  {sum(opponent_scores) / len(opponent_scores):.1f}")
 print(f"Average harvests:      {sum(harvest_counts) / len(harvest_counts):.1f}")

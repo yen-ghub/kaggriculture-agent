@@ -2,7 +2,7 @@ from kaggle_environments import make
 from main import agent
 
 # Define variables
-SEEDS = [1, 2, 3, 4, 5]
+SEEDS = list(range(1,21))
 OPPONENT = "starter"
 
 harvest_counts = []

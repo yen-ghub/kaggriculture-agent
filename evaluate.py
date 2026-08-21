@@ -3,7 +3,7 @@ from main import agent, CROP
 from baselines.carrot_v1 import agent as baseline_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 OPPONENT = baseline_agent
 
 harvest_counts = []

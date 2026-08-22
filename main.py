@@ -1,7 +1,13 @@
 # Define tiles to manage in (x,y)
-TILES_MANAGED = [(4,4),(3,4),(2,4),(1,4),(0,4),
-                (4,3),(3,3),(2,3),(1,3),(0,3),
-                (4,2),(3,2),(2,2)]
+TILE_ROUTE = [
+    (4,4), (3,4), (2,4), (1,4), (0,4),
+    (0,3), (1,3), (2,3), (3,3), (4,3),
+    (4,2), (3,2), (2,2), (1,2), (0,2),
+    (0,1), (1,1), (2,1), (3,1), (4,1),
+    (4,0), (3,0), (2,0), (1,0), (0,0)]
+
+TILE_COUNT = 14
+TILES_MANAGED = TILE_ROUTE[:TILE_COUNT]
 
  # Choose crop to plant
 CROP = "MELON"
@@ -61,7 +67,7 @@ def agent(obs):
     }
     '''
     
-    # Get observations
+    # 1. Get observations
     player_id       = obs["player"]
     farm            = obs["farms"][player_id]
     private         = obs["private"]
@@ -79,9 +85,8 @@ def agent(obs):
     market_orders = []
     farmer_action = ["PASS"]
     
-    ###
-    
-    # Define helper functions
+    ####
+    # 2. Define helper functions
     ## Moving logic
     def move_to(current,target):
         x_curr,y_curr = current
@@ -130,7 +135,7 @@ def agent(obs):
     
     
     ####
-    # Market orders
+    # 3. Market orders
     ## Buy crop seed if zero in inventory
     if  (seed_crop == 0 
             and farm["money"] >= CROP_SEED_COST
@@ -142,7 +147,7 @@ def agent(obs):
     
     
     ####
-    # Logic block to decide what to do. First, find a tile for action.
+    # 4. Logic block to decide what to do. First, find a tile for action.
     ## Initiate empty target lists
     
     water_targets   = []
@@ -236,7 +241,7 @@ def agent(obs):
                 else:
                     farmer_action = ["HARVEST"]    
                 
-    # Final liquidation of harvested plants in the backpack
+    # 5. Final liquidation of harvested plants in the backpack
     ## Check if it is the final day and if farmer is still carrying crop
     if (obs["day"] == FINAL_DAY
             and backpack_crop > 0

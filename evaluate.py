@@ -1,6 +1,6 @@
 from kaggle_environments import make
 from main import agent, CROP
-from baselines.carrot_v1 import agent as baseline_agent
+from baselines.melon_v1 import agent as baseline_agent
 
 # Define variables
 SEEDS = list(range(1,21))

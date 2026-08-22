@@ -1,5 +1,5 @@
 from kaggle_environments import make
-from main import agent
+from main import agent, TILES_MANAGED, CROP_BY_TILE
 
 env = make(
     "kaggriculture",
@@ -55,6 +55,23 @@ for step_number, step in enumerate(env.steps):
             f"money={obs.farms[0].money}, "
             # f"market={player_state.action['market']}, "
             # f"tile={tile}"
-            f"home={describe_tile(home_tile)}, "
-            f"second={describe_tile(second_tile)}"
+            # f"home={describe_tile(home_tile)}, "
+            # f"second={describe_tile(second_tile)}"
         )
+        
+final_observation = env.steps[-1][0].observation
+final_farm = final_observation.farms[0]
+
+print("\nFinal managed tiles:")
+
+for index, position in enumerate(TILES_MANAGED):
+    x, y = position
+    tile = final_farm.tiles[y][x]
+    assigned_crop = CROP_BY_TILE[position]
+
+    print(
+        f"{index:2}: "
+        f"position={position}, "
+        f"assigned={assigned_crop}, "
+        f"actual={describe_tile(tile)}"
+    )

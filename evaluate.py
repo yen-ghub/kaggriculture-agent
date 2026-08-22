@@ -1,15 +1,29 @@
 from kaggle_environments import make
-from main import agent, CROP
+from main import agent, CROPS_MANAGED
 from baselines.melon_v1 import agent as baseline_agent
 
 # Define variables
 SEEDS = list(range(1,21))
+# SEEDS = [1]
 OPPONENT = baseline_agent
 
+# Accumulation count for each plant (dictionaries, one entry for each crop)
 harvest_counts = []
-sold_counts = []
-final_carried_counts = []
-final_shed_counts = []
+
+sold_counts = {
+    crop: []
+    for crop in CROPS_MANAGED
+}
+
+final_carried_counts = {
+    crop: []
+    for crop in CROPS_MANAGED
+}
+
+final_shed_counts = {
+    crop: []
+    for crop in CROPS_MANAGED
+}
 
 
 # Define helper functions
@@ -37,8 +51,12 @@ def play_match(seed, our_position):
     return env, our_state, opponent_state
 
 def collect_diagnostics(env, our_position):
+    #Initiate vars
     harvest_count = 0
-    crops_sold = 0
+    crops_sold = {
+        crop: 0
+        for crop in CROPS_MANAGED
+    }
 
     for step in env.steps:
         action = step[our_position].action
@@ -55,19 +73,26 @@ def collect_diagnostics(env, our_position):
             if (
                 len(market_order) >= 3
                 and market_order[0] == "SELL"
-                and market_order[1] == CROP
+                and market_order[1] in CROPS_MANAGED
             ):
-                crops_sold += market_order[2]
+                crop = market_order[1]
+                crops_sold[crop] += market_order[2]
 
     final_observation = env.steps[-1][our_position].observation
     private = final_observation.private
 
-    crops_carried = sum(
-        inventory.get(CROP, 0)
-        for inventory in private.inventories
-    )
+    crops_carried = {
+        crop: sum(
+            inventory.get(crop, 0)
+            for inventory in private.inventories
+        )
+        for crop in CROPS_MANAGED
+    }
 
-    crops_in_shed = private.shed.get(CROP, 0)
+    crops_in_shed = {
+        crop: private.shed.get(crop, 0)
+        for crop in CROPS_MANAGED
+    }
 
     return {
         "harvests": harvest_count,
@@ -116,9 +141,11 @@ for seed in SEEDS:
         diagnostics = collect_diagnostics(env, our_position)
 
         harvest_counts.append(diagnostics["harvests"])
-        sold_counts.append(diagnostics["sold"])
-        final_carried_counts.append(diagnostics["carried"])
-        final_shed_counts.append(diagnostics["shed"])
+
+        for crop in CROPS_MANAGED:
+            sold_counts[crop].append(diagnostics["sold"][crop])
+            final_carried_counts[crop].append(diagnostics["carried"][crop])
+            final_shed_counts[crop].append(diagnostics["shed"][crop])
                 
         print(
             f"seed={seed}, "
@@ -152,6 +179,17 @@ print(f"Match score:  {100 * match_score:.1f}%")
 print(f"Average ours: {sum(our_scores) / len(our_scores):.1f}")
 print(f"Average opp:  {sum(opponent_scores) / len(opponent_scores):.1f}")
 print(f"Average harvests:      {sum(harvest_counts) / len(harvest_counts):.1f}")
-print(f"Average {CROP} sold:   {sum(sold_counts) / len(sold_counts):.1f}")
-print(f"Average final carried: {sum(final_carried_counts) / len(final_carried_counts):.1f}")
-print(f"Average final shed:    {sum(final_shed_counts) / len(final_shed_counts):.1f}")
+for crop in CROPS_MANAGED:
+    average_sold = sum(sold_counts[crop]) / len(sold_counts[crop])
+    average_carried = (
+        sum(final_carried_counts[crop])
+        / len(final_carried_counts[crop])
+    )
+    average_shed = (
+        sum(final_shed_counts[crop])
+        / len(final_shed_counts[crop])
+    )
+
+    print(f"Average {crop} sold:    {average_sold:.1f}")
+    print(f"Average {crop} carried: {average_carried:.1f}")
+    print(f"Average {crop} in shed: {average_shed:.1f}")

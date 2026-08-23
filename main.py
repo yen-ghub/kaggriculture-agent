@@ -26,14 +26,26 @@ CROP_CONFIGS = {
  
 
 CROPS_MANAGED = tuple(CROP_CONFIGS)
-CROP_BY_TILE = {}
 
 # Pair each tile with one type of plant (a dict)
-for index, position in enumerate(TILES_MANAGED):
-    if index < MELON_TILE_COUNT:
-        CROP_BY_TILE[position] = "MELON"
-    else:
-        CROP_BY_TILE[position] = "CARROT"
+def make_fixed_crop_plan(melon_tile_count):
+    if not 0 <= melon_tile_count <= len(TILES_MANAGED):
+        raise ValueError(
+            "melon_tile_count must be between 0 "
+            f"and {len(TILES_MANAGED)}"
+        )
+
+    crop_plan = {}
+
+    for index, position in enumerate(TILES_MANAGED):
+        if index < melon_tile_count:
+            crop_plan[position] = "MELON"
+        else:
+            crop_plan[position] = "CARROT"
+
+    return crop_plan
+
+CROP_BY_TILE = make_fixed_crop_plan(MELON_TILE_COUNT)
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
@@ -275,15 +287,36 @@ def agent(obs):
                     farmer_action = ["WATER"]
                 else:
                     farmer_action = ["HARVEST"]    
+    
                 
     # 5. Final liquidation of harvested plants in the backpack
     ## Check if it is the final day and if farmer is still carrying crop
     backpack_total = sum(backpack_counts.values())
     
+    ## Check if we need to override the "harvest everything before PLACE-ing in the shed" logic
+    ## Calculate the number of actions needed to go back to the shed + to PLACE the crops
+    n_crops_carried = 0
+    for crop in CROPS_MANAGED:
+        if backpack_counts[crop] > 0:
+            n_crops_carried += 1
+    
+    actions_to_liquidate = n_crops_carried + distance_between(pos_current, SHED_ACCESS_TILE)
+    actions_remaining = (LAST_HOUR_TODAY) - obs["hour"]
+    
+    # Create flags for liquidation conditions (start liquidation if either is True)
+    liquidation_is_urgent = (
+        obs["day"] == FINAL_DAY
+        and backpack_total > 0
+        and  actions_remaining <= actions_to_liquidate
+    )
+    harvest_is_done = (
+        not tile_current_harvestable
+        and not mature_targets
+    )
+    
     if (obs["day"] == FINAL_DAY
             and backpack_total > 0
-            and not tile_current_harvestable
-            and not mature_targets):    
+            and (liquidation_is_urgent or harvest_is_done)):    
         if pos_current != SHED_ACCESS_TILE:
             farmer_action = move_to(pos_current, SHED_ACCESS_TILE)
         else:

@@ -1,6 +1,6 @@
 # Kaggriculture Mechanics
 
-Note: AI-generated
+Note: AI-generated, to summarise and keep track of the learnings from the incremental improvements.
 
 This document records game mechanics verified through local traces, the
 competition environment, or direct experiments.
@@ -15,6 +15,11 @@ Strategy choices and unverified assumptions should be recorded separately.
 - The final step is day `29`, hour `23`.
 - Each player submits one action dictionary per step.
 - The player with the most money at the end wins.
+
+Local evaluation shows that the observation at day `29`, hour `23` must be
+treated as the terminal state. An action submitted from that observation
+should not be relied upon to produce another observable state change. Final
+movement, depositing, and selling must therefore be completed before it.
 
 A useful relationship is:
 
@@ -291,6 +296,20 @@ Therefore, produce remaining in the backpack or shed at the end of the match
 does not contribute to final money. The agent must liquidate it before the
 game ends.
 
+On the final day, the number of usable actions remaining for liquidation is:
+
+```python
+usable_actions_remaining = 23 - obs["hour"]
+```
+
+The terminal observation at hour `23` therefore has zero usable actions
+remaining. For example, at hour `19` there are four usable actions in which to
+move, deposit, and sell.
+
+Returning carried produce requires one movement action per tile of Manhattan
+distance to the shed-access tile. It also requires one `PLACE` action for each
+distinct crop type being carried.
+
 ## Plants and watering
 
 A plant tile is represented by a dictionary similar to:
@@ -413,6 +432,19 @@ Before the final step, the agent should:
 - Use `PLACE` to deposit carried produce
 - Sell all produce remaining in the shed
 - Finish with zero carried produce and zero shed produce
+
+The agent should compare its remaining action budget with the work needed to
+liquidate:
+
+```python
+actions_needed_to_liquidate = (
+    distance_to_shed
+    + number_of_carried_crop_types
+)
+```
+
+When the remaining usable actions are less than or equal to this requirement,
+liquidation must take priority over watering or harvesting additional crops.
 
 The evaluation script records final carried and shed quantities to detect
 failed liquidation.

@@ -16,11 +16,13 @@ MELON_TILE_COUNT = 10
 CROP_CONFIGS = {
     "CARROT": {
         "seed_cost": 20,
-        "harvest_day": 3
+        "harvest_day": 3,
+        "harvest_yield": 3
     },
     "MELON": {
         "seed_cost": 80,
         "harvest_day": 10,
+        "harvest_yield": 6
     },
 }
  
@@ -85,6 +87,8 @@ def agent(obs):
         "max_lifespan_step":    int,    # step at which decay begins; -1 for ongoing crops
         "fertilized_until_day": int,    # last day fertilizer bonus applies; -1 if none
     }
+    
+    
     '''
     
     # 1. Get observations
@@ -164,19 +168,123 @@ def agent(obs):
 
         return pos_nearest
     
+    # Count a specific crop type in a farm (primarily to inspect opponent's crop)
+    def count_crop_plants(farm_to_check, crop):
+        plant_count = 0
+        
+        # Loope through every tile in the chosen farm
+        for row in farm_to_check["tiles"]:
+            for tile in row:
+                if (isinstance(tile, dict)
+                        and tile.get("kind") == "PLANT"
+                        and tile.get("crop") == crop):
+                    
+                    plant_count += 1
+                    
+        return plant_count
+    
+    def crop_profit_per_day(crop):
+        crop_config = CROP_CONFIGS[crop]
+        current_price = obs["market"]["prices"][crop]
+
+        expected_revenue = (
+            crop_config["harvest_yield"]
+            * current_price
+        )
+        expected_profit = (
+            expected_revenue
+            - crop_config["seed_cost"]
+        )
+
+        return expected_profit / crop_config["harvest_day"]
+    
+    def choose_crop_for_planting():
+        # First decision layer, filter based on no of days left, no point planting if can't harvest
+        carrot_last_planting_day = (
+            FINAL_DAY
+            - CROP_CONFIGS["CARROT"]["harvest_day"]
+        )
+        melon_last_planting_day = (
+            FINAL_DAY
+            - CROP_CONFIGS["MELON"]["harvest_day"]
+        )
+
+        # When there is not enough time for both crops
+        if obs["day"] > carrot_last_planting_day:
+            return None
+
+        # When there is not enough time for melon, choose carrot
+        if obs["day"] > melon_last_planting_day:
+            return "CARROT"
+
+        # Second decision layer, based on expected profit per day (based on the current market price)
+        carrot_profit = crop_profit_per_day("CARROT")
+        melon_profit = crop_profit_per_day("MELON")
+
+        # Prefer carrots when current melon economics are worse
+        if melon_profit <= carrot_profit:
+            return "CARROT"
+
+        # Third decision layer, based on opponent's crop
+        opponent_id = 1 - player_id
+        opponent_farm = obs["farms"][opponent_id]
+
+        opponent_melons = count_crop_plants(
+            opponent_farm,
+            "MELON",
+        )
+        opponent_carrots = count_crop_plants(
+            opponent_farm,
+            "CARROT",
+        )
+        our_melons = count_crop_plants(
+            farm,
+            "MELON",
+        )
+
+        if opponent_melons == 0:
+            target_melons = 15
+        elif (
+            opponent_carrots > 0
+            and opponent_melons <= 10
+        ):
+            target_melons = 13
+        else:
+            target_melons = 10
+
+        target_melons = min(
+            target_melons,
+            len(TILES_MANAGED),
+        )
+
+        if our_melons < target_melons:
+            return "MELON"
+
+        return "CARROT"
+    
+    crop_selected_for_planting = choose_crop_for_planting()
+    
+    if crop_selected_for_planting is not None:
+        selected_harvest_day = CROP_CONFIGS[crop_selected_for_planting]["harvest_day"]
+
+        selected_last_planting_day = (FINAL_DAY - selected_harvest_day)
+    else:
+        selected_last_planting_day = -1
     
     ####
     # 3. Market orders
+    money_available = farm["money"]
     
     ## Buy crop seed if zero in inventory (i.e. maintain one available seed for each crop)
     for crop in CROPS_MANAGED:
-        last_planting_day = FINAL_DAY - CROP_CONFIGS[crop]["harvest_day"]
-        money_available = farm["money"]
+        last_planting_day = FINAL_DAY - CROP_CONFIGS[crop]["harvest_day"]    
+        seed_cost = CROP_CONFIGS[crop]["seed_cost"]
         
         if  (seed_counts[crop] == 0 
-                and money_available >= CROP_CONFIGS[crop]["seed_cost"]
+                and money_available >= seed_cost
                 and obs["day"] <= last_planting_day):
-            market_orders.append(["BUY_SEED", crop, 1])
+            market_orders.append(["BUY_SEED", crop, 1])          
+            money_available -= seed_cost
             
     ## Sell crop of there is any in the shed (loop for each crop)
     for crop in CROPS_MANAGED:
@@ -215,9 +323,9 @@ def agent(obs):
     if not tile_current_harvestable:      
         for pos in TILES_MANAGED:
             tile = tile_at(farm, pos)
-            assigned_crop = CROP_BY_TILE[pos]
-            assigned_harvest_day = CROP_CONFIGS[assigned_crop]["harvest_day"]
-            last_planting_day = FINAL_DAY - assigned_harvest_day
+            # assigned_crop = CROP_BY_TILE[pos]
+            # assigned_harvest_day = CROP_CONFIGS[assigned_crop]["harvest_day"]
+            # last_planting_day = FINAL_DAY - assigned_harvest_day
             
             if (isinstance(tile, dict)
                     and tile["kind"] == "PLANT"
@@ -242,14 +350,16 @@ def agent(obs):
             # (only clear if there is enough time to re-plant and harvest)
             elif (isinstance(tile, dict)
                     and tile["kind"] == "WEED"
-                    and obs["day"] <= last_planting_day):
+                    and crop_selected_for_planting is not None
+                    and obs["day"] <= selected_last_planting_day):
                 weed_targets.append(pos)
             
-            # If there is enough time, find an empty tile to plant (and water).
+            # If there is enough time, find an empty tile to plant crop_selected_for_planting
             elif (tile is None
-                and seed_counts[assigned_crop] > 0
-                and obs["hour"] < LAST_HOUR_TODAY
-                and obs["day"] <= last_planting_day):
+                    and crop_selected_for_planting is not None
+                    and seed_counts[crop_selected_for_planting] > 0
+                    and obs["hour"] < LAST_HOUR_TODAY
+                    and obs["day"] <= selected_last_planting_day):
                 plant_targets.append(pos)
             
     
@@ -277,8 +387,10 @@ def agent(obs):
             tile_target = tile_at(farm,pos_current)
             
             # Choose action depending on the tile info
+            # If tile is empty, PLANT
             if tile_target is None:
-                farmer_action = ["PLANT", CROP_BY_TILE[pos_current]]    # Plant according to the assigned crop
+                farmer_action = ["PLANT", crop_selected_for_planting]    # Plant according to the assigned crop
+            # If there is weed, DIG
             elif tile_target.get("kind") == "WEED":
                 farmer_action = ["DIG"]
             # If a plant exist, either harvest or water

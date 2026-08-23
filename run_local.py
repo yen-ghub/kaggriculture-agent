@@ -1,5 +1,6 @@
 from kaggle_environments import make
-from main import agent, TILES_MANAGED, CROP_BY_TILE
+from main import agent, TILES_MANAGED
+from baselines.mixed_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
@@ -10,7 +11,7 @@ env = make(
     debug=True,
 )
 
-env.run([agent, "pass"])
+env.run([agent, baseline_agent])
 
 #final_step = env.steps[-1]
 
@@ -67,11 +68,9 @@ print("\nFinal managed tiles:")
 for index, position in enumerate(TILES_MANAGED):
     x, y = position
     tile = final_farm.tiles[y][x]
-    assigned_crop = CROP_BY_TILE[position]
 
     print(
         f"{index:2}: "
         f"position={position}, "
-        f"assigned={assigned_crop}, "
         f"actual={describe_tile(tile)}"
     )

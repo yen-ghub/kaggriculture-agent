@@ -1,9 +1,10 @@
 from kaggle_environments import make
 
 import main
-from baselines.melon_v1 import agent as baseline_agent
+from baselines.mixed_v1 import agent as baseline_agent
 
-MELON_COUNTS = [7]
+# MELON_COUNTS = range(0, len(main.TILES_MANAGED) + 1)
+MELON_COUNTS = [8,10,12,13]
 # MELON_COUNTS = range(7, 13)
 SEEDS = range(1, 21)
 # SEEDS = [16]
@@ -84,7 +85,7 @@ for melon_count in MELON_COUNTS:
                     "episodeSteps": 720,
                     "seed": seed,
                 },
-                debug=True,
+                debug=False,
             )
 
             env.run(agents)

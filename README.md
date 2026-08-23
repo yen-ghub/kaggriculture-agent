@@ -52,6 +52,7 @@ They are unrelated to Kaggriculture if the match still runs successfully.
 - `sweep_tiles.py` — managed-tile-count experiments
 - `baselines/carrot_v1.py` — frozen carrot baseline
 - `baselines/melon_v1.py` — frozen melon baseline
+- `baselines/mixed_v1.py` — frozen 10-melon/5-carrot baseline
 - `requirements.txt` — Python dependencies
 
 

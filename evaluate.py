@@ -1,37 +1,29 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
-from baselines.adaptive_v1 import agent as baseline_agent
+from baselines.carrot_v1 import agent as carrot_agent
+from baselines.melon_v1 import agent as melon_agent
+from baselines.mixed_v1 import agent as mixed_agent
+from baselines.adaptive_v1 import agent as adaptive_agent
+from baselines.hand_v1 import agent as hand_agent
 
 # Define variables
 SEEDS = list(range(1,21))
 # SEEDS = [1]
-OPPONENT = baseline_agent
-
-# Accumulation count for each plant (dictionaries, one entry for each crop)
-harvest_counts = []
-
-sold_counts = {
-    crop: []
-    for crop in CROPS_MANAGED
+OPPONENTS = {
+    "starter": "starter",
+    "carrot_v1": carrot_agent,
+    "melon_v1": melon_agent,
+    "mixed_v1": mixed_agent,
+    "adaptive_v1": adaptive_agent,
+    "hand_v1": hand_agent,
 }
-
-final_carried_counts = {
-    crop: []
-    for crop in CROPS_MANAGED
-}
-
-final_shed_counts = {
-    crop: []
-    for crop in CROPS_MANAGED
-}
-
 
 # Define helper functions
-def play_match(seed, our_position):
+def play_match(seed, our_position, opponent):
     if our_position == 0:
-        agents = [agent, OPPONENT]
+        agents = [agent, opponent]
     else:
-        agents = [OPPONENT, agent]
+        agents = [opponent, agent]
     
     env = make(
         "kaggriculture",
@@ -39,7 +31,7 @@ def play_match(seed, our_position):
             "episodeSteps": 720,
             "seed": seed,
         },
-        debug=True,
+        debug=False,
     )
 
     env.run(agents)
@@ -68,6 +60,10 @@ def collect_diagnostics(env, our_position):
 
         if farmer_action and farmer_action[0] == "HARVEST":
             harvest_count += 1
+
+        for hand_action in action.get("hands", []):
+            if hand_action and hand_action[0] == "HARVEST":
+                harvest_count += 1
 
         for market_order in action.get("market", []):
             if (
@@ -101,95 +97,193 @@ def collect_diagnostics(env, our_position):
         "shed": crops_in_shed,
     }
 
-results = {
-    "WIN": 0,
-    "LOSS": 0,
-    "TIE": 0,
-    "ERROR": 0,
-}
+def average(values):
+    if not values:
+        return 0.0
 
-our_scores = []
-opponent_scores = []
+    return sum(values) / len(values)
 
-for seed in SEEDS:
-    for our_position in (0, 1):
-        env, our_state, opponent_state = play_match(seed, our_position)
-        
-        our_score = our_state.reward
-        opponent_score = opponent_state.reward
 
-        if our_state.status != "DONE":
-            result = "ERROR"
-        elif opponent_state.status != "DONE":
-            result = "WIN"
-        elif our_state.reward > opponent_state.reward:
-            result = "WIN"
-        elif our_state.reward < opponent_state.reward:
-            result = "LOSS"
-        else:
-            result = "TIE"
-            
-        results[result] += 1
-        
-        if our_state.reward is not None:
-            our_scores.append(our_state.reward)
+def evaluate_opponent(
+        opponent_name,
+        opponent,
+        seeds,
+        verbose=False,
+):
+    # These must reset for every opponent.
+    results = {
+        "WIN": 0,
+        "LOSS": 0,
+        "TIE": 0,
+        "ERROR": 0,
+    }
 
-        if opponent_state.reward is not None:
-            opponent_scores.append(opponent_state.reward)
+    
+    # Accumulation count for each plant (dictionaries, one entry for each crop)
+    our_scores = []
+    opponent_scores = []
+    harvest_counts = []
 
-        # Diagnostics of harvest count
-        diagnostics = collect_diagnostics(env, our_position)
+    sold_counts = {crop: [] for crop in CROPS_MANAGED}
 
-        harvest_counts.append(diagnostics["harvests"])
+    final_carried_counts = {crop: [] for crop in CROPS_MANAGED}
 
-        for crop in CROPS_MANAGED:
-            sold_counts[crop].append(diagnostics["sold"][crop])
-            final_carried_counts[crop].append(diagnostics["carried"][crop])
-            final_shed_counts[crop].append(diagnostics["shed"][crop])
-                
+    final_shed_counts = {crop: [] for crop in CROPS_MANAGED}
+
+    for seed in seeds:
+        for our_position in (0, 1):
+            env, our_state, opponent_state = play_match(
+                seed,
+                our_position,
+                opponent,
+            )
+
+            if our_state.status != "DONE":
+                result = "ERROR"
+            elif opponent_state.status != "DONE":
+                result = "WIN"
+            elif our_state.reward > opponent_state.reward:
+                result = "WIN"
+            elif our_state.reward < opponent_state.reward:
+                result = "LOSS"
+            else:
+                result = "TIE"
+
+            results[result] += 1
+
+            if our_state.reward is not None:
+                our_scores.append(our_state.reward)
+
+            if opponent_state.reward is not None:
+                opponent_scores.append(opponent_state.reward)
+
+            diagnostics = collect_diagnostics(
+                env,
+                our_position,
+            )
+
+            harvest_counts.append(diagnostics["harvests"])
+
+            for crop in CROPS_MANAGED:
+                sold_counts[crop].append(diagnostics["sold"][crop])
+                final_carried_counts[crop].append(diagnostics["carried"][crop])
+                final_shed_counts[crop].append(diagnostics["shed"][crop])
+
+            if verbose:
+                print(
+                    f"opponent={opponent_name}, "
+                    f"seed={seed}, "
+                    f"position={our_position}, "
+                    f"ours={our_state.reward}, "
+                    f"opponent_score={opponent_state.reward}, "
+                    f"result={result}"
+                )
+
+    completed_matches = (results["WIN"] + results["LOSS"] + results["TIE"]
+    )
+
+    if completed_matches > 0:
+        match_score = (results["WIN"] + 0.5 * results["TIE"]) / completed_matches
+    else:
+        match_score = 0.0
+
+    crop_averages = {}
+
+    for crop in CROPS_MANAGED:
+        crop_averages[crop] = {
+            "sold": average(sold_counts[crop]),
+            "carried": average(final_carried_counts[crop]),
+            "shed": average(final_shed_counts[crop]),
+        }
+
+    return {
+        "opponent": opponent_name,
+        "results": results,
+        "match_score": match_score,
+        "average_ours": average(our_scores),
+        "average_opponent": average(opponent_scores),
+        "average_harvests": average(harvest_counts),
+        "crops": crop_averages,
+    }
+    
+def print_opponent_summary(summary):
+    results = summary["results"]
+
+    print(f"\nAgainst {summary['opponent']}")
+    print(f"Wins:         {results['WIN']}")
+    print(f"Losses:       {results['LOSS']}")
+    print(f"Ties:         {results['TIE']}")
+    print(f"Errors:       {results['ERROR']}")
+    print(
+        f"Match score:  "
+        f"{100 * summary['match_score']:.1f}%"
+    )
+    print(
+        f"Average ours: "
+        f"{summary['average_ours']:.1f}"
+    )
+    print(
+        f"Average opp:  "
+        f"{summary['average_opponent']:.1f}"
+    )
+    print(
+        f"Average harvests: "
+        f"{summary['average_harvests']:.1f}"
+    )
+
+    for crop in CROPS_MANAGED:
+        crop_results = summary["crops"][crop]
+
         print(
-            f"seed={seed}, "
-            f"position={our_position}, "
-            f"ours={our_state.reward}, "
-            f"opponent={opponent_state.reward}, "
-            f"result={result},"
-            f"harvests={diagnostics['harvests']}, "
-            f"sold={diagnostics['sold']}, "
-            f"final_carried={diagnostics['carried']}, "
-            f"final_shed={diagnostics['shed']}"
+            f"Average {crop} sold: "
+            f"{crop_results['sold']:.1f}"
+        )
+        print(
+            f"Average {crop} leftover: "
+            f"{crop_results['carried'] + crop_results['shed']:.1f}"
+        )
+        
+def main():
+    suite_results = []
+
+    for opponent_name, opponent in OPPONENTS.items():
+        summary = evaluate_opponent(
+            opponent_name,
+            opponent,
+            SEEDS,
+            verbose=False,
         )
 
-total_matches = (
-    results["WIN"]
-    + results["LOSS"]
-    + results["TIE"]
-)        
-match_score = (
-    results["WIN"]
-    + 0.5 * results["TIE"]
-) / total_matches
-# win_rate = 100 * results["WIN"] / completed_matches
+        print_opponent_summary(summary)
+        suite_results.append(summary)
 
-print("\nSummary")
-print(f"Wins:         {results['WIN']}")
-print(f"Losses:       {results['LOSS']}")
-print(f"Ties:         {results['TIE']}")
-print(f"Errors:       {results['ERROR']}")
-print(f"Match score:  {100 * match_score:.1f}%")
-print(f"Average ours: {sum(our_scores) / len(our_scores):.1f}")
-print(f"Average opp:  {sum(opponent_scores) / len(opponent_scores):.1f}")
-print(f"Average harvests:      {sum(harvest_counts) / len(harvest_counts):.1f}")
-for crop in CROPS_MANAGED:
-    average_sold = sum(sold_counts[crop]) / len(sold_counts[crop])
-    average_carried = (
-        sum(final_carried_counts[crop])
-        / len(final_carried_counts[crop])
-    )
-    average_shed = (
-        sum(final_shed_counts[crop])
-        / len(final_shed_counts[crop])
+    macro_match_score = average([
+        summary["match_score"]
+        for summary in suite_results
+    ])
+
+    worst_result = min(
+        suite_results,
+        key=lambda summary: summary["match_score"],
     )
 
-    print(f"Average {crop} sold:    {average_sold:.1f}")
-    print(f"Average {crop} carried: {average_carried:.1f}")
-    print(f"Average {crop} in shed: {average_shed:.1f}")
+    total_errors = sum(
+        summary["results"]["ERROR"]
+        for summary in suite_results
+    )
+
+    print("\nSuite summary")
+    print(
+        f"Macro match score: "
+        f"{100 * macro_match_score:.1f}%"
+    )
+    print(
+        f"Worst opponent:    "
+        f"{worst_result['opponent']} "
+        f"({100 * worst_result['match_score']:.1f}%)"
+    )
+    print(f"Total errors:      {total_errors}")
+
+
+if __name__ == "__main__":
+    main()

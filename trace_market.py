@@ -1,7 +1,7 @@
 from kaggle_environments import make
 
 from main import agent
-from baselines.mixed_v1 import agent as baseline_agent
+from baselines.adaptive_v1 import agent as baseline_agent
 
 
 def count_plants(farm, crop):
@@ -44,6 +44,8 @@ for step in env.steps:
 
     print(
         f"day={observation.day:2}, "
+        f"our_money={our_farm['money']:8.1f}, "
+        f"opp_money={opponent_farm['money']:8.1f}, "    
         f"carrot_price={prices['CARROT']:3}, "
         f"melon_price={prices['MELON']:3}, "
         f"carrot_inventory={inventory['CARROT']:5}, "

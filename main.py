@@ -48,10 +48,16 @@ def make_fixed_crop_plan(melon_tile_count):
     return crop_plan
 
 CROP_BY_TILE = make_fixed_crop_plan(MELON_TILE_COUNT)
+MELON_REPLANT_PRICE_THRESHOLD = 220
+POST_GLUT_MELON_TARGET = 4
+HEAVY_OPPONENT_MELON_TARGET = 13
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
 SHED_ACCESS_TILE    = (4,4) 
+FIRST_HAND_HIRE_COST = 1
+HAND_WORK_TILE_COUNT = 8
+HAND_WORK_TILES = TILES_MANAGED[:HAND_WORK_TILE_COUNT]
 
 
 def agent(obs):
@@ -122,7 +128,8 @@ def agent(obs):
     
     ####
     # 2. Define helper functions
-    ## Moving logic
+    
+    ## 2.1 Moving logic
     def move_to(current,target):
         x_curr,y_curr = current
         x_targ,y_targ = target
@@ -138,14 +145,14 @@ def agent(obs):
         
         return ["PASS"]
         
-    # Convert position (x,y) to tile [y][x]
+    ## 2.2 Convert position (x,y) to tile [y][x]
     def tile_at(farm,pos):
         x,y = pos
         tile = farm["tiles"][y][x] 
         
         return tile 
     
-    # Distance calculator
+    ## 2.3 Distance calculator
     def distance_between(coord1, coord2):
         x1, y1 = coord1
         x2, y2 = coord2
@@ -154,7 +161,7 @@ def agent(obs):
         
         return dist_manhattan
     
-    # Find closest actionable tile to current position
+    ## 2.4 Find closest actionable tile to current position
     def nearest_position(current, positions):
         pos_nearest = None
         nearest_distance = None
@@ -168,7 +175,7 @@ def agent(obs):
 
         return pos_nearest
     
-    # Count a specific crop type in a farm (primarily to inspect opponent's crop)
+    ## 2.5 Count a specific crop type in a farm (primarily to inspect opponent's crop)
     def count_crop_plants(farm_to_check, crop):
         plant_count = 0
         
@@ -183,6 +190,7 @@ def agent(obs):
                     
         return plant_count
     
+    ## 2.6
     def crop_profit_per_day(crop):
         crop_config = CROP_CONFIGS[crop]
         current_price = obs["market"]["prices"][crop]
@@ -198,6 +206,7 @@ def agent(obs):
 
         return expected_profit / crop_config["harvest_day"]
     
+    ## 2.7 Adaptive crop selection, considering market price and opponent's crop selection
     def choose_crop_for_planting():
         # First decision layer, filter based on no of days left, no point planting if can't harvest
         carrot_last_planting_day = (
@@ -226,31 +235,24 @@ def agent(obs):
             return "CARROT"
 
         # Third decision layer, based on opponent's crop
-        opponent_id = 1 - player_id
-        opponent_farm = obs["farms"][opponent_id]
-
-        opponent_melons = count_crop_plants(
-            opponent_farm,
-            "MELON",
-        )
-        opponent_carrots = count_crop_plants(
-            opponent_farm,
-            "CARROT",
-        )
-        our_melons = count_crop_plants(
-            farm,
-            "MELON",
-        )
-
-        if opponent_melons == 0:
+        opponent_id         = 1 - player_id
+        opponent_farm       = obs["farms"][opponent_id]
+        opponent_melons     = count_crop_plants(opponent_farm, "MELON")
+        opponent_carrots    = count_crop_plants(opponent_farm, "CARROT")
+        our_melons          = count_crop_plants(farm, "MELON")
+        current_melon_price = obs["market"]["prices"]["MELON"]
+        
+        # Optimal number of melon tiles based on experiment
+        # Guard against melon price crash 
+        if current_melon_price < MELON_REPLANT_PRICE_THRESHOLD:
+            target_melons = POST_GLUT_MELON_TARGET
+        # If opponent not planting melon, go full melon
+        elif opponent_melons == 0:
             target_melons = 15
-        elif (
-            opponent_carrots > 0
-            and opponent_melons <= 10
-        ):
+        elif (opponent_carrots > 0 and opponent_melons <= 10):
             target_melons = 13
         else:
-            target_melons = 10
+            target_melons = HEAVY_OPPONENT_MELON_TARGET
 
         target_melons = min(
             target_melons,
@@ -262,19 +264,61 @@ def agent(obs):
 
         return "CARROT"
     
-    crop_selected_for_planting = choose_crop_for_planting()
-    
-    if crop_selected_for_planting is not None:
-        selected_harvest_day = CROP_CONFIGS[crop_selected_for_planting]["harvest_day"]
+    # 2.8 Farm hand logic
+    def choose_hand_action(hand_position):
+        
+        hand_harvest_targets = []
+        hand_water_targets = []
+        
+        # Scan the farm-hand-assigned tiles
+        for position in HAND_WORK_TILES:
+            tile = tile_at(farm, position)
 
-        selected_last_planting_day = (FINAL_DAY - selected_harvest_day)
-    else:
-        selected_last_planting_day = -1
+            # Validate the tile before reading plant-specific fields.
+            if (not isinstance(tile, dict)
+                    or tile.get("kind") != "PLANT"
+                    or tile.get("crop") not in CROPS_MANAGED):
+                continue
+            
+            crop = tile["crop"]
+            crop_age = obs["day"] - tile["planted_day"]
+            harvest_day = CROP_CONFIGS[crop]["harvest_day"]
+            
+            if (isinstance(tile, dict)
+                    and tile.get("kind") == "PLANT"
+                    and tile["watered_today"]
+                    and crop_age >= harvest_day):
+                hand_harvest_targets.append(position)
+            elif not tile["watered_today"]:
+                hand_water_targets.append(position)
+
+        # Check if already on actionable tile before travelling elsewhere
+        if hand_position in hand_harvest_targets:
+            return ["HARVEST"]
+
+        if hand_position in hand_water_targets:
+            return ["WATER"]
+
+        # Travel to harvest ready produce first, then handle remaining watering.
+        if hand_harvest_targets:
+            target = nearest_position(hand_position, hand_harvest_targets)
+        elif hand_water_targets:
+            target = nearest_position(hand_position, hand_water_targets)
+        else:
+            return ["PASS"]
+
+        return move_to(hand_position, target)
     
     ####
     # 3. Market orders
     money_available = farm["money"]
     
+    if (obs["day"] < FINAL_DAY
+            and obs["hour"] == 0 
+            and money_available >= FIRST_HAND_HIRE_COST):
+        market_orders.append(["HIRE"])
+        money_available -= FIRST_HAND_HIRE_COST
+        
     ## Buy crop seed if zero in inventory (i.e. maintain one available seed for each crop)
     for crop in CROPS_MANAGED:
         last_planting_day = FINAL_DAY - CROP_CONFIGS[crop]["harvest_day"]    
@@ -294,12 +338,12 @@ def agent(obs):
     
     ####
     # 4. Logic block to decide what to do. First, find a tile for action.
-    ## Initiate empty target lists
     
+    ## Initiate empty target lists
     water_targets   = []
-    harvest_targets = []
+    harvest_targets = []        # Fully ready to harvest (mature + watered)
     plant_targets   = []
-    mature_targets  = []        # Ready to harvest, regardless whether it is watered or not (for endgame)
+    mature_targets  = []        # Partially ready to harvest, regardless whether it is watered or not (for endgame)
     weed_targets    = []
     #pos_target = None
     
@@ -319,13 +363,20 @@ def agent(obs):
             tile_current_harvestable = True
             
     ## If not, scan MANAGED_TILES for actionable tiles
+    
+    ## Pick a crop based on the current strategy (market price + opponent's crops)
+    crop_selected_for_planting = choose_crop_for_planting()       
+    if crop_selected_for_planting is not None:
+        selected_harvest_day = CROP_CONFIGS[crop_selected_for_planting]["harvest_day"]
+
+        selected_last_planting_day = (FINAL_DAY - selected_harvest_day)
+    else:
+        selected_last_planting_day = -1
+                   
     ## First check if the current tile is ready to harvest (mature + watered)        
     if not tile_current_harvestable:      
         for pos in TILES_MANAGED:
             tile = tile_at(farm, pos)
-            # assigned_crop = CROP_BY_TILE[pos]
-            # assigned_harvest_day = CROP_CONFIGS[assigned_crop]["harvest_day"]
-            # last_planting_day = FINAL_DAY - assigned_harvest_day
             
             if (isinstance(tile, dict)
                     and tile["kind"] == "PLANT"
@@ -339,12 +390,17 @@ def agent(obs):
                     mature_targets.append(pos)
                 
                 # Check if there is any tile to water, else, find a plant ready to harvest.
+                # First check who is the tile assigned to
+                hand_is_responsible = (len(farm["hands"]) > 0 and pos in HAND_WORK_TILES)
                 if not tile["watered_today"]:
-                    # Only water plants that can be harvested
-                    if obs["day"] < FINAL_DAY or crop_age >= harvest_day:
+                    # Only water plants that can be harvested.
+                    if (not hand_is_responsible 
+                            and (obs["day"] < FINAL_DAY or crop_age >= harvest_day)):
                         water_targets.append(pos)
+                        
                 elif crop_age >= harvest_day:
-                    harvest_targets.append(pos)
+                    if not hand_is_responsible:
+                        harvest_targets.append(pos)
             
             # Before planting, check if there is any weed tile to clear
             # (only clear if there is enough time to re-plant and harvest)
@@ -363,8 +419,8 @@ def agent(obs):
                 plant_targets.append(pos)
             
     
-    ## First priority, keep plants watered. Find an unwatered tile w/ plant.      
-    ## Second priority, harvest. If there is no tile to water, go to a tile ready to harvest.
+    ## First, harvest mature crops that are already watered.   
+    ## Second, water crops that still need care.
     ## Third priority, plant. If no tile to water and no plant ready to harvest, plant.
     if tile_current_harvestable:
         pos_target = pos_current
@@ -442,8 +498,17 @@ def agent(obs):
             farmer_action = ["PLACE", crop_to_place, quantity_to_place]
             market_orders.append(["SELL", crop_to_place, quantity_to_place])
     
+    # 6. Hand action assignment
+    hand_actions = []
+
+    for hand_position in farm["hands"]:
+        hand_action = choose_hand_action(
+            tuple(hand_position)
+        )
+        hand_actions.append(hand_action)
+    
     return {
         "farmer": farmer_action,
-        "hands": [],
+        "hands": hand_actions,
         "market": market_orders,
     }

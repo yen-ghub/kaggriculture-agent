@@ -39,7 +39,7 @@ def play_match(seed, our_position):
             "episodeSteps": 720,
             "seed": seed,
         },
-        debug=True,
+        debug=False,
     )
 
     env.run(agents)
@@ -68,6 +68,10 @@ def collect_diagnostics(env, our_position):
 
         if farmer_action and farmer_action[0] == "HARVEST":
             harvest_count += 1
+
+        for hand_action in action.get("hands", []):
+            if hand_action and hand_action[0] == "HARVEST":
+                harvest_count += 1
 
         for market_order in action.get("market", []):
             if (

@@ -1,11 +1,12 @@
 import main
 
 from evaluate import evaluate_opponent
-from baselines.hand_v1 import agent as hand_agent
+from baselines.hand_v2 import agent as hand_agent
 
 
 TILE_COUNTS = [16,17,18,19]
-HAND_TILE_COUNTS = range(7, 10)
+HAND_TILE_COUNTS = range(7,9)
+HAND_TILE_COUNTS = [8]
 SEEDS = list(range(1, 6))
 
     

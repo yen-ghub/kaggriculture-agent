@@ -4,10 +4,11 @@ from baselines.carrot_v1 import agent as carrot_agent
 from baselines.melon_v1 import agent as melon_agent
 from baselines.mixed_v1 import agent as mixed_agent
 from baselines.adaptive_v1 import agent as adaptive_agent
-from baselines.hand_v1 import agent as hand_agent
+from baselines.hand_v1 import agent as hand1_agent
+from baselines.hand_v2 import agent as hand2_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
     "starter": "starter",
@@ -15,7 +16,8 @@ OPPONENTS = {
     "melon_v1": melon_agent,
     "mixed_v1": mixed_agent,
     "adaptive_v1": adaptive_agent,
-    "hand_v1": hand_agent,
+    "hand_v1": hand1_agent,
+    "hand_v2": hand2_agent,
 }
 
 # Define helper functions

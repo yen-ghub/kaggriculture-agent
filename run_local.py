@@ -1,11 +1,11 @@
 from kaggle_environments import make
 from main import agent, TILES_MANAGED
-from baselines.mixed_v1 import agent as baseline_agent
+from baselines.hand_v2 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 120,
+        "episodeSteps": 48,
         "seed": 1,
     },
     debug=True,
@@ -39,7 +39,7 @@ for step_number, step in enumerate(env.steps):
     second_tile = obs.farms[0].tiles[4][3]
     
     # Show the opening turns and the day boundary.
-    if (step_number <= 6 
+    if (step_number <= 20 
             or obs.hour in (0, 23)
             or farmer_action != ["PASS"]
             or market_action):        
@@ -50,7 +50,8 @@ for step_number, step in enumerate(env.steps):
             f"hour={obs.hour:2}, "
             f"action={player_state.action['farmer']}, "
             f"position={position}, "
-            # f"seeds={obs.private.seeds['CARROT']}, "
+            f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
+            f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "
             # f"carried={obs.private.inventories[0].get('CARROT', 0)}, "
             # f"shed={obs.private.shed.get('CARROT', 0)}, "
             f"money={obs.farms[0].money}, "

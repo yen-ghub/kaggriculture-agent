@@ -5,7 +5,7 @@ from baselines.seed_buffer_v1 import agent as baseline_agent
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 720,
+        "episodeSteps": 120,
         "seed": 1,
     },
     debug=True,

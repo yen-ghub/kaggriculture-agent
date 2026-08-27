@@ -1,11 +1,11 @@
 from kaggle_environments import make
 from main import agent, TILES_MANAGED
-from baselines.hand_v2 import agent as baseline_agent
+from baselines.seed_buffer_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 48,
+        "episodeSteps": 720,
         "seed": 1,
     },
     debug=True,
@@ -35,6 +35,12 @@ for step_number, step in enumerate(env.steps):
     farmer_action = player_state.action["farmer"]
     market_action = player_state.action["market"]
     position = tuple(obs.farms[0].farmer)
+    hands = [
+        tuple(hand_position)
+        for hand_position in obs.farms[0].hands
+    ]
+    hand_actions = player_state.action["hands"]
+    hires_today = obs.farms[0].hires_today
     home_tile = obs.farms[0].tiles[4][4]
     second_tile = obs.farms[0].tiles[4][3]
     
@@ -50,12 +56,18 @@ for step_number, step in enumerate(env.steps):
             f"hour={obs.hour:2}, "
             f"action={player_state.action['farmer']}, "
             f"position={position}, "
-            f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
-            f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "
+            f"hands={hands}, "
+            f"hand_actions={hand_actions}, "
+            f"hires_today={hires_today}, "
+            # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
+            # f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "
+            # f"wheat_seeds={obs.private.seeds.get('WHEAT', 0)}, "
+            # f"wheat_price={obs.market.prices['WHEAT']}, "
+            # f"carrot_price={obs.market.prices['CARROT']}, "
             # f"carried={obs.private.inventories[0].get('CARROT', 0)}, "
             # f"shed={obs.private.shed.get('CARROT', 0)}, "
-            f"money={obs.farms[0].money}, "
-            # f"market={player_state.action['market']}, "
+            # f"money={obs.farms[0].money}, "
+            f"market={player_state.action['market']}, "
             # f"tile={tile}"
             # f"home={describe_tile(home_tile)}, "
             # f"second={describe_tile(second_tile)}"

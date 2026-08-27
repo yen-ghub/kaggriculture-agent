@@ -46,8 +46,9 @@ return {
 }
 ```
 
-The current agent does not use additional hands, but the `hands` list remains
-part of the action dictionary.
+The `hands` list contains one action for each currently active farm hand, in
+the same order as `farm["hands"]`. It is empty before the day's hires have
+spawned and after hands disappear at the day boundary.
 
 ## Observation structure
 
@@ -224,6 +225,32 @@ Example:
 
 Produce must be in the shed before it can be sold.
 
+### Hire farm hands
+
+```python
+["HIRE"]
+```
+
+Hiring is submitted as a market order. Hire costs follow the Fibonacci-like
+daily sequence:
+
+```text
+1, 1, 2, 3, 5, 8, 13, ...
+```
+
+The sequence resets each day. Therefore, the first two hands cost one coin
+each, for a combined daily cost of two coins.
+
+Local traces confirmed that submitting two `HIRE` orders produces two hands
+and sets `hires_today` to `2`. Hands disappear at the next day boundary and
+must be hired again. Any carried inventory is deposited into the shed during
+the ordinary end-of-day transition.
+
+Each active hand requires a corresponding entry in the returned `hands`
+action list. When multiple hands use the same target-selection logic and work
+area, they can move onto the same positions and submit duplicate actions.
+Assigning non-overlapping work zones prevents this wasted work.
+
 ## Action processing order
 
 Farmer actions are processed before market actions during a step.
@@ -247,6 +274,28 @@ return {
 
 This can deposit and sell carried melons during the same step when the farmer
 is at the shed-access tile.
+
+### Order position within the market list
+
+The position of an order inside the `market` list matters. The environment
+processes the two players' market queues by list index. Orders at index zero
+are considered before orders at index one, and so on.
+
+Compatible buy and sell orders at the same index are processed in lockstep,
+using the same pre-commit market inventory for the next unit. An extra order
+near the start of only one player's list can therefore push that player's
+sale to a later index. The opponent may then sell first, change the shared
+inventory, and reduce the price received by the delayed seller.
+
+This was confirmed during the two-hand experiment. Placing both `HIRE` orders
+before sales reduced the candidate's match score against Wheat v1 from the
+neutral expectation to `0%`. Moving the second `HIRE` after all sales restored
+the score to `50%`, with otherwise unchanged crop quantities.
+
+Time-sensitive sales should therefore remain early and aligned where
+possible. Non-price-sensitive orders, such as an additional `HIRE`, can be
+placed after sales because every order in the accepted market list is still
+processed during the same game step.
 
 ## Inventory flow
 
@@ -373,10 +422,11 @@ managed tile is either empty or planted.
 
 ## Crop values used by the agent
 
-The current project has tested carrots and melons.
+The current project has tested wheat, carrots, and melons.
 
 | Crop | Seed cost | Agent harvest age | Observed unfertilized yield |
 |---|---:|---:|---:|
+| `WHEAT` | 10 | 4 days | 4 |
 | `CARROT` | 20 | 3 days | 3 |
 | `MELON` | 80 | 10 days | 6 |
 

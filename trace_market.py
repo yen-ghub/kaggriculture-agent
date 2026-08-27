@@ -48,6 +48,7 @@ for step in env.steps:
         f"opp_money={opponent_farm['money']:8.1f}, "    
         f"carrot_price={prices['CARROT']:3}, "
         f"melon_price={prices['MELON']:3}, "
+        f"wheat_price={prices['WHEAT']:3}, "
         f"carrot_inventory={inventory['CARROT']:5}, "
         f"melon_inventory={inventory['MELON']:5}, "
         f"our_plants=(C:{count_plants(our_farm, 'CARROT'):2}, "

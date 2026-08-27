@@ -1,7 +1,7 @@
 from kaggle_environments import make
 
 from main import agent
-from baselines.hand_v2 import agent as baseline_agent
+from baselines.seed_buffer_v1 import agent as baseline_agent
 
 
 def count_plants(farm, crop):

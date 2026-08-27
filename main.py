@@ -6,7 +6,7 @@ TILE_ROUTE = [
     (0,1), (1,1), (2,1), (3,1), (4,1),
     (4,0), (3,0), (2,0), (1,0), (0,0)]
 
-TILE_COUNT = 17
+TILE_COUNT = 18
 TILES_MANAGED = TILE_ROUTE[:TILE_COUNT]
 
 # Fixed crop allocation used while building multi-crop support.
@@ -59,7 +59,7 @@ POST_GLUT_MELON_TARGET = 4
 HEAVY_OPPONENT_MELON_TARGET = 13
 DEFAULT_SEED_TARGET = 1
 SELECTED_CROP_SEED_TARGET = 3
-WHEAT_PLANT_TARGET = 8              # Limit to 8, to flood the carrot market and bring price down for the oponent
+WHEAT_PLANT_TARGET = 18              # Currently no limit, to flood the carrot market and bring price down for the oponent
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
@@ -68,13 +68,31 @@ SHED_ACCESS_TILE    = (4,4)
 # Farm hands
 HANDS_TO_HIRE        = 2
 DAILY_HAND_HIRE_COST = 2
-HAND_WORK_TILE_COUNT = TILE_COUNT - 9
-HAND_WORK_TILES_ALL  = TILES_MANAGED[:HAND_WORK_TILE_COUNT]
-# HAND_WORK_TILES_EACH = HAND_WORK_TILES_ALL
-HAND_WORK_TILES_EACH = [
-    HAND_WORK_TILES_ALL[:4],
-    HAND_WORK_TILES_ALL[4:],
-]
+FARMER_WORK_TILE_COUNT = 9
+
+
+def make_hand_work_zones(tiles_managed):
+    hand_tile_count = max(0,len(tiles_managed) - FARMER_WORK_TILE_COUNT,)
+    hand_tiles = tiles_managed[:hand_tile_count]
+
+    tiles_per_hand, extra_tiles = divmod(len(hand_tiles),HANDS_TO_HIRE)
+
+    zones = []
+    start = 0
+
+    for hand_index in range(HANDS_TO_HIRE):
+        zone_size = tiles_per_hand
+
+        if hand_index < extra_tiles:
+            zone_size += 1
+
+        end = start + zone_size
+        zones.append(hand_tiles[start:end])
+        start = end
+
+    return zones
+
+HAND_WORK_TILES_EACH = make_hand_work_zones(TILES_MANAGED)
 
 def agent(obs):
     '''

@@ -20,7 +20,7 @@ OPPONENTS = {
     "melon_v1": melon_agent,
     "mixed_v1": mixed_agent,
     "adaptive_v1": adaptive_agent,
-    "hand_v1": hand1_agent,
+    # "hand_v1": hand1_agent,
     "hand_v2": hand2_agent,
     "seed_buffer_v1": seed_buffer_agent,
     "wheat_v1": wheat_agent,

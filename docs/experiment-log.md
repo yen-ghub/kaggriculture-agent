@@ -71,6 +71,14 @@ All evaluations use both player positions.
 | First cow v1 | Three hands v1 | 5 | 100.0% | 43524.6 | 149.1 | 7.2 wheat, 104.9 carrot, 78.0 melon, 88.0 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
 | First cow v1 | Full-quadrant Strawberry v1 | 5 | 100.0% | 44998.1 | 149.0 | 9.2 wheat, 103.7 carrot, 78.0 melon, 87.8 strawberry, 36.0 milk | Direct predecessor comparison; average lead 12441.0 |
 | First cow v1 | First cow v1 | 5 | 50.0% | 42586.8 | 149.0 | 8.0 wheat, 103.7 carrot, 78.0 melon, 88.1 strawberry, 36.0 milk | Symmetric self-play: 1W, 1L, 8T; two-Wheat feed reserve |
+| Two cows v1 | Two hands v1 | 5 | 100.0% | 51251.6 | 152.9 | 8.2 wheat, 91.0 carrot, 78.0 melon, 82.6 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | Hand planting v1 | 5 | 100.0% | 49875.3 | 152.9 | 7.0 wheat, 90.7 carrot, 78.0 melon, 83.0 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | Expanded Wheat v1 | 5 | 100.0% | 48721.0 | 152.8 | 7.0 wheat, 90.7 carrot, 78.0 melon, 82.9 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | Strawberry v1 | 5 | 100.0% | 47833.0 | 152.8 | 7.0 wheat, 90.7 carrot, 78.0 melon, 82.9 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | Three hands v1 | 5 | 100.0% | 49916.8 | 152.9 | 7.0 wheat, 91.0 carrot, 78.0 melon, 82.9 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | Full-quadrant Strawberry v1 | 5 | 100.0% | 51029.7 | 152.9 | 8.2 wheat, 91.0 carrot, 78.0 melon, 82.6 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
+| Two cows v1 | First cow v1 | 5 | 100.0% | 46933.1 | 152.9 | 7.0 wheat, 91.0 carrot, 78.0 melon, 82.9 strawberry, 72.0 milk | Direct predecessor comparison; average lead 3916.5; 1.8 strawberry leftover |
+| Two cows v1 | First cow v1 | 20 | 100.0% | 48021.0 | 152.8 | 6.8 wheat, 90.9 carrot, 78.0 melon, 82.8 strawberry, 72.0 milk | Focused validation: 40W, 0L; average lead 4629.5; 1.9 strawberry leftover |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -105,3 +113,18 @@ Against Full-quadrant Strawberry v1 it averaged 44998.1 coins, a lead of 12441.0
 Its symmetric self-play produced a 50.0% match score and 42586.8 average coins
 despite combined market supply of 72 Milk. The two Wheat remaining at season end
 are the deliberately maintained feed reserve; all other final leftovers were zero.
+
+Two cows v1 replaces the first two crop tiles, `(4, 4)` and `(3, 4)`, with
+pastures. The farmer services both cows while three hands manage crop zones of
+seven, six, and seven route positions; the two pasture positions in the first
+zone are skipped, giving effective hand workloads of five, six, and seven crop
+tiles. The farmer retains five crop tiles in addition to the two cows.
+
+Both cows completed their full production schedules in every reported match,
+producing and selling all 72 expected Milk units with no Milk leftovers. The
+candidate won all 70 matches in the seven-opponent, five-seed suite shown above,
+with zero errors. It also won all 40 matches in its focused 20-seed validation
+against First cow v1, averaging 48021.0 coins and leading by 4629.5. The four
+Wheat remaining at season end are the deliberate two-cow feed reserve. Average
+Strawberry leftovers were 1.8 in the development suite and 1.9 in the focused
+validation.

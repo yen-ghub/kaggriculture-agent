@@ -12,6 +12,7 @@ from baselines.two_hands_v1 import agent as two_hands_agent
 from baselines.hand_planting_v1 import agent as hand_planting_agent
 from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
 from baselines.strawberry_v1 import agent as strawberry_agent
+from baselines.three_hands_v1 import agent as three_hands_agent
 
 # Define variables
 SEEDS = list(range(1,6))
@@ -19,7 +20,7 @@ SEEDS = list(range(1,6))
 OPPONENTS = {
     # # "starter": "starter",
     # # "carrot_v1": carrot_agent,
-    "melon_v1": melon_agent,
+    # "melon_v1": melon_agent,
     "mixed_v1": mixed_agent,
     "adaptive_v1": adaptive_agent,
     # "hand_v1": hand1_agent,
@@ -30,6 +31,7 @@ OPPONENTS = {
     "hand_planting_v1": hand_planting_agent,
     "expanded_wheat_v1": expanded_wheat_agent,
     "strawberry_agent_v1": strawberry_agent,
+    "three_hands_agent_v1": three_hands_agent,
 }
 
 # Define helper functions

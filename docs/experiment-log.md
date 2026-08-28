@@ -57,6 +57,13 @@ All evaluations use both player positions.
 | Three hands v1 | Expanded Wheat v1 | 5 | 100.0% | 27894.2 | 117.9 | 182.8 wheat, 123.0 carrot, 114.0 melon, 12.0 strawberry | 22 tiles; 0.6 carrot leftover |
 | Three hands v1 | Strawberry v1 | 5 | 100.0% | 27965.2 | 117.8 | 184.4 wheat, 121.5 carrot, 114.0 melon, 12.0 strawberry | Direct predecessor comparison; average lead 3029.5; 0.6 carrot leftover |
 | Three hands v1 | Strawberry v1 | 20 | 100.0% | 28337.2 | 117.9 | 432.9 total | Release validation; average opponent 25040.5; average lead 3296.7; 0.9 total leftover |
+| Full-quadrant Strawberry v1 | Mixed v1 | 5 | 100.0% | 41279.7 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
+| Full-quadrant Strawberry v1 | Adaptive v1 | 5 | 100.0% | 42436.3 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
+| Full-quadrant Strawberry v1 | Two hands v1 | 5 | 100.0% | 40054.3 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
+| Full-quadrant Strawberry v1 | Hand planting v1 | 5 | 100.0% | 33664.1 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
+| Full-quadrant Strawberry v1 | Expanded Wheat v1 | 5 | 100.0% | 34976.2 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
+| Full-quadrant Strawberry v1 | Strawberry v1 | 5 | 100.0% | 34786.6 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | Direct predecessor comparison; average lead 4360.8; zero leftovers |
+| Full-quadrant Strawberry v1 | Three hands v1 | 5 | 90.0% | 36786.4 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | Strongest opponent; average lead 3562.5; zero leftovers |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -73,3 +80,11 @@ Strawberry v1, with zero errors. It then won all 70 matches in a seven-opponent,
 five-seed development suite. All expected Strawberry and Melon production was
 sold with zero leftovers for those crops. The maximum observed number of
 market orders submitted during a turn was six, below the limit of ten.
+
+Full-quadrant Strawberry v1 manages all 25 tiles with three hands. The evaluated
+hand zones contain six, five, and seven tiles, leaving seven tiles to the farmer.
+It targets 25 Strawberry plants beginning on day 10. Across the seven-opponent,
+five-seed suite shown above, it won 69 of 70 matches for a 98.6% macro match
+score with zero errors. Production was consistent in every matchup: 106 carrots,
+84 melons, and 100 strawberries sold from 150 harvests, with no wheat production
+and zero final leftovers.

@@ -13,6 +13,8 @@ from baselines.hand_planting_v1 import agent as hand_planting_agent
 from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
 from baselines.strawberry_v1 import agent as strawberry_agent
 from baselines.three_hands_v1 import agent as three_hands_agent
+from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
+from baselines.first_cow_test import agent as first_cow_test_agent
 
 # Define variables
 SEEDS = list(range(1,6))
@@ -20,19 +22,22 @@ SEEDS = list(range(1,6))
 OPPONENTS = {
     # # "starter": "starter",
     # # "carrot_v1": carrot_agent,
-    # "melon_v1": melon_agent,
-    "mixed_v1": mixed_agent,
-    "adaptive_v1": adaptive_agent,
-    # "hand_v1": hand1_agent,
-    # "hand_v2": hand2_agent,
-    # "seed_buffer_v1": seed_buffer_agent,
-    # "wheat_v1": wheat_agent,
-    "two_hands_v1": two_hands_agent,
-    "hand_planting_v1": hand_planting_agent,
-    "expanded_wheat_v1": expanded_wheat_agent,
-    "strawberry_agent_v1": strawberry_agent,
-    "three_hands_agent_v1": three_hands_agent,
+    # # "melon_v1": melon_agent,
+    # # "mixed_v1": mixed_agent,
+    # # "adaptive_v1": adaptive_agent,
+    # # "hand_v1": hand1_agent,
+    # # "hand_v2": hand2_agent,
+    # # "seed_buffer_v1": seed_buffer_agent,
+    # # "wheat_v1": wheat_agent,
+    # "two_hands_v1": two_hands_agent,
+    # "hand_planting_v1": hand_planting_agent,
+    # "expanded_wheat_v1": expanded_wheat_agent,
+    # "strawberry_agent_v1": strawberry_agent,
+    # "three_hands_agent_v1": three_hands_agent,
+    # "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
+    "first_cow_test": first_cow_test_agent,
 }
+PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK",)
 
 # Define helper functions
 def play_match(seed, our_position, opponent):
@@ -63,7 +68,7 @@ def collect_diagnostics(env, our_position):
     harvest_count = 0
     crops_sold = {
         crop: 0
-        for crop in CROPS_MANAGED
+        for crop in PRODUCTS_TRACKED
     }
 
     for step in env.steps:
@@ -85,7 +90,7 @@ def collect_diagnostics(env, our_position):
             if (
                 len(market_order) >= 3
                 and market_order[0] == "SELL"
-                and market_order[1] in CROPS_MANAGED
+                and market_order[1] in PRODUCTS_TRACKED
             ):
                 crop = market_order[1]
                 crops_sold[crop] += market_order[2]
@@ -98,12 +103,12 @@ def collect_diagnostics(env, our_position):
             inventory.get(crop, 0)
             for inventory in private.inventories
         )
-        for crop in CROPS_MANAGED
+        for crop in PRODUCTS_TRACKED
     }
 
     crops_in_shed = {
         crop: private.shed.get(crop, 0)
-        for crop in CROPS_MANAGED
+        for crop in PRODUCTS_TRACKED
     }
 
     return {
@@ -140,11 +145,11 @@ def evaluate_opponent(
     opponent_scores = []
     harvest_counts = []
 
-    sold_counts = {crop: [] for crop in CROPS_MANAGED}
+    sold_counts = {crop: [] for crop in PRODUCTS_TRACKED}
 
-    final_carried_counts = {crop: [] for crop in CROPS_MANAGED}
+    final_carried_counts = {crop: [] for crop in PRODUCTS_TRACKED}
 
-    final_shed_counts = {crop: [] for crop in CROPS_MANAGED}
+    final_shed_counts = {crop: [] for crop in PRODUCTS_TRACKED}
 
     for seed in seeds:
         for our_position in (0, 1):
@@ -180,7 +185,7 @@ def evaluate_opponent(
 
             harvest_counts.append(diagnostics["harvests"])
 
-            for crop in CROPS_MANAGED:
+            for crop in PRODUCTS_TRACKED:
                 sold_counts[crop].append(diagnostics["sold"][crop])
                 final_carried_counts[crop].append(diagnostics["carried"][crop])
                 final_shed_counts[crop].append(diagnostics["shed"][crop])
@@ -205,7 +210,7 @@ def evaluate_opponent(
 
     crop_averages = {}
 
-    for crop in CROPS_MANAGED:
+    for crop in PRODUCTS_TRACKED:
         crop_averages[crop] = {
             "sold": average(sold_counts[crop]),
             "carried": average(final_carried_counts[crop]),
@@ -247,7 +252,7 @@ def print_opponent_summary(summary):
         f"{summary['average_harvests']:.1f}"
     )
 
-    for crop in CROPS_MANAGED:
+    for crop in PRODUCTS_TRACKED:
         crop_results = summary["crops"][crop]
 
         print(

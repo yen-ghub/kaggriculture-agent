@@ -4,30 +4,32 @@ from main import agent, CROPS_MANAGED
 from baselines.melon_v1 import agent as melon_agent
 from baselines.mixed_v1 import agent as mixed_agent
 from baselines.adaptive_v1 import agent as adaptive_agent
-from baselines.hand_v1 import agent as hand1_agent
-from baselines.hand_v2 import agent as hand2_agent
-from baselines.seed_buffer_v1 import agent as seed_buffer_agent
+# from baselines.hand_v1 import agent as hand1_agent
+# from baselines.hand_v2 import agent as hand2_agent
+# from baselines.seed_buffer_v1 import agent as seed_buffer_agent
 from baselines.wheat_v1 import agent as wheat_agent
 from baselines.two_hands_v1 import agent as two_hands_agent
 from baselines.hand_planting_v1 import agent as hand_planting_agent
 from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
+from baselines.strawberry_v1 import agent as strawberry_agent
 
 # Define variables
 SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
-    # "starter": "starter",
-    # "carrot_v1": carrot_agent,
+    # # "starter": "starter",
+    # # "carrot_v1": carrot_agent,
     "melon_v1": melon_agent,
     "mixed_v1": mixed_agent,
     "adaptive_v1": adaptive_agent,
     # "hand_v1": hand1_agent,
     # "hand_v2": hand2_agent,
-    "seed_buffer_v1": seed_buffer_agent,
+    # "seed_buffer_v1": seed_buffer_agent,
     "wheat_v1": wheat_agent,
     "two_hands_v1": two_hands_agent,
     "hand_planting_v1": hand_planting_agent,
     "expanded_wheat_v1": expanded_wheat_agent,
+    "strawberry_agent_v1": strawberry_agent,
 }
 
 # Define helper functions

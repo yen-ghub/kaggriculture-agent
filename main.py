@@ -6,11 +6,8 @@ TILE_ROUTE = [
     (0,1), (1,1), (2,1), (3,1), (4,1),
     (4,0), (3,0), (2,0), (1,0), (0,0)]
 
-TILE_COUNT = 18
+TILE_COUNT = 22
 TILES_MANAGED = TILE_ROUTE[:TILE_COUNT]
-
-# Fixed crop allocation used while building multi-crop support.
-MELON_TILE_COUNT = 10
     
 # Define constants and crop configs (a dict)
 CROP_CONFIGS = {
@@ -66,7 +63,6 @@ def make_fixed_crop_plan(melon_tile_count):
     return crop_plan
 
 # Crop related
-CROP_BY_TILE = make_fixed_crop_plan(MELON_TILE_COUNT)
 MELON_REPLANT_PRICE_THRESHOLD = 220
 POST_GLUT_MELON_TARGET = 4
 HEAVY_OPPONENT_MELON_TARGET = 13
@@ -86,9 +82,9 @@ FINAL_DAY           = 29
 SHED_ACCESS_TILE    = (4,4)
 
 # Farm hands
-HANDS_TO_HIRE        = 2
-DAILY_HAND_HIRE_COST = 2
-FARMER_WORK_TILE_COUNT = 9
+HANDS_TO_HIRE        = 3
+DAILY_HAND_HIRE_COST = 4
+FARMER_WORK_TILE_COUNT = 11
 
 
 def make_hand_work_zones(tiles_managed):
@@ -112,8 +108,16 @@ def make_hand_work_zones(tiles_managed):
 
     return zones
 
-HAND_WORK_TILES_EACH = make_hand_work_zones(TILES_MANAGED)
+# HAND_WORK_TILES_EACH = make_hand_work_zones(TILES_MANAGED)
 
+HAND_WORK_TILES_EACH = [
+    TILE_ROUTE[:5],              # Existing first-hand zone
+    TILE_ROUTE[5:9],             # Existing second-hand zone
+    TILE_ROUTE[18:TILE_COUNT],   # New tiles for third hand
+]
+
+
+# Start the main agent function
 def agent(obs):
     '''
     The content of `obs`:

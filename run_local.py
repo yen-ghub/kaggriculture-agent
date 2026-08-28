@@ -15,6 +15,8 @@ env.run([agent, baseline_agent])
 
 #final_step = env.steps[-1]
 
+max_market_order_count = 0
+
 def describe_tile(tile):
     if tile is None:
         return "empty"
@@ -34,6 +36,12 @@ for step_number, step in enumerate(env.steps):
     # tile = obs.farms[0].tiles[4][4]
     farmer_action = player_state.action["farmer"]
     market_action = player_state.action["market"]
+    market_order_count = len(market_action)
+
+    max_market_order_count = max(
+        max_market_order_count,
+        market_order_count,
+    )
     position = tuple(obs.farms[0].farmer)
     hands = [
         tuple(hand_position)
@@ -72,6 +80,11 @@ for step_number, step in enumerate(env.steps):
             # f"home={describe_tile(home_tile)}, "
             # f"second={describe_tile(second_tile)}"
         )
+
+print(
+    f"\nMaximum submitted market orders: "
+    f"{max_market_order_count}"
+)
         
 final_observation = env.steps[-1][0].observation
 final_farm = final_observation.farms[0]

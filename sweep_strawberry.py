@@ -3,16 +3,18 @@ import main
 from evaluate import evaluate_opponent
 from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
 
-STRAWBERRY_START_DAYS = [10, 11, 12]
-STRAWBERRY_TARGETS = [3]
-SEEDS = list(range(1, 21))
+STRAWBERRY_START_DAYS = [10]
+STRAWBERRY_TARGETS = [6, 7, 8]
+SEEDS = list(range(1, 6))
 
 
-for strawberry_start_day in STRAWBERRY_START_DAYS:
-    main.STRAWBERRY_START_DAY = strawberry_start_day
-
+# for strawberry_start_day in STRAWBERRY_START_DAYS:
+for strawberry_target in STRAWBERRY_TARGETS:
+    # main.STRAWBERRY_START_DAY = strawberry_start_day
+    main.STRAWBERRY_PLANT_TARGET = strawberry_target
+    
     summary = evaluate_opponent(
-        f"strawberry start day {strawberry_start_day}",
+        f"strawberry target {strawberry_target}",
         expanded_wheat_agent,
         SEEDS,
     )
@@ -25,7 +27,7 @@ for strawberry_start_day in STRAWBERRY_START_DAYS:
     )
 
     print(
-        f"strawberries start day={strawberry_start_day:2}, "
+        f"strawberries target={strawberry_target:2}, "
         f"score={100 * summary['match_score']:5.1f}%, "
         f"money={summary['average_ours']:8.1f}, "
         f"opponent={summary['average_opponent']:8.1f}, "

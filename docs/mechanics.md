@@ -50,6 +50,10 @@ The `hands` list contains one action for each currently active farm hand, in
 the same order as `farm["hands"]`. It is empty before the day's hires have
 spawned and after hands disappear at the day boundary.
 
+Farm hands can perform the same movement and crop actions as the farmer,
+including `PLANT`, `WATER`, and `HARVEST`. Seeds are shared across the farmer
+and all hands; they are not carried in an individual unit's inventory.
+
 ## Observation structure
 
 Important fields include:
@@ -152,6 +156,13 @@ Planting requires:
 
 A newly planted crop should be watered during the same day.
 
+The farmer and farm hands all plant from the same seed inventory. If several
+units are scheduled to plant during one step, the agent must reserve enough
+seeds for all of those planned actions rather than letting every unit assume
+the same seed is available. Plant validation is atomic per crop: if the number
+of `PLANT` requests for one crop exceeds its available seeds, all planting
+requests for that crop become no-ops during that step.
+
 ### Water
 
 ```python
@@ -169,10 +180,12 @@ resets to `False` at the start of the next day.
 ["HARVEST"]
 ```
 
-Harvests the crop on the current tile and places the produce in the farmer's
+Harvests the crop on the current tile and places the produce in that unit's
 carried inventory.
 
-The harvested tile becomes empty.
+Harvesting a one-time crop makes the tile empty. Harvesting an ongoing crop,
+such as Strawberry, resets its `yield_units` to zero but leaves the plant on
+the tile for later scheduled production.
 
 ### Dig
 
@@ -253,13 +266,14 @@ Assigning non-overlapping work zones prevents this wasted work.
 
 ## Action processing order
 
-Farmer actions are processed before market actions during a step.
+Farmer and farm-hand actions are processed before market actions during a
+step.
 
 This has two important consequences:
 
-1. A seed bought during a step cannot be planted by the farmer during that same
-   step if no seed was already available.
-2. Produce placed into the shed by the farmer can be sold by a market order
+1. A seed bought during a step cannot be planted by the farmer or a hand during
+   that same step if no seed was already available.
+2. Produce placed into the shed by a unit can be sold by a market order
    submitted during the same step.
 
 For example:
@@ -291,6 +305,24 @@ This was confirmed during the two-hand experiment. Placing both `HIRE` orders
 before sales reduced the candidate's match score against Wheat v1 from the
 neutral expectation to `0%`. Moving the second `HIRE` after all sales restored
 the score to `50%`, with otherwise unchanged crop quantities.
+
+It was confirmed again while adding Strawberry. Deriving the sale order from
+the insertion order of `CROP_CONFIGS` placed the new Strawberry sale before
+the established Wheat, Carrot, and Melon sales. This shifted the legacy sales
+to later market indices and caused a large regression despite producing
+similar quantities. Restoring an explicit, stable sale order fixed it:
+
+```python
+CROPS_MANAGED = (
+    "WHEAT",
+    "CARROT",
+    "MELON",
+    "STRAWBERRY",
+)
+```
+
+Dictionary insertion order should therefore not implicitly determine market
+priority. Adding a new crop must not silently reorder existing sales.
 
 Time-sensitive sales should therefore remain early and aligned where
 possible. Non-price-sensitive orders, such as an additional `HIRE`, can be
@@ -397,6 +429,28 @@ crop_age = obs["day"] - tile["planted_day"]
 
 Regular watering increases or preserves the crop's useful harvest yield.
 
+### One-time and ongoing crops
+
+Wheat, Carrot, and Melon are one-time crops. Their harvest readiness can be
+determined from crop age, and a successful harvest removes the plant.
+
+Strawberry is an ongoing crop. Its scheduled production occurs at plant ages
+`10`, `12`, `14`, and `16`. Each scheduled event produces one unit without
+fertilizer, up to four units over the plant's productive life. Unharvested
+units can accumulate on the tile.
+
+For an ongoing crop, age alone does not prove that produce is currently
+available: the plant may already have been harvested and be waiting for its
+next scheduled production. Readiness should therefore use:
+
+```python
+tile.get("yield_units", 0) > 0
+```
+
+A successful Strawberry harvest collects the available units, resets
+`yield_units` to zero, and leaves the plant in place. The plant must still be
+watered regularly and eventually decays after its final production cycle.
+
 ## Weeds
 
 A weed tile is represented as:
@@ -422,18 +476,19 @@ managed tile is either empty or planted.
 
 ## Crop values used by the agent
 
-The current project has tested wheat, carrots, and melons.
+The current project has tested Wheat, Carrot, Melon, and Strawberry.
 
-| Crop | Seed cost | Agent harvest age | Observed unfertilized yield |
-|---|---:|---:|---:|
-| `WHEAT` | 10 | 4 days | 4 |
-| `CARROT` | 20 | 3 days | 3 |
-| `MELON` | 80 | 10 days | 6 |
+| Crop | Yield type | Seed cost | Agent harvest rule | Observed unfertilized yield |
+|---|---|---:|---|---:|
+| `WHEAT` | One-time | 10 | Age 4 days | 4 |
+| `CARROT` | One-time | 20 | Age 3 days | 3 |
+| `MELON` | One-time | 80 | Age 10 days | 6 |
+| `STRAWBERRY` | Ongoing | 100 | `yield_units > 0` | 1 at ages 10, 12, 14, and 16 |
 
-These harvest ages are strategy settings chosen from observed crop behavior.
-They are not a rule that every crop must be harvested at that age.
+These harvest rules are strategy settings chosen from observed crop behavior.
+They are not a rule that every crop must be harvested at one fixed age.
 
-The latest planting day is calculated as:
+For a one-time crop, the latest planting day is calculated as:
 
 ```python
 LAST_PLANTING_DAY = FINAL_DAY - CROP_HARVEST_DAY
@@ -442,12 +497,28 @@ LAST_PLANTING_DAY = FINAL_DAY - CROP_HARVEST_DAY
 This prevents the agent from buying and planting crops that cannot mature
 before the game ends.
 
+For Strawberry, the current strategy requires enough time for its complete
+four-production cycle:
+
+```python
+STRAWBERRY_LAST_FULL_CYCLE_DAY = FINAL_DAY - 16
+```
+
+With `FINAL_DAY = 29`, this permits new Strawberry plants only through day
+`13`. This is a strategy choice rather than a legality rule: a later planting
+could produce some fruit, but not all four scheduled yields.
+
 ## Shared market
 
 The market is shared by both players.
 
 Market prices and inventory can change during the match, so the value of a
 crop depends partly on both agents' behavior.
+
+Strawberry has a base sale price of `120`, but its glut side is highly price
+sensitive: the environment uses a threshold of only `100` units and a linear
+price curve. As with Melon, producing more Strawberry units does not guarantee
+more money if both players saturate the shared market.
 
 Experiments confirmed that when both players sell melons, average melon-agent
 earnings are substantially lower than when the melon agent plays against a

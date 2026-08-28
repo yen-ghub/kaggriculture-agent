@@ -1,5 +1,5 @@
 from kaggle_environments import make
-from main import agent, TILES_MANAGED
+from main import agent, TILES_MANAGED, COW_TILES
 from baselines.full_quadrant_strawberry_v1 import agent as baseline_agent
 
 env = make(
@@ -51,12 +51,25 @@ for step_number, step in enumerate(env.steps):
     hires_today = obs.farms[0].hires_today
     home_tile = obs.farms[0].tiles[4][4]
     second_tile = obs.farms[0].tiles[4][3]
+    first_cow_tile = obs.farms[0].tiles[4][4]
+    second_cow_tile = obs.farms[0].tiles[4][3]
     
     # Show the opening turns and the day boundary.
-    if (step_number <= 20 
-            or obs.hour in (0, 23)
-            or farmer_action != ["PASS"]
-            or market_action):        
+    # if (step_number <= 20 
+    #         or obs.hour in (0, 23)
+    #         or farmer_action != ["PASS"]
+    #         or market_action):
+    if (
+        obs.day in (0, 1, 8, 10)
+        and (
+            position in COW_TILES
+            or any(
+                order[0] == "SELL"
+                and order[1] == "MILK"
+                for order in market_action
+            )
+        )
+    ):        
         print(
             #f"record={step_number:2}, "
             f"game_step={obs.step:2}, "
@@ -65,8 +78,10 @@ for step_number, step in enumerate(env.steps):
             f"action={player_state.action['farmer']}, "
             f"position={position}, "
             f"hands={hands}, "
-            f"hand_actions={hand_actions}, "
-            f"hires_today={hires_today}, "
+            f"hand_actions={hand_actions}, "            
+            f"cow_1={describe_tile(first_cow_tile)}, "
+            f"cow_2={describe_tile(second_cow_tile)}, "
+            # f"hires_today={hires_today}, "
             # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
             # f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "
             # f"wheat_seeds={obs.private.seeds.get('WHEAT', 0)}, "

@@ -1,11 +1,11 @@
 from kaggle_environments import make
 from main import agent, TILES_MANAGED
-from baselines.seed_buffer_v1 import agent as baseline_agent
+from baselines.full_quadrant_strawberry_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 120,
+        "episodeSteps": 300,
         "seed": 1,
     },
     debug=True,

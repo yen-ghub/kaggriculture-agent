@@ -111,8 +111,8 @@ def make_hand_work_zones(tiles_managed):
 # HAND_WORK_TILES_EACH = make_hand_work_zones(TILES_MANAGED)
 
 HAND_WORK_TILES_EACH = [
-    TILE_ROUTE[:6],              # Existing first-hand zone
-    TILE_ROUTE[6:11],             # Existing second-hand zone
+    TILE_ROUTE[:5],              # Existing first-hand zone
+    TILE_ROUTE[5:9],             # Existing second-hand zone
     TILE_ROUTE[18:TILE_COUNT],   # New tiles for third hand
 ]
 

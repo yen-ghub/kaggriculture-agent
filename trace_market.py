@@ -1,7 +1,7 @@
 from kaggle_environments import make
-
+import main
 from main import agent
-from baselines.seed_buffer_v1 import agent as baseline_agent
+from baselines.three_hands_v1 import agent as baseline_agent
 
 
 def count_plants(farm, crop):
@@ -18,6 +18,11 @@ def count_plants(farm, crop):
 
     return count
 
+main.HAND_WORK_TILES_EACH = [
+        main.TILE_ROUTE[:6],
+        main.TILE_ROUTE[6:11],
+        main.TILE_ROUTE[18:22],
+    ]
 
 env = make(
     "kaggriculture",
@@ -44,15 +49,16 @@ for step in env.steps:
 
     print(
         f"day={observation.day:2}, "
-        f"our_money={our_farm['money']:8.1f}, "
-        f"opp_money={opponent_farm['money']:8.1f}, "    
+        f"our_$={our_farm['money']:8.1f}, "
+        f"opp_$={opponent_farm['money']:8.1f}, "    
         f"carrot_price={prices['CARROT']:3}, "
         f"melon_price={prices['MELON']:3}, "
         f"wheat_price={prices['WHEAT']:3}, "
-        f"carrot_inventory={inventory['CARROT']:5}, "
-        f"melon_inventory={inventory['MELON']:5}, "
+        # f"carrot_inventory={inventory['CARROT']:5}, "
+        # f"melon_inventory={inventory['MELON']:5}, "
         f"our_plants=(C:{count_plants(our_farm, 'CARROT'):2}, "
-        f"M:{count_plants(our_farm, 'MELON'):2}), "
+        f"M:{count_plants(our_farm, 'MELON'):2}, "
+        f"S:{count_plants(our_farm, 'STRAWBERRY'):2}), " 
         f"opp_plants=(C:{count_plants(opponent_farm, 'CARROT'):2}, "
         f"M:{count_plants(opponent_farm, 'MELON'):2})"
     )

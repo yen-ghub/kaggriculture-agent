@@ -1,21 +1,26 @@
 import main
 
 from evaluate import evaluate_opponent
-from baselines.hand_planting_v1 import agent as hand_planting_agent
+from baselines.strawberry_v1 import agent as strawberry_agent
 
 
-TILE_COUNTS = [17, 18, 19]
-WHEAT_TARGETS = [16, 20]
-SEEDS = list(range(1, 11))
+TILE_COUNTS = [21, 22]
+WHEAT_TARGETS = [18]
+SEEDS = list(range(1, 21))
 
-    
+
 for tile_count in TILE_COUNTS:
     main.TILE_COUNT = tile_count
     main.TILES_MANAGED = main.TILE_ROUTE[:tile_count]
-    main.HAND_WORK_TILES_EACH = main.make_hand_work_zones(
-        main.TILES_MANAGED
-    )
+    main.HANDS_TO_HIRE = 3
+    main.DAILY_HAND_HIRE_COST = 4
 
+    main.HAND_WORK_TILES_EACH = [
+        main.TILE_ROUTE[:5],
+        main.TILE_ROUTE[5:9],
+        main.TILE_ROUTE[18:tile_count],
+    ]
+    
     hand_tile_count = sum(
         len(zone)
         for zone in main.HAND_WORK_TILES_EACH
@@ -29,7 +34,7 @@ for tile_count in TILE_COUNTS:
                 f"{tile_count} tiles, "
                 f"wheat target {wheat_target}"
             ),
-            hand_planting_agent,
+            strawberry_agent,
             SEEDS,
         )
 

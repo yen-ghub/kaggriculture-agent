@@ -64,6 +64,13 @@ All evaluations use both player positions.
 | Full-quadrant Strawberry v1 | Expanded Wheat v1 | 5 | 100.0% | 34976.2 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | 25 tiles; zero leftovers |
 | Full-quadrant Strawberry v1 | Strawberry v1 | 5 | 100.0% | 34786.6 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | Direct predecessor comparison; average lead 4360.8; zero leftovers |
 | Full-quadrant Strawberry v1 | Three hands v1 | 5 | 90.0% | 36786.4 | 150.0 | 106.0 carrot, 84.0 melon, 100.0 strawberry | Strongest opponent; average lead 3562.5; zero leftovers |
+| First cow v1 | Two hands v1 | 5 | 100.0% | 45659.7 | 149.1 | 8.4 wheat, 103.7 carrot, 78.0 melon, 88.1 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
+| First cow v1 | Hand planting v1 | 5 | 100.0% | 43999.4 | 149.0 | 8.0 wheat, 103.7 carrot, 78.0 melon, 88.1 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
+| First cow v1 | Expanded Wheat v1 | 5 | 100.0% | 44519.7 | 149.3 | 5.6 wheat, 105.5 carrot, 78.0 melon, 88.4 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
+| First cow v1 | Strawberry v1 | 5 | 100.0% | 44305.2 | 149.3 | 5.6 wheat, 105.5 carrot, 78.0 melon, 88.4 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
+| First cow v1 | Three hands v1 | 5 | 100.0% | 43524.6 | 149.1 | 7.2 wheat, 104.9 carrot, 78.0 melon, 88.0 strawberry, 36.0 milk | Two-Wheat feed reserve; zero other leftovers |
+| First cow v1 | Full-quadrant Strawberry v1 | 5 | 100.0% | 44998.1 | 149.0 | 9.2 wheat, 103.7 carrot, 78.0 melon, 87.8 strawberry, 36.0 milk | Direct predecessor comparison; average lead 12441.0 |
+| First cow v1 | First cow v1 | 5 | 50.0% | 42586.8 | 149.0 | 8.0 wheat, 103.7 carrot, 78.0 melon, 88.1 strawberry, 36.0 milk | Symmetric self-play: 1W, 1L, 8T; two-Wheat feed reserve |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -88,3 +95,13 @@ five-seed suite shown above, it won 69 of 70 matches for a 98.6% macro match
 score with zero errors. Production was consistent in every matchup: 106 carrots,
 84 melons, and 100 strawberries sold from 150 harvests, with no wheat production
 and zero final leftovers.
+
+First cow v1 replaces one crop tile at `(4, 4)` with a pasture and one cow. The
+farmer buys Wheat from the market, feeds and cares for the cow daily, and
+harvests the six-unit first Milk yield followed by ten three-unit yields. The
+agent sold all 36 expected Milk units in every match with no Milk leftovers or
+errors. It won all 60 matches in the six-opponent development suite shown above.
+Against Full-quadrant Strawberry v1 it averaged 44998.1 coins, a lead of 12441.0.
+Its symmetric self-play produced a 50.0% match score and 42586.8 average coins
+despite combined market supply of 72 Milk. The two Wheat remaining at season end
+are the deliberately maintained feed reserve; all other final leftovers were zero.

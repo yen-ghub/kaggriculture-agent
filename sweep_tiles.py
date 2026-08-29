@@ -1,7 +1,7 @@
 import main
 
 from evaluate import evaluate_opponent
-from baselines.full_quadrant_strawberry_v1 import agent as strawberry_agent
+from baselines.two_cows_v1 import agent as agent
 
 
 TILE_COUNTS = [25]
@@ -34,7 +34,7 @@ for tile_count in TILE_COUNTS:
                 f"{tile_count} tiles, "
                 f"{strawberry_target} strawberries"
             ),
-            strawberry_agent,
+            agent,
             SEEDS,
         )
 

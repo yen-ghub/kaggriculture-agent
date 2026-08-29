@@ -31,13 +31,13 @@ OPPONENTS = {
     # "seed_buffer_v1": seed_buffer_agent,
     # "wheat_v1": wheat_agent,
     # "two_hands_v1": two_hands_agent,
-    "hand_planting_v1": hand_planting_agent,
-    "expanded_wheat_v1": expanded_wheat_agent,
-    "strawberry_agent_v1": strawberry_agent,
+    # "hand_planting_v1": hand_planting_agent,
+    # "expanded_wheat_v1": expanded_wheat_agent,
+    # "strawberry_agent_v1": strawberry_agent,
     "three_hands_agent_v1": three_hands_agent,
     "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
     "first_cow_v1": first_cow_agent,
-    "two_cows_test": two_cows_agent,
+    "two_cows_agent": two_cows_agent,
 }
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK",)
 
@@ -131,7 +131,7 @@ def evaluate_opponent(
         opponent_name,
         opponent,
         seeds,
-        verbose=False,
+        verbose=True,
 ):
     # These must reset for every opponent.
     results = {
@@ -199,7 +199,8 @@ def evaluate_opponent(
                     f"position={our_position}, "
                     f"ours={our_state.reward}, "
                     f"opponent_score={opponent_state.reward}, "
-                    f"result={result}"
+                    f"result={result} "
+                    f"milk sold: {diagnostics["sold"]["MILK"]}"
                 )
 
     completed_matches = (results["WIN"] + results["LOSS"] + results["TIE"]
@@ -274,7 +275,7 @@ def main():
             opponent_name,
             opponent,
             SEEDS,
-            verbose=False,
+            verbose=True,
         )
 
         print_opponent_summary(summary)

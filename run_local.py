@@ -5,7 +5,7 @@ from baselines.full_quadrant_strawberry_v1 import agent as baseline_agent
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 300,
+        "episodeSteps": 480,
         "seed": 1,
     },
     debug=True,
@@ -52,7 +52,9 @@ for step_number, step in enumerate(env.steps):
     home_tile = obs.farms[0].tiles[4][4]
     second_tile = obs.farms[0].tiles[4][3]
     first_cow_tile = obs.farms[0].tiles[4][4]
-    second_cow_tile = obs.farms[0].tiles[4][3]
+    second_cow_tile = obs.farms[0].tiles[3][4]
+    cow_3_tile = obs.farms[0].tiles[4][5]  # (5,4)
+    cow_4_tile = obs.farms[0].tiles[3][5]  # (5,3)
     
     # Show the opening turns and the day boundary.
     # if (step_number <= 20 
@@ -60,27 +62,30 @@ for step_number, step in enumerate(env.steps):
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        obs.day in (0, 1, 8, 10)
-        and (
-            position in COW_TILES
-            or any(
-                order[0] == "SELL"
-                and order[1] == "MILK"
-                for order in market_action
-            )
-        )
+        obs.day in (17,18,19)
+        # and (
+        #     position in COW_TILES
+        #     or any(
+        #         order[0] == "SELL"
+        #         and order[1] == "MILK"
+        #         for order in market_action
+        #     )
+        # )
     ):        
         print(
             #f"record={step_number:2}, "
-            f"game_step={obs.step:2}, "
+            f"step={obs.step:2}, "
             f"day={obs.day}, "
-            f"hour={obs.hour:2}, "
-            f"action={player_state.action['farmer']}, "
+            f"hr={obs.hour:2}, "
+            f"act={player_state.action['farmer']}, "
             f"position={position}, "
             f"hands={hands}, "
-            f"hand_actions={hand_actions}, "            
+            # f"hand_act={hand_actions}, "            
             f"cow_1={describe_tile(first_cow_tile)}, "
             f"cow_2={describe_tile(second_cow_tile)}, "
+            f"cow_3={describe_tile(cow_3_tile)}, "
+            f"cow_4={describe_tile(cow_4_tile)}, "
+            f"unlocked={obs.farms[0].unlocked_quadrants}, "
             # f"hires_today={hires_today}, "
             # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
             # f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "

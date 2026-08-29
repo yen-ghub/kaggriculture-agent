@@ -79,6 +79,10 @@ All evaluations use both player positions.
 | Two cows v1 | Full-quadrant Strawberry v1 | 5 | 100.0% | 51029.7 | 152.9 | 8.2 wheat, 91.0 carrot, 78.0 melon, 82.6 strawberry, 72.0 milk | Four-Wheat feed reserve; 1.8 strawberry leftover |
 | Two cows v1 | First cow v1 | 5 | 100.0% | 46933.1 | 152.9 | 7.0 wheat, 91.0 carrot, 78.0 melon, 82.9 strawberry, 72.0 milk | Direct predecessor comparison; average lead 3916.5; 1.8 strawberry leftover |
 | Two cows v1 | First cow v1 | 20 | 100.0% | 48021.0 | 152.8 | 6.8 wheat, 90.9 carrot, 78.0 melon, 82.8 strawberry, 72.0 milk | Focused validation: 40W, 0L; average lead 4629.5; 1.9 strawberry leftover |
+| Four cows, cow-only NE | Two cows v1 | 5 | 60.0% | 43721.3 | 176.8 | 17.6 wheat, 111.6 carrot, 78.0 melon, 91.4 strawberry, 117.6 milk | Four hands; expansion land used only for cows; eight-Wheat feed reserve |
+| Four cows, five NE crops | Two cows v1 | 5 | 80.0% | 52414.0 | 201.8 | 72.8 wheat, 127.8 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Five hands; six NE route entries, including one pasture; only eight-Wheat feed reserve remains |
+| Four cows v1 | Two cows v1 | 5 | 100.0% | 54260.7 | 204.8 | 84.8 wheat, 127.8 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Seven NE route entries; six NE crop tiles; average lead 6709.1 |
+| Four cows v1 | Two cows v1 | 20 | 100.0% | 58015.7 | 204.4 | 86.0 wheat, 125.7 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Focused validation: 40W, 0L; average lead 9866.3; only eight-Wheat feed reserve remains |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -128,3 +132,19 @@ against First cow v1, averaging 48021.0 coins and leading by 4629.5. The four
 Wheat remaining at season end are the deliberate two-cow feed reserve. Average
 Strawberry leftovers were 1.8 in the development suite and 1.9 in the focused
 validation.
+
+Four cows v1 retains the initial pastures at `(4, 4)` and `(4, 3)`, unlocks the
+NE quadrant on day 9, and adds cows at `(5, 4)` and `(5, 3)`. Delaying the second
+pair staggers their Milk production relative to the initial pair. The farmer is
+dedicated to the four cows, while five hands manage 23 NW crop tiles and six NE
+crop tiles. The candidate maintains a target of 23 Strawberry plants and an
+eight-Wheat feed reserve.
+
+Using the expansion land only for cows produced a 60.0% match score against Two
+cows v1. Adding a fifth hand and five NE crop tiles raised the score to 80.0%.
+Adding one further NE crop tile raised the five-seed result to 100.0% and fixed
+the previously losing seed. In the focused 20-seed validation, Four cows v1 won
+all 40 matches with zero errors, averaged 58015.7 coins, and led by 9866.3. It
+sold all 120 expected Milk units with no Milk, Carrot, Melon, or Strawberry
+leftovers. The eight Wheat remaining at season end are the deliberately
+maintained four-cow feed reserve.

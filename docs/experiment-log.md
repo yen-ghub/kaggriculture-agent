@@ -95,6 +95,9 @@ All evaluations use both player positions.
 | Adaptive Strawberry sales candidate | Two cows v1 | 5 | 100.0% | 56983.4 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Development test; average opponent 45723.7 |
 | Adaptive Strawberry sales candidate | Four cows v1 | 5 | 80.0% | 57905.9 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Suite minimum: 8W, 2L; average opponent 51936.5 |
 | Adaptive Strawberry sales candidate | Second-quadrant expansion v1 | 5 | 100.0% | 58768.6 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Heavy-opponent guard preserved the delayed-Sheep result; average opponent 56228.0 |
+| Shop-aware seventh hand candidate | Low-Strawberry test (target 9) | 5 | 100.0% | 57958.3 | 260.4 | 52.8 wheat, 148.0 carrot, 78.0 melon, 130.6 strawberry, 120.0 milk, 36.0 wool | 10W, 0L; average opponent 48181.6; average lead 9776.7; 16.8 wheat, 6.6 carrot, 4.6 strawberry, and 8.0 wool leftover |
+| Shop-aware seventh hand candidate | Adaptive Strawberry sales v1 | 5 | 100.0% | 61377.8 | 260.6 | 57.6 wheat, 148.0 carrot, 78.0 melon, 129.8 strawberry, 120.0 milk, 36.0 wool | Direct predecessor comparison: 10W, 0L; average opponent 58254.2; average lead 3123.6; zero errors |
+| Shop-aware seventh hand candidate | Adaptive Strawberry sales v1 | 20 | 100.0% | 66365.4 | 260.3 | 46.2 wheat, 148.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk, 36.0 wool | Focused validation: 40W, 0L; average opponent 63222.6; average lead 3142.8; 15.3 wheat, 6.1 carrot, 5.2 strawberry, and 8.0 wool leftover |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -207,3 +210,27 @@ Production and leftovers were identical between the configurations, isolating
 the gain to market timing. Across the six-opponent, five-seed development suite,
 the candidate won 58 of 60 matches for a 96.7% macro match score with zero
 errors; Four cows v1 was the minimum at 80.0%.
+
+The shop-aware seventh hand candidate expands the managed NE route from 14 to
+20 entries. After excluding the two NE cow pastures, three hands each receive a
+six-tile NE crop zone, while the existing four hands retain their NW roles. The
+agent always hires the seventh hand after the NE unlock. Hiring can spill into
+the following hour, and three later market-order slots are reserved for animal,
+feed, and seed purchases. The maximum submitted order count in the validation
+trace was nine, below the environment limit of ten.
+
+The base Strawberry target remains 33 while fewer than two Strawberry-consuming
+shop instances are unlocked. At two or more instances of Brunch Spot, Ice Cream
+Shop, Smoothie Shop, or Farmers Market, the target increases to 39; repeated shop
+types count independently. In the trace, the seventh hand initially planted the
+six added NE tiles with Carrots while only one qualifying shop was active. A
+Smoothie Shop raised the count to two on day 12, triggering the purchase of six
+additional Strawberry seeds and conversion of those tiles after the Carrots
+matured.
+
+The candidate won all 10 matches against both development opponents. It then
+won all 40 matches in the focused 20-seed validation against Adaptive Strawberry
+sales v1, with zero errors, averaging 66365.4 coins and leading by 3142.8. Mean
+harvests rose from the predecessor's approximately 225 to 260.3. The remaining
+15.3 Wheat, 6.1 Carrots, 5.2 Strawberries, and 8.0 Wool identify final-day
+liquidation as the next optimization opportunity.

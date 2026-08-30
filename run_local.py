@@ -45,7 +45,24 @@ for step_number, step in enumerate(env.steps):
     farmer_action = player_state.action["farmer"]
     market_action = player_state.action["market"]
     market_order_count = len(market_action)
+    shops = list(obs.town.unlocked_shops)
+    strawberry_shop_count = sum(
+        shop in {
+            "BRUNCH_SPOT",
+            "ICE_CREAM_SHOP",
+            "SMOOTHIE_SHOP",
+            "FARMERS_MARKET",
+        }
+        for shop in shops
+    )
 
+    expected_strawberry_target = (
+        39
+        if strawberry_shop_count >= 2
+        else 33
+    )
+
+   
     if market_order_count > 10:
         print(
             f"OVER_LIMIT step={obs.step}, day={obs.day}, "
@@ -72,13 +89,19 @@ for step_number, step in enumerate(env.steps):
     sheep_1_tile = obs.farms[0].tiles[3][3]  # (3,3)
     sheep_2_tile = obs.farms[0].tiles[4][3]  # (3,4)
     
+    seventh_hand_action = (
+                            hand_actions[6]
+                            if len(hand_actions) >= 7
+                            else None
+                        )
+    
     # Show the opening turns and the day boundary.
     # if (step_number <= 20 
     #         or obs.hour in (0, 23)
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        obs.day <= 7
+        9 <= obs.day <= 12
         and (
             obs.hour in (0, 1, 23)
             or farmer_action[0] in (
@@ -108,16 +131,21 @@ for step_number, step in enumerate(env.steps):
             f"position={position}, "
             f"hands={hands}, "
             f"hand_act={hand_actions}, "
-            f"cow_1={describe_tile(first_cow_tile)}, "
-            f"cow_2={describe_tile(second_cow_tile)}, "
-            f"cow_3={describe_tile(cow_3_tile)}, "
-            f"cow_4={describe_tile(cow_4_tile)}, "
-            f"sheep_1={describe_tile(sheep_1_tile)}, "
-            f"sheep_2={describe_tile(sheep_2_tile)}, "
+            # f"cow_1={describe_tile(first_cow_tile)}, "
+            # f"cow_2={describe_tile(second_cow_tile)}, "
+            # f"cow_3={describe_tile(cow_3_tile)}, "
+            # f"cow_4={describe_tile(cow_4_tile)}, "
+            # f"sheep_1={describe_tile(sheep_1_tile)}, "
+            # f"sheep_2={describe_tile(sheep_2_tile)}, "
             f"money={obs.farms[0].money}, "
-            f"farmer_wheat={obs.private.inventories[0].get('WHEAT', 0)}, "
-            f"shed_wheat={obs.private.shed.get('WHEAT', 0)}, "
+            # f"farmer_wheat={obs.private.inventories[0].get('WHEAT', 0)}, "
+            # f"shed_wheat={obs.private.shed.get('WHEAT', 0)}, "
             f"unlocked={obs.farms[0].unlocked_quadrants}, "
+            f"hires_today={hires_today}, "
+            f"seventh_action={seventh_hand_action}, "
+            f"shops={shops}, "
+            f"strawberry_shops={strawberry_shop_count}, "
+            f"expected_sberry_target={expected_strawberry_target}, "
             # f"hires_today={hires_today}, "
             # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
             # f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "

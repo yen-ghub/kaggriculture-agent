@@ -83,6 +83,7 @@ All evaluations use both player positions.
 | Four cows, five NE crops | Two cows v1 | 5 | 80.0% | 52414.0 | 201.8 | 72.8 wheat, 127.8 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Five hands; six NE route entries, including one pasture; only eight-Wheat feed reserve remains |
 | Four cows v1 | Two cows v1 | 5 | 100.0% | 54260.7 | 204.8 | 84.8 wheat, 127.8 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Seven NE route entries; six NE crop tiles; average lead 6709.1 |
 | Four cows v1 | Two cows v1 | 20 | 100.0% | 58015.7 | 204.4 | 86.0 wheat, 125.7 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Focused validation: 40W, 0L; average lead 9866.3; only eight-Wheat feed reserve remains |
+| Second-quadrant expansion candidate | Four cows v1 | 20 | 45.0% | 57861.9 | 227.0 | 27.9 wheat, 114.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk | Mirror-match stress test: 18W, 22L; opponent averaged 57256.8; average lead 605.1; 12.1 wheat leftover |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -148,3 +149,19 @@ all 40 matches with zero errors, averaged 58015.7 coins, and led by 9866.3. It
 sold all 120 expected Milk units with no Milk, Carrot, Melon, or Strawberry
 leftovers. The eight Wheat remaining at season end are the deliberately
 maintained four-cow feed reserve.
+
+The second-quadrant expansion candidate increases the NE route to 14 entries,
+giving 35 crop tiles after excluding the four pastures. It hires four hands
+before the NE unlock and six afterward, and raises the Strawberry target from
+23 to 33. A final-day priority fix prevents crop liquidation from overriding
+pending cow actions; this restored the complete 120-unit Milk schedule.
+
+Against the very similar Four cows v1 strategy, the candidate won 18 of 40
+matches for a 45.0% match score, although it averaged 57861.9 coins and led by
+605.1. Wins and losses clustered by seed and were nearly independent of player
+position, indicating a shared-market mirror-match interaction rather than an
+execution-order failure. In the public competition, however, the candidate
+raised the observed score from 570 for Four cows v1 to 663, an increase of 93
+points (16.3%). The public result therefore supports the expanded candidate as
+the stronger agent for the current opponent population while Four cows v1
+remains a useful mirror-match stress test.

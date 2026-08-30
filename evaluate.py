@@ -9,16 +9,17 @@ from main import agent, CROPS_MANAGED
 # from baselines.seed_buffer_v1 import agent as seed_buffer_agent
 # from baselines.wheat_v1 import agent as wheat_agent
 # from baselines.two_hands_v1 import agent as two_hands_agent
-from baselines.hand_planting_v1 import agent as hand_planting_agent
-from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
-from baselines.strawberry_v1 import agent as strawberry_agent
+# from baselines.hand_planting_v1 import agent as hand_planting_agent
+# from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
+# from baselines.strawberry_v1 import agent as strawberry_agent
 from baselines.three_hands_v1 import agent as three_hands_agent
 from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
 from baselines.first_cow_v1 import agent as first_cow_agent
 from baselines.two_cows_v1 import agent as two_cows_agent
+from baselines.four_cows_v1 import agent as four_cows_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -34,11 +35,13 @@ OPPONENTS = {
     # "hand_planting_v1": hand_planting_agent,
     # "expanded_wheat_v1": expanded_wheat_agent,
     # "strawberry_agent_v1": strawberry_agent,
-    "three_hands_agent_v1": three_hands_agent,
-    "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
-    "first_cow_v1": first_cow_agent,
-    "two_cows_agent": two_cows_agent,
-}
+    # "three_hands_agent_v1": three_hands_agent,
+    # "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
+    # "first_cow_v1": first_cow_agent,
+    # "two_cows_agent": two_cows_agent,
+    "four_cows_agent":four_cows_agent,
+}    
+
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK",)
 
 # Define helper functions
@@ -131,7 +134,7 @@ def evaluate_opponent(
         opponent_name,
         opponent,
         seeds,
-        verbose=True,
+        verbose=False,
 ):
     # These must reset for every opponent.
     results = {

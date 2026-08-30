@@ -86,6 +86,15 @@ All evaluations use both player positions.
 | Second-quadrant expansion candidate | Four cows v1 | 20 | 45.0% | 57861.9 | 227.0 | 27.9 wheat, 114.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk | Mirror-match stress test: 18W, 22L; opponent averaged 57256.8; average lead 605.1; 12.1 wheat leftover |
 | Delayed Sheep v1 | Second-quadrant expansion v1 | 5 | 100.0% | 58768.6 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Development test: 10W, 0L; average opponent 56228.0; average lead 2540.6; 8.0 wool leftover |
 | Delayed Sheep v1 | Second-quadrant expansion v1 | 20 | 100.0% | 62014.9 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Focused validation: 40W, 0L; average opponent 59535.1; average lead 2479.8; 8.0 wool leftover |
+| Delayed Sheep v1, immediate Strawberry sales | Low-Strawberry test (target 9) | 5 | 80.0% | 54255.7 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | A/B control: 8W, 2L; average opponent 49889.2; average lead 4366.5 |
+| Adaptive Strawberry sales candidate | Low-Strawberry test (target 9) | 5 | 100.0% | 55180.3 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Cap 8: 10W, 0L; average opponent 50116.4; average lead 5063.9 |
+| Delayed Sheep v1, immediate Strawberry sales | Low-Strawberry test (target 9) | 20 | 82.5% | 60437.8 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | A/B control: 33W, 7L; average opponent 56903.2; average lead 3534.6 |
+| Adaptive Strawberry sales candidate | Low-Strawberry test (target 9) | 20 | 87.5% | 61010.3 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Cap 8 validation: 35W, 5L; average opponent 57053.7; average lead 3956.6 |
+| Adaptive Strawberry sales candidate | Full-quadrant Strawberry v1 | 5 | 100.0% | 61553.5 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Heavy-opponent development test; average opponent 36495.4 |
+| Adaptive Strawberry sales candidate | First cow v1 | 5 | 100.0% | 57333.1 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Development test; average opponent 43463.4 |
+| Adaptive Strawberry sales candidate | Two cows v1 | 5 | 100.0% | 56983.4 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Development test; average opponent 45723.7 |
+| Adaptive Strawberry sales candidate | Four cows v1 | 5 | 80.0% | 57905.9 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Suite minimum: 8W, 2L; average opponent 51936.5 |
+| Adaptive Strawberry sales candidate | Second-quadrant expansion v1 | 5 | 100.0% | 58768.6 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Heavy-opponent guard preserved the delayed-Sheep result; average opponent 56228.0 |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -181,3 +190,20 @@ with zero errors. The 20-seed validation averaged 62014.9 coins and led by
 the final Wool batch arrives after the last useful selling opportunity. That
 leftover is an endgame-efficiency opportunity rather than a failure of the
 delayed-Sheep strategy.
+
+The adaptive Strawberry sales candidate detects Strawberry-light opponents by
+counting their visible plants. Against opponents with fewer than ten Strawberry
+plants, it submits at most one Strawberry sale each morning, caps low-price
+sales at eight units, and liquidates the remaining inventory on day 29. It
+sells immediately when the opponent has at least ten Strawberry plants or when
+the current Strawberry price reaches 250. This prevents a heavy producer from
+exploiting the temporarily higher price created by our withheld supply.
+
+Against the target-nine Low-Strawberry test, the five-seed A/B improved from
+80.0% to 100.0% and increased the average lead by 697.4. In the focused 20-seed
+comparison, the cap-eight policy improved the match score from 82.5% to 87.5%,
+raised our average money by 572.5, and increased the average lead by 422.0.
+Production and leftovers were identical between the configurations, isolating
+the gain to market timing. Across the six-opponent, five-seed development suite,
+the candidate won 58 of 60 matches for a 96.7% macro match score with zero
+errors; Four cows v1 was the minimum at 80.0%.

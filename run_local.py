@@ -5,7 +5,7 @@ from baselines.full_quadrant_strawberry_v1 import agent as baseline_agent
 env = make(
     "kaggriculture",
     configuration={
-        "episodeSteps": 480,
+        "episodeSteps": 720,
         "seed": 1,
     },
     debug=True,
@@ -62,7 +62,8 @@ for step_number, step in enumerate(env.steps):
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        obs.day in (17,18,19)
+        # obs.day in (8,9,10,11)
+        obs.day == 29
         # and (
         #     position in COW_TILES
         #     or any(

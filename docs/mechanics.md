@@ -391,6 +391,91 @@ Returning carried produce requires one movement action per tile of Manhattan
 distance to the shed-access tile. It also requires one `PLACE` action for each
 distinct crop type being carried.
 
+## Cows and Milk
+
+A cow occupies a pasture tile. Establishing one requires two actions on that
+tile:
+
+```python
+["BUILD_PASTURE"]
+["PLACE", "COW", 1]
+```
+
+The purchased cow first enters the shed and must be collected by the farmer:
+
+```python
+["PICKUP", "COW", quantity]
+```
+
+Multiple cows can be picked up together and then placed one at a time in their
+pastures.
+
+An established cow requires two ordered care actions every day:
+
+```text
+FEED -> CARE
+```
+
+`FEED` consumes one Wheat carried by the farmer. Wheat can be collected from
+the shed in a batch, so one `PICKUP` action can supply several cows. The farmer
+must submit `FEED` before `CARE` for each cow. When Milk is available, collecting
+it requires a third action on that pasture:
+
+```python
+["HARVEST"]
+```
+
+Consequently, each cow needs at least two on-pasture actions on an ordinary
+day and three on a Milk-harvest day. Movement between pastures, collecting
+Wheat, returning to the shed, and placing Milk are additional actions. Four
+cows therefore need eight on-pasture actions every day before counting any
+harvests or travel. Staggering cow start dates spreads their harvest actions
+across different days.
+
+Milk is carried in the farmer's inventory after harvest. The farmer must return
+to the shed-access tile and deposit it explicitly:
+
+```python
+["PLACE", "MILK", quantity]
+```
+
+Because farmer actions are processed before market actions, a matching
+`SELL MILK` order can sell that deposited Milk during the same step.
+
+Local traces established the following unfertilized production schedule for a
+cow started on day 0:
+
+- The first harvest is six Milk on day 8.
+- Later harvests produce three Milk every two days through day 28.
+- The complete schedule produces 36 Milk.
+
+Cows started on day 9 first produce six Milk on day 17, followed by three Milk
+every two days through day 29, for 24 Milk each. The current staggered setup of
+two day-0 cows and two day-9 cows can therefore produce:
+
+```text
+2 * 36 + 2 * 24 = 120 Milk
+```
+
+Cow actions must retain priority during final-day liquidation. A trace showed
+that allowing crop liquidation to overwrite a pending `FEED` or `CARE` action
+created a loop in which Wheat was repeatedly picked up, placed, and sold. The
+two expansion cows then missed their last harvests, losing six Milk. The safe
+priority rule is:
+
+```python
+if (
+    cow_action is None
+    and obs["day"] == FINAL_DAY
+    and backpack_total > 0
+    and (liquidation_is_urgent or harvest_is_done)
+):
+    ...
+```
+
+With this guard, all four cows completed their final care and harvest actions,
+and evaluation returned to the expected 120 Milk sold with zero Milk leftover.
+
 ## Plants and watering
 
 A plant tile is represented by a dictionary similar to:

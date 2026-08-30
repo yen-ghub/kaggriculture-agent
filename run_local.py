@@ -22,9 +22,17 @@ def describe_tile(tile):
         return "empty"
 
     if isinstance(tile, dict):
-        name = tile.get("crop", tile.get("kind"))
+        name = tile.get("animal", tile.get("crop", tile.get("kind")))
         watered = tile.get("watered_today")
         crop_yield = tile.get("yield_units")
+
+        if tile.get("animal"):
+            return (
+                f"{name}(fed={tile.get('fed_today')}, "
+                f"unfed={tile.get('consecutive_unfed')}, "
+                f"cared={tile.get('cared_today')}, "
+                f"yield={crop_yield})"
+            )
 
         return f"{name}(watered={watered}, yield={crop_yield})"
 
@@ -37,6 +45,12 @@ for step_number, step in enumerate(env.steps):
     farmer_action = player_state.action["farmer"]
     market_action = player_state.action["market"]
     market_order_count = len(market_action)
+
+    if market_order_count > 10:
+        print(
+            f"OVER_LIMIT step={obs.step}, day={obs.day}, "
+            f"hour={obs.hour}, orders={market_action}"
+        )
 
     max_market_order_count = max(
         max_market_order_count,
@@ -55,6 +69,8 @@ for step_number, step in enumerate(env.steps):
     second_cow_tile = obs.farms[0].tiles[3][4]
     cow_3_tile = obs.farms[0].tiles[4][5]  # (5,4)
     cow_4_tile = obs.farms[0].tiles[3][5]  # (5,3)
+    sheep_1_tile = obs.farms[0].tiles[3][3]  # (3,3)
+    sheep_2_tile = obs.farms[0].tiles[4][3]  # (3,4)
     
     # Show the opening turns and the day boundary.
     # if (step_number <= 20 
@@ -62,8 +78,18 @@ for step_number, step in enumerate(env.steps):
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        # obs.day in (8,9,10,11)
-        obs.day == 29
+        obs.day <= 7
+        and (
+            obs.hour in (0, 1, 23)
+            or farmer_action[0] in (
+                "PICKUP",
+                "FEED",
+                "CARE",
+                "HARVEST",
+                "PLACE",
+            )
+            or market_action
+        )
         # and (
         #     position in COW_TILES
         #     or any(
@@ -81,11 +107,16 @@ for step_number, step in enumerate(env.steps):
             f"act={player_state.action['farmer']}, "
             f"position={position}, "
             f"hands={hands}, "
-            # f"hand_act={hand_actions}, "            
+            f"hand_act={hand_actions}, "
             f"cow_1={describe_tile(first_cow_tile)}, "
             f"cow_2={describe_tile(second_cow_tile)}, "
             f"cow_3={describe_tile(cow_3_tile)}, "
             f"cow_4={describe_tile(cow_4_tile)}, "
+            f"sheep_1={describe_tile(sheep_1_tile)}, "
+            f"sheep_2={describe_tile(sheep_2_tile)}, "
+            f"money={obs.farms[0].money}, "
+            f"farmer_wheat={obs.private.inventories[0].get('WHEAT', 0)}, "
+            f"shed_wheat={obs.private.shed.get('WHEAT', 0)}, "
             f"unlocked={obs.farms[0].unlocked_quadrants}, "
             # f"hires_today={hires_today}, "
             # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "

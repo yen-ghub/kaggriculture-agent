@@ -1,7 +1,8 @@
 from kaggle_environments import make
 import main
 from main import agent
-from baselines.three_hands_v1 import agent as baseline_agent
+# from baselines.delayed_sheep_v1 import agent as baseline_agent
+from baselines.low_strawberry_test import agent as baseline_agent
 
 
 def count_plants(farm, crop):
@@ -18,12 +19,6 @@ def count_plants(farm, crop):
 
     return count
 
-main.HAND_WORK_TILES_EACH = [
-        main.TILE_ROUTE[:6],
-        main.TILE_ROUTE[6:11],
-        main.TILE_ROUTE[18:22],
-    ]
-
 env = make(
     "kaggriculture",
     configuration={
@@ -36,29 +31,50 @@ env = make(
 env.run([agent, baseline_agent])
 
 for step in env.steps:
-    observation = step[0].observation
-
-    if observation.hour != 0:
+    our_state = step[0]
+    opponent_state = step[1]
+    obs = our_state.observation
+    
+    if (
+        our_state.action is None
+        or opponent_state.action is None
+    ):
         continue
+    
+    our_strawberry_sales = [
+        order
+        for order in our_state.action["market"]
+        if (
+            order[0] == "SELL"
+            and order[1] == "STRAWBERRY"
+        )
+    ]
 
-    prices = observation.market.prices
-    inventory = observation.market.inventory
+    opponent_strawberry_sales = [
+        order
+        for order in opponent_state.action["market"]
+        if (
+            order[0] == "SELL"
+            and order[1] == "STRAWBERRY"
+        )
+    ]
 
-    our_farm = observation.farms[0]
-    opponent_farm = observation.farms[1]
-
-    print(
-        f"day={observation.day:2}, "
-        f"our_$={our_farm['money']:8.1f}, "
-        f"opp_$={opponent_farm['money']:8.1f}, "    
-        f"carrot_price={prices['CARROT']:3}, "
-        f"melon_price={prices['MELON']:3}, "
-        f"wheat_price={prices['WHEAT']:3}, "
-        # f"carrot_inventory={inventory['CARROT']:5}, "
-        # f"melon_inventory={inventory['MELON']:5}, "
-        f"our_plants=(C:{count_plants(our_farm, 'CARROT'):2}, "
-        f"M:{count_plants(our_farm, 'MELON'):2}, "
-        f"S:{count_plants(our_farm, 'STRAWBERRY'):2}), " 
-        f"opp_plants=(C:{count_plants(opponent_farm, 'CARROT'):2}, "
-        f"M:{count_plants(opponent_farm, 'MELON'):2})"
-    )
+    if (
+        obs.day >= 18
+        and (
+            obs.hour in (0, 1, 23)
+            and (our_strawberry_sales or opponent_strawberry_sales)
+        )
+    ):
+        print(
+            f"day={obs.day:2}, "
+            f"hour={obs.hour:2}, "
+            f"price={obs.market.prices['STRAWBERRY']:3}, "
+            f"market_inventory="
+            f"{obs.market.inventory['STRAWBERRY']:5}, "
+            f"our_shed="
+            f"{obs.private.shed.get('STRAWBERRY', 0):3}, "
+            f"our_money={obs.farms[0].money:8.1f}, "
+            f"our_sales={our_strawberry_sales}, "
+            f"opponent_sales={opponent_strawberry_sales}"
+        )

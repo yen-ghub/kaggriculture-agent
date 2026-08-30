@@ -17,9 +17,10 @@ from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_
 from baselines.first_cow_v1 import agent as first_cow_agent
 from baselines.two_cows_v1 import agent as two_cows_agent
 from baselines.four_cows_v1 import agent as four_cows_agent
+from baselines.second_quadrant_v1 import agent as second_quadrant_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -39,10 +40,11 @@ OPPONENTS = {
     # "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
     # "first_cow_v1": first_cow_agent,
     # "two_cows_agent": two_cows_agent,
-    "four_cows_agent":four_cows_agent,
+    # "four_cows_agent":four_cows_agent,
+    "second_quadrant_agent":second_quadrant_agent,
 }    
 
-PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK",)
+PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")
 
 # Define helper functions
 def play_match(seed, our_position, opponent):

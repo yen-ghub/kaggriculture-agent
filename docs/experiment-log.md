@@ -84,6 +84,8 @@ All evaluations use both player positions.
 | Four cows v1 | Two cows v1 | 5 | 100.0% | 54260.7 | 204.8 | 84.8 wheat, 127.8 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Seven NE route entries; six NE crop tiles; average lead 6709.1 |
 | Four cows v1 | Two cows v1 | 20 | 100.0% | 58015.7 | 204.4 | 86.0 wheat, 125.7 carrot, 78.0 melon, 92.0 strawberry, 120.0 milk | Focused validation: 40W, 0L; average lead 9866.3; only eight-Wheat feed reserve remains |
 | Second-quadrant expansion candidate | Four cows v1 | 20 | 45.0% | 57861.9 | 227.0 | 27.9 wheat, 114.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk | Mirror-match stress test: 18W, 22L; opponent averaged 57256.8; average lead 605.1; 12.1 wheat leftover |
+| Delayed Sheep v1 | Second-quadrant expansion v1 | 5 | 100.0% | 58768.6 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Development test: 10W, 0L; average opponent 56228.0; average lead 2540.6; 8.0 wool leftover |
+| Delayed Sheep v1 | Second-quadrant expansion v1 | 20 | 100.0% | 62014.9 | 225.0 | 12.0 wheat, 112.0 carrot, 78.0 melon, 121.0 strawberry, 120.0 milk, 36.0 wool | Focused validation: 40W, 0L; average opponent 59535.1; average lead 2479.8; 8.0 wool leftover |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -165,3 +167,17 @@ raised the observed score from 570 for Four cows v1 to 663, an increase of 93
 points (16.3%). The public result therefore supports the expanded candidate as
 the stronger agent for the current opponent population while Four cows v1
 remains a useful mirror-match stress test.
+
+Delayed Sheep v1 preserves the opening Melon wave and converts the two future
+Sheep tiles only after those Melons are harvested. Sheep setup begins on day 11,
+with the first Wool production arriving around day 17. This avoids the severe
+opening delay observed when two Sheep were purchased on day 0 while still adding
+late-game animal income.
+
+The candidate won all 10 matches in its five-seed development test and all 40
+matches in its focused 20-seed validation against Second-quadrant expansion v1,
+with zero errors. The 20-seed validation averaged 62014.9 coins and led by
+2479.8. It sold 36 Wool per match and finished with 8 Wool on average because
+the final Wool batch arrives after the last useful selling opportunity. That
+leftover is an endgame-efficiency opportunity rather than a failure of the
+delayed-Sheep strategy.

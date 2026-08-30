@@ -12,15 +12,17 @@ from main import agent, CROPS_MANAGED
 # from baselines.hand_planting_v1 import agent as hand_planting_agent
 # from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
 # from baselines.strawberry_v1 import agent as strawberry_agent
-from baselines.three_hands_v1 import agent as three_hands_agent
-from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
-from baselines.first_cow_v1 import agent as first_cow_agent
-from baselines.two_cows_v1 import agent as two_cows_agent
-from baselines.four_cows_v1 import agent as four_cows_agent
-from baselines.second_quadrant_v1 import agent as second_quadrant_agent
+# from baselines.three_hands_v1 import agent as three_hands_agent
+# from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
+# from baselines.first_cow_v1 import agent as first_cow_agent
+# from baselines.two_cows_v1 import agent as two_cows_agent
+# from baselines.four_cows_v1 import agent as four_cows_agent
+# from baselines.second_quadrant_v1 import agent as second_quadrant_agent
+from baselines.low_strawberry_test import agent as low_strawberry_agent
+from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -41,7 +43,9 @@ OPPONENTS = {
     # "first_cow_v1": first_cow_agent,
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
-    "second_quadrant_agent":second_quadrant_agent,
+    # "second_quadrant_agent":second_quadrant_agent,
+    "low_strawberry_agent":low_strawberry_agent,
+    "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")
@@ -280,7 +284,7 @@ def main():
             opponent_name,
             opponent,
             SEEDS,
-            verbose=True,
+            verbose=False,
         )
 
         print_opponent_summary(summary)

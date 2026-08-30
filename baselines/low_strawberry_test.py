@@ -100,13 +100,8 @@ DEFAULT_SEED_TARGETS = {
 }
 SELECTED_CROP_SEED_TARGET = 3
 WHEAT_PLANT_TARGET      = 18        # Currently no limit, to flood the carrot market and bring price down for the oponent
-
-STRAWBERRY_PLANT_TARGET = 33        # Fine-tuned: 33
+STRAWBERRY_PLANT_TARGET = 9
 STRAWBERRY_START_DAY    = 10
-STRAWBERRY_DAILY_SELL_CAP = None
-STRAWBERRY_FORCE_SELL_DAY = 29
-STRAWBERRY_SELL_PRICE_THRESHOLD = 250
-HEAVY_OPPONENT_STRAWBERRY_THRESHOLD = 10
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
@@ -442,7 +437,7 @@ def agent(obs):
     ## 2.7 Adaptive crop selection, considering market price and opponent's crop selection
     def choose_crop_for_planting():
         
-        # Strawberry as priority
+        # Temporary: test strawberry as a priority
         our_strawberries = count_crop_plants(farm,"STRAWBERRY")
 
         strawberry_last_full_cycle_day = (FINAL_DAY - CROP_CONFIGS["STRAWBERRY"]["last_production_day"])
@@ -681,8 +676,7 @@ def agent(obs):
         return None
     
     
-    
-    #########################################################
+    #########################
     # 3. Opening market orders
     
     ## 3.1 Get animal and animal product count before buying
@@ -690,6 +684,7 @@ def agent(obs):
         position: tile_at(farm, position)
         for position in active_animal_tiles
     }
+
     animal_positions = [
         position
         for position, tile in animal_tiles.items()
@@ -699,6 +694,7 @@ def agent(obs):
             and tile.get("animal") == active_animal_plan[position]
         )
     ]
+
     farmer_animal_positions = [
         position
         for position in animal_positions
@@ -763,39 +759,13 @@ def agent(obs):
     money_available = farm["money"]
     
     ## 3.3 Sell crop of there is any in the shed (loop for each crop)
-    
-    # Test strawberry sale timing
-    opponent_id = 1 - player_id
-    opponent_farm = obs["farms"][opponent_id]
-
-    opponent_strawberries = count_crop_plants(
-        opponent_farm,
-        "STRAWBERRY",
-    )
-
-    opponent_is_strawberry_heavy = (
-        opponent_strawberries
-        >= HEAVY_OPPONENT_STRAWBERRY_THRESHOLD
-    )
-    STRAWBERRY_SALE_HOUR = 0
     for crop in CROPS_MANAGED:
         quantity_to_sell = shed_counts[crop]
 
-        # For wheat, reserve some wheat for livestock feed.
+        # Reserve some wheat for livestock feed.
         if crop == "WHEAT":
             quantity_to_sell = max(0, quantity_to_sell - animal_feed_reserve,)
 
-        # For strawberry, cap sale if below certain price
-        if (crop == "STRAWBERRY"):
-            if obs["hour"] != STRAWBERRY_SALE_HOUR:
-                quantity_to_sell = 0
-                
-            elif (STRAWBERRY_DAILY_SELL_CAP is not None
-                    and not opponent_is_strawberry_heavy
-                    and obs["market"]["prices"]["STRAWBERRY"] < STRAWBERRY_SELL_PRICE_THRESHOLD
-                    and obs["day"] < STRAWBERRY_FORCE_SELL_DAY):
-                quantity_to_sell = min(quantity_to_sell, STRAWBERRY_DAILY_SELL_CAP)
-        
         if quantity_to_sell > 0:
             market_orders.append(["SELL", crop, quantity_to_sell])
     

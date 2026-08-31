@@ -95,13 +95,37 @@ for step_number, step in enumerate(env.steps):
                             else None
                         )
     
+    products_to_trace = (
+        "WHEAT",
+        "CARROT",
+        "MELON",
+        "STRAWBERRY",
+        "MILK",
+        "WOOL",
+    )
+
+    inventories = [
+        {
+            product: inventory.get(product, 0)
+            for product in products_to_trace
+            if inventory.get(product, 0) > 0
+        }
+        for inventory in obs.private.inventories
+    ]
+
+    shed = {
+        product: obs.private.shed.get(product, 0)
+        for product in products_to_trace
+        if obs.private.shed.get(product, 0) > 0
+    }
+    
     # Show the opening turns and the day boundary.
     # if (step_number <= 20 
     #         or obs.hour in (0, 23)
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        9 <= obs.day <= 12
+        obs.day >= 28
         and (
             obs.hour in (0, 1, 23)
             or farmer_action[0] in (
@@ -138,14 +162,16 @@ for step_number, step in enumerate(env.steps):
             # f"sheep_1={describe_tile(sheep_1_tile)}, "
             # f"sheep_2={describe_tile(sheep_2_tile)}, "
             f"money={obs.farms[0].money}, "
+            f"inventories={inventories}, "
+            f"shed={shed}, "
             # f"farmer_wheat={obs.private.inventories[0].get('WHEAT', 0)}, "
             # f"shed_wheat={obs.private.shed.get('WHEAT', 0)}, "
-            f"unlocked={obs.farms[0].unlocked_quadrants}, "
-            f"hires_today={hires_today}, "
-            f"seventh_action={seventh_hand_action}, "
-            f"shops={shops}, "
-            f"strawberry_shops={strawberry_shop_count}, "
-            f"expected_sberry_target={expected_strawberry_target}, "
+            # f"unlocked={obs.farms[0].unlocked_quadrants}, "
+            # f"hires_today={hires_today}, "
+            # f"seventh_action={seventh_hand_action}, "
+            # f"shops={shops}, "
+            # f"strawberry_shops={strawberry_shop_count}, "
+            # f"expected_sberry_target={expected_strawberry_target}, "
             # f"hires_today={hires_today}, "
             # f"carrot_seeds={obs.private.seeds.get('CARROT', 0)}, "
             # f"melon_seeds={obs.private.seeds.get('MELON', 0)}, "

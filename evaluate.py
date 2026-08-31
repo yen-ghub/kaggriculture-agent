@@ -44,7 +44,7 @@ OPPONENTS = {
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
-    "low_strawberry_agent":low_strawberry_agent,
+    # "low_strawberry_agent":low_strawberry_agent,
     "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
 }    
 

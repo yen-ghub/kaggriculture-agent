@@ -98,6 +98,8 @@ All evaluations use both player positions.
 | Shop-aware seventh hand candidate | Low-Strawberry test (target 9) | 5 | 100.0% | 57958.3 | 260.4 | 52.8 wheat, 148.0 carrot, 78.0 melon, 130.6 strawberry, 120.0 milk, 36.0 wool | 10W, 0L; average opponent 48181.6; average lead 9776.7; 16.8 wheat, 6.6 carrot, 4.6 strawberry, and 8.0 wool leftover |
 | Shop-aware seventh hand candidate | Adaptive Strawberry sales v1 | 5 | 100.0% | 61377.8 | 260.6 | 57.6 wheat, 148.0 carrot, 78.0 melon, 129.8 strawberry, 120.0 milk, 36.0 wool | Direct predecessor comparison: 10W, 0L; average opponent 58254.2; average lead 3123.6; zero errors |
 | Shop-aware seventh hand candidate | Adaptive Strawberry sales v1 | 20 | 100.0% | 66365.4 | 260.3 | 46.2 wheat, 148.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk, 36.0 wool | Focused validation: 40W, 0L; average opponent 63222.6; average lead 3142.8; 15.3 wheat, 6.1 carrot, 5.2 strawberry, and 8.0 wool leftover |
+| Endgame liquidation v1 | Adaptive Strawberry sales v1 | 5 | 100.0% | 64646.0 | 258.6 | 70.8 wheat, 151.0 carrot, 78.0 melon, 133.0 strawberry, 120.0 milk, 44.0 wool | 10W, 0L; average opponent 58268.0; average lead 6378.0; zero leftovers and errors |
+| Endgame liquidation v1 | Adaptive Strawberry sales v1 | 20 | 100.0% | 69601.0 | 258.3 | 55.5 wheat, 151.1 carrot, 78.0 melon, 136.2 strawberry, 120.0 milk, 44.0 wool | Focused validation: 40W, 0L; average opponent 63236.2; average lead 6364.8; zero leftovers and errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -234,3 +236,22 @@ sales v1, with zero errors, averaging 66365.4 coins and leading by 3142.8. Mean
 harvests rose from the predecessor's approximately 225 to 260.3. The remaining
 15.3 Wheat, 6.1 Carrots, 5.2 Strawberries, and 8.0 Wool identify final-day
 liquidation as the next optimization opportunity.
+
+Endgame liquidation v1 adds explicit final-day liquidation for every hand.
+Each hand compares its remaining action budget with its distance to a shed-access
+tile plus the number of carried product types. When liquidation becomes urgent,
+it stops field work, returns to the shed, places each product, and merges the
+corresponding sale into any existing sell order for that product. This includes
+the Sheep hand's final Wool harvest. On the final day, the Wheat reserve is also
+reduced to the number of animals that still require feeding, accounting for
+Wheat already carried by the farmer and hands. Surplus Wheat is sold and no
+replacement Wheat is purchased unnecessarily.
+
+The single-seed trace finished with all eight inventories and the shed empty.
+Against Adaptive Strawberry sales v1, the five-seed comparison remained 10W-0L
+and increased average money from 61377.8 to 64646.0, a gain of 3268.2, while
+harvests decreased from 260.6 to 258.6. The focused 20-seed validation remained
+40W-0L and increased average money from 66365.4 to 69601.0, a gain of 3235.6.
+The average lead more than doubled from 3142.8 to 6364.8. Wheat, Carrot, Melon,
+Strawberry, Milk, and Wool all finished with zero leftovers, confirming that
+the small two-harvest cost is outweighed by complete monetization of production.

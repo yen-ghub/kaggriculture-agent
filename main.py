@@ -119,26 +119,33 @@ INITIAL_COW_TILES = (
     (4, 4),
     (4, 3),
 )
-
-INITIAL_SHEEP_TILES = (
-    (3, 3),
-    (3, 4),
-)
-
 EXPANSION_COW_TILES = (
     (5, 4),
     (5, 3),
 )
-
 EXPANSION_COW_COUNT = 2
-
 # Every position permanently reserved for a cow.
 COW_TILES = (
     INITIAL_COW_TILES
     + EXPANSION_COW_TILES[:EXPANSION_COW_COUNT]
 )
 
-SHEEP_TILES = INITIAL_SHEEP_TILES
+
+INITIAL_SHEEP_TILES = (
+    (3, 3),
+    (3, 4),
+)
+
+ADDITIONAL_SHEEP_TILES = (
+    (2, 3),
+    (2, 4),
+)
+
+SHEEP_TILES = (
+    INITIAL_SHEEP_TILES
+    + ADDITIONAL_SHEEP_TILES
+)
+
 SHEEP_START_DAY = 11
 SHEEP_TILE_REPLANT_CUTOFF_DAY = SHEEP_START_DAY - 1
 
@@ -171,7 +178,7 @@ SHED_ACCESS_TILES = (
 MAX_MARKET_ORDERS_PER_TURN = 10
 NW_HAND_COUNT       = 4           # First quadrant
 EXPANDED_HAND_COUNT = 7
-SHEEP_HAND_INDEX    = 3        # The chosen HAND to help with SHEEP
+SHEEP_HAND_INDEX    = 0        # The chosen HAND to help with SHEEP
 HAND_HIRE_COST_BY_COUNT = {
     4: 7,
     6: 20,
@@ -277,53 +284,53 @@ def agent(obs):
     
     
     # Sheep tiles remain crop tiles until their opening crops have been cleared.
-    sheep_target_tiles = [
-        farm["tiles"][y][x]
-        for x, y in INITIAL_SHEEP_TILES
-    ]
+    def sheep_group_is_active(positions):
+        target_tiles = [
+            farm["tiles"][y][x]
+            for x, y in positions
+        ]
 
-    sheep_setup_started = (
-        shed.get("SHEEP", 0) > 0
-        or any(
-            inventory.get("SHEEP", 0) > 0
-            for inventory in private["inventories"]
-        )
-        or any(
+        is_setup_started = any(
             isinstance(tile, dict)
             and tile.get("kind") == "PASTURE"
-            for tile in sheep_target_tiles
+            for tile in target_tiles
         )
-    )
 
-    sheep_tiles_ready = all(
-        tile is None
-        or (
-            isinstance(tile, dict)
-            and tile.get("kind") == "WEED"
+        is_tiles_ready = all(
+            tile is None
+            or (isinstance(tile, dict) and tile.get("kind") == "WEED")
+            for tile in target_tiles
         )
-        for tile in sheep_target_tiles
-    )
 
-    sheep_phase_active = (
-        sheep_setup_started
-        or (
-            obs["day"] >= SHEEP_START_DAY
-            and sheep_tiles_ready
+        return (is_setup_started
+            or (obs["day"] >= SHEEP_START_DAY and is_tiles_ready)
         )
-    )
 
-    # Cows are active from the opening.
+
+    initial_sheep_phase_active      = sheep_group_is_active(INITIAL_SHEEP_TILES)
+    additional_sheep_phase_active   = sheep_group_is_active(ADDITIONAL_SHEEP_TILES)
+
+    # Initial COWs are active from the opening.
     active_animal_plan = {
         position: "COW"
         for position in INITIAL_COW_TILES
     }
 
-    # Sheep activate only after their former crop tiles are available.
-    if sheep_phase_active:
+    # SHEEP activate only after their former crop tiles are available.
+    if initial_sheep_phase_active:
         active_animal_plan.update({
             position: "SHEEP"
             for position in INITIAL_SHEEP_TILES
         })
+
+    if additional_sheep_phase_active:
+        active_animal_plan.update({
+            position: "SHEEP"
+            for position in ADDITIONAL_SHEEP_TILES
+        })
+
+ 
+
 
     # When second quadrant is unlocked, add more animal tiles
     if SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]:
@@ -460,11 +467,11 @@ def agent(obs):
     
     ## 2.6
     def crop_profit_per_day(crop):
-        crop_config = CROP_CONFIGS[crop]
-        current_price = obs["market"]["prices"][crop]
+        crop_config     = CROP_CONFIGS[crop]
+        current_price   = obs["market"]["prices"][crop]
 
-        expected_revenue = (crop_config["harvest_yield"] * current_price)
-        expected_profit = (expected_revenue - crop_config["seed_cost"])
+        expected_revenue    = (crop_config["harvest_yield"] * current_price)
+        expected_profit     = (expected_revenue - crop_config["seed_cost"])
 
         return expected_profit / crop_config["harvest_day"]
     
@@ -643,7 +650,7 @@ def agent(obs):
 
         return move_to(hand_position, target)
 
-    # To get a HAND to help the FARMER to care for sheep
+    # 2.9 To get a HAND to help the FARMER to care for sheep
     def choose_sheep_hand_action(hand_position, hand_inventory):
         sheep_positions = [
             position
@@ -704,6 +711,7 @@ def agent(obs):
 
         return None
     
+    # 2.10
     def choose_hand_liquidation_action(
             hand_position,
             hand_inventory,
@@ -727,7 +735,7 @@ def agent(obs):
         actions_to_liquidate = (distance_between(hand_position, shed_target) + len(carried_products))
         actions_remaining = LAST_HOUR_TODAY - obs["hour"]
 
-        if actions_remaining > actions_to_liquidate:
+        if actions_remaining > (actions_to_liquidate + 1):
             return None
 
         if hand_position not in SHED_ACCESS_TILES:
@@ -740,6 +748,9 @@ def agent(obs):
             product,
             hand_inventory[product],
         ]
+    
+    
+    
     
     #########################################################
     # 3. Opening market orders
@@ -1287,18 +1298,11 @@ def agent(obs):
         
         hand_action = None
 
-        # Choose action according to priority: sheep care for the designated HAND -> liquidate -> other actions
-        if hand_index == SHEEP_HAND_INDEX:
-            hand_action = choose_sheep_hand_action(
-                tuple(hand_position),
-                hand_inventory
-            )
+        # Choose action according to priority: liquidate -> sheep care for the designated HAND -> other actions
+        hand_action = choose_hand_liquidation_action(tuple(hand_position), hand_inventory)
 
-        if hand_action is None:
-            hand_action = choose_hand_liquidation_action(
-                tuple(hand_position),
-                hand_inventory
-            )
+        if (hand_action is None and (hand_index == SHEEP_HAND_INDEX)):
+            hand_action = choose_sheep_hand_action(tuple(hand_position), hand_inventory)
         
         if hand_action is None:
             hand_action = choose_hand_action(

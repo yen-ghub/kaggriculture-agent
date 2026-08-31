@@ -20,9 +20,10 @@ from main import agent, CROPS_MANAGED
 # from baselines.second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.low_strawberry_test import agent as low_strawberry_agent
 from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
+from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -44,8 +45,9 @@ OPPONENTS = {
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
-    # "low_strawberry_agent":low_strawberry_agent,
+    "low_strawberry_agent":low_strawberry_agent,
     "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
+    "endgame_liquidation_sales_v1": endgame_liquidation_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

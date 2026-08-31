@@ -88,6 +88,8 @@ for step_number, step in enumerate(env.steps):
     cow_4_tile = obs.farms[0].tiles[3][5]  # (5,3)
     sheep_1_tile = obs.farms[0].tiles[3][3]  # (3,3)
     sheep_2_tile = obs.farms[0].tiles[4][3]  # (3,4)
+    sheep_3_tile = obs.farms[0].tiles[3][2]  # (2, 3)
+    sheep_4_tile = obs.farms[0].tiles[4][2]  # (2, 4)
     
     seventh_hand_action = (
                             hand_actions[6]
@@ -125,7 +127,8 @@ for step_number, step in enumerate(env.steps):
     #         or farmer_action != ["PASS"]
     #         or market_action):
     if (
-        obs.day >= 28
+        # 18 >= obs.day >= 10
+        obs.day >= 29
         and (
             obs.hour in (0, 1, 23)
             or farmer_action[0] in (
@@ -147,8 +150,8 @@ for step_number, step in enumerate(env.steps):
         # )
     ):        
         print(
-            #f"record={step_number:2}, "
-            f"step={obs.step:2}, "
+            # f"record={step_number:2}, "
+            # f"step={obs.step:2}, "
             f"day={obs.day}, "
             f"hr={obs.hour:2}, "
             f"act={player_state.action['farmer']}, "
@@ -159,11 +162,13 @@ for step_number, step in enumerate(env.steps):
             # f"cow_2={describe_tile(second_cow_tile)}, "
             # f"cow_3={describe_tile(cow_3_tile)}, "
             # f"cow_4={describe_tile(cow_4_tile)}, "
-            # f"sheep_1={describe_tile(sheep_1_tile)}, "
-            # f"sheep_2={describe_tile(sheep_2_tile)}, "
+            f"sheep_1={describe_tile(sheep_1_tile)}, "
+            f"sheep_2={describe_tile(sheep_2_tile)}, "
+            f"sheep_3={describe_tile(sheep_3_tile)}, "
+            f"sheep_4={describe_tile(sheep_4_tile)}, "
             f"money={obs.farms[0].money}, "
-            f"inventories={inventories}, "
-            f"shed={shed}, "
+            # f"inventories={inventories}, "
+            # f"shed={shed}, "
             # f"farmer_wheat={obs.private.inventories[0].get('WHEAT', 0)}, "
             # f"shed_wheat={obs.private.shed.get('WHEAT', 0)}, "
             # f"unlocked={obs.farms[0].unlocked_quadrants}, "

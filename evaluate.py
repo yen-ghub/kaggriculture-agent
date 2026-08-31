@@ -21,6 +21,7 @@ from main import agent, CROPS_MANAGED
 from baselines.low_strawberry_test import agent as low_strawberry_agent
 from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
 from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
+from baselines.four_sheep_v1 import agent as four_sheep_agent
 
 # Define variables
 SEEDS = list(range(1,6))
@@ -48,6 +49,7 @@ OPPONENTS = {
     "low_strawberry_agent":low_strawberry_agent,
     "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
     "endgame_liquidation_sales_v1": endgame_liquidation_agent,
+    "four_sheep_v1": four_sheep_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

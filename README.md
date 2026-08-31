@@ -3,7 +3,8 @@
 A local Python project for developing and testing an agent for the
 [Kaggriculture Kaggle competition](https://www.kaggle.com/competitions/kaggriculture).
 
-The current candidate is a rule-based melon agent managing 15 farm tiles.
+The current candidate is a rule-based, market-aware agent operating across two
+quadrants with seven farm hands, four cows, and four delayed sheep.
 
 ## Requirements
 
@@ -49,27 +50,22 @@ They are unrelated to Kaggriculture if the match still runs successfully.
 - `main.py` — current candidate agent
 - `run_local.py` — detailed single-match tracing
 - `evaluate.py` — multi-seed, both-position evaluation
-- `sweep_tiles.py` — managed-tile-count experiments
-- `baselines/carrot_v1.py` — frozen carrot baseline
-- `baselines/melon_v1.py` — frozen melon baseline
-- `baselines/mixed_v1.py` — frozen 10-melon/5-carrot baseline
+- `sweep_*.py` — parameter sweeps
+- `baselines/` — frozen agents used for regression testing
+- `docs/mechanics.md` — observed game mechanics
+- `docs/experiment-log.md` — strategy history and evaluation results
 - `requirements.txt` — Python dependencies
 
 
-## Current results
+## Current agent
 
-All results below use 20 seeds and both player positions, for a total of
-40 matches.
+The agent preserves an opening Melon wave, expands into the northeast quadrant,
+and uses hands for planting, watering, harvesting, and Sheep care. It adapts
+crop selection and Strawberry sales to visible opponent production and town
+demand. Four cows provide Milk, while a compact four-Sheep block is introduced
+after its opening crops are cleared. Final-day liquidation sells remaining
+crops and animal products before the season ends.
 
-| Candidate | Opponent | Match score | Avg money | Avg harvests | Avg units sold |
-|---|---|---:|---:|---:|---:|
-| Carrot v1 | Starter | 100% | 7754.1 | 60.0 | 180.0 |
-| Melon, 7 tiles | Carrot v1 | 100% | 22138.0 | 14.0 | 84.0 |
-| Melon, 14 tiles | Carrot v1 | 100% | 30004.1 | 23.0 | 134.0 |
-| Melon, 15 tiles | Carrot v1 | 100% | 30011.2 | 23.1 | 134.1 |
-| Melon, 16 tiles | Carrot v1 | 100% | 29951.0 | 23.0 | 133.7 |
-| Melon v1 | Melon v1 | 50% | 16586.6 | 22.9 | 133.2 |
-
-The melon self-play result shows that competing in the same market lowers both
-agents' earnings substantially. This suggests that crop diversification or
-market-aware crop selection may be the next useful strategy improvement.
+The latest focused validation won 37 of 40 matches against its immediate frozen
+predecessor. Detailed results and configuration history are maintained in the
+[experiment log](docs/experiment-log.md).

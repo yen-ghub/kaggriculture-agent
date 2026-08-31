@@ -100,6 +100,10 @@ All evaluations use both player positions.
 | Shop-aware seventh hand candidate | Adaptive Strawberry sales v1 | 20 | 100.0% | 66365.4 | 260.3 | 46.2 wheat, 148.0 carrot, 78.0 melon, 132.0 strawberry, 120.0 milk, 36.0 wool | Focused validation: 40W, 0L; average opponent 63222.6; average lead 3142.8; 15.3 wheat, 6.1 carrot, 5.2 strawberry, and 8.0 wool leftover |
 | Endgame liquidation v1 | Adaptive Strawberry sales v1 | 5 | 100.0% | 64646.0 | 258.6 | 70.8 wheat, 151.0 carrot, 78.0 melon, 133.0 strawberry, 120.0 milk, 44.0 wool | 10W, 0L; average opponent 58268.0; average lead 6378.0; zero leftovers and errors |
 | Endgame liquidation v1 | Adaptive Strawberry sales v1 | 20 | 100.0% | 69601.0 | 258.3 | 55.5 wheat, 151.1 carrot, 78.0 melon, 136.2 strawberry, 120.0 milk, 44.0 wool | Focused validation: 40W, 0L; average opponent 63236.2; average lead 6364.8; zero leftovers and errors |
+| Compact four-Sheep candidate | Endgame liquidation v1 | 20 | 92.5% | 69436.7 | 265.0 | 46.6 wheat, 150.0 carrot, 78.0 melon, 135.6 strawberry, 120.0 milk, 87.0 wool | Focused validation: 37W, 3L; average opponent 64990.9; average lead 4445.8; zero leftovers and errors |
+| Compact four-Sheep candidate | Low-Strawberry test (target 9) | 5 | 100.0% | 66726.0 | 265.0 | 52.2 wheat, 150.0 carrot, 78.0 melon, 134.2 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 49334.6; average lead 17391.4; zero leftovers and errors |
+| Compact four-Sheep candidate | Adaptive Strawberry sales v1 | 5 | 100.0% | 64294.0 | 265.0 | 48.2 wheat, 150.6 carrot, 78.0 melon, 135.0 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 56322.2; average lead 7971.8; zero leftovers and errors |
+| Compact four-Sheep candidate | Endgame liquidation v1 | 5 | 100.0% | 63886.2 | 265.0 | 58.6 wheat, 150.0 carrot, 78.0 melon, 132.6 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 57255.4; average lead 6630.8; zero leftovers and errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -255,3 +259,20 @@ harvests decreased from 260.6 to 258.6. The focused 20-seed validation remained
 The average lead more than doubled from 3142.8 to 6364.8. Wheat, Carrot, Melon,
 Strawberry, Milk, and Wool all finished with zero leftovers, confirming that
 the small two-harvest cost is outweighed by complete monetization of production.
+
+The compact four-Sheep candidate preserves the initial Sheep tiles at `(3, 3)`
+and `(3, 4)` and adds Sheep at `(2, 3)` and `(2, 4)` after their opening crops
+have cleared. The four pastures form a compact two-by-two block. Hand index zero
+services the block; its assigned crop zone loses two positions as the additional
+pastures activate, aligning its reduced crop workload with the added livestock
+work. A one-action final-day liquidation buffer ensures the hand reaches a
+shed-access tile early enough to place and sell its last Wool batch. In the
+validation trace, all 16 carried Wool was placed and sold on day 29, hour 22.
+
+Against Endgame liquidation v1, the focused 20-seed validation produced 37 wins
+and three losses, a 92.5% match score, zero errors, and an average lead of 4445.8.
+The candidate averaged 265.0 harvests and sold 87.0 Wool with no leftovers. It
+then won all 30 matches in a three-opponent, five-seed regression suite against
+Low-Strawberry test, Adaptive Strawberry sales v1, and Endgame liquidation v1.
+Every tracked crop and animal product finished with zero leftovers in all three
+matchups.

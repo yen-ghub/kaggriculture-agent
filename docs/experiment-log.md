@@ -104,6 +104,11 @@ All evaluations use both player positions.
 | Compact four-Sheep candidate | Low-Strawberry test (target 9) | 5 | 100.0% | 66726.0 | 265.0 | 52.2 wheat, 150.0 carrot, 78.0 melon, 134.2 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 49334.6; average lead 17391.4; zero leftovers and errors |
 | Compact four-Sheep candidate | Adaptive Strawberry sales v1 | 5 | 100.0% | 64294.0 | 265.0 | 48.2 wheat, 150.6 carrot, 78.0 melon, 135.0 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 56322.2; average lead 7971.8; zero leftovers and errors |
 | Compact four-Sheep candidate | Endgame liquidation v1 | 5 | 100.0% | 63886.2 | 265.0 | 58.6 wheat, 150.0 carrot, 78.0 melon, 132.6 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 57255.4; average lead 6630.8; zero leftovers and errors |
+| Full second-quadrant v1 | Four Sheep v1 | 20 | 100.0% | 72434.9 | 285.2 | 74.7 wheat, 159.1 carrot, 78.0 melon, 145.8 strawberry, 120.0 milk, 87.0 wool | Focused validation: 40W, 0L; average opponent 69889.9; average lead 2545.0; zero leftovers and errors |
+| Full second-quadrant v1 | Low-Strawberry test (target 9) | 5 | 100.0% | 67152.8 | 283.6 | 108.2 wheat, 159.0 carrot, 78.0 melon, 135.8 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 48381.0; average lead 18771.8; zero leftovers and errors |
+| Full second-quadrant v1 | Adaptive Strawberry sales v1 | 5 | 100.0% | 61335.5 | 284.2 | 95.4 wheat, 159.0 carrot, 78.0 melon, 139.6 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 50795.9; average lead 10539.6; zero leftovers and errors |
+| Full second-quadrant v1 | Endgame liquidation v1 | 5 | 100.0% | 62998.2 | 283.6 | 108.2 wheat, 159.0 carrot, 78.0 melon, 135.8 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 56950.4; average lead 6047.8; zero leftovers and errors |
+| Full second-quadrant v1 | Four Sheep v1 | 5 | 100.0% | 64640.2 | 284.8 | 82.6 wheat, 159.0 carrot, 78.0 melon, 143.4 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 62567.2; average lead 2073.0; zero leftovers and errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -276,3 +281,18 @@ then won all 30 matches in a three-opponent, five-seed regression suite against
 Low-Strawberry test, Adaptive Strawberry sales v1, and Endgame liquidation v1.
 Every tracked crop and animal product finished with zero leftovers in all three
 matchups.
+
+Full second-quadrant v1 expands the managed northeast route from 20 to all 25
+positions and hires an eighth hand after the quadrant unlock. Excluding the two
+northeast cow pastures leaves 23 crop tiles, divided among the four northeast
+hands in zones of six, six, six, and five. The existing crop targets and market
+logic remain unchanged, isolating the value of the additional hand and five
+managed tiles.
+
+The focused 20-seed validation against Four Sheep v1 produced 40 wins, zero
+losses, and zero errors. Average harvests increased from approximately 265 to
+285.2, while the complete 120-Milk and 87-Wool schedules were preserved. The
+candidate averaged 72434.9 coins and led by 2545.0. It subsequently won all 40
+matches in a four-opponent, five-seed regression suite. Combined, the focused
+validation and regression suite finished 80W-0L, with zero final leftovers for
+every tracked crop and animal product.

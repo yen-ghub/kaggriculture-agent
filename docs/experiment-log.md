@@ -109,6 +109,14 @@ All evaluations use both player positions.
 | Full second-quadrant v1 | Adaptive Strawberry sales v1 | 5 | 100.0% | 61335.5 | 284.2 | 95.4 wheat, 159.0 carrot, 78.0 melon, 139.6 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 50795.9; average lead 10539.6; zero leftovers and errors |
 | Full second-quadrant v1 | Endgame liquidation v1 | 5 | 100.0% | 62998.2 | 283.6 | 108.2 wheat, 159.0 carrot, 78.0 melon, 135.8 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 56950.4; average lead 6047.8; zero leftovers and errors |
 | Full second-quadrant v1 | Four Sheep v1 | 5 | 100.0% | 64640.2 | 284.8 | 82.6 wheat, 159.0 carrot, 78.0 melon, 143.4 strawberry, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 62567.2; average lead 2073.0; zero leftovers and errors |
+| Immediate one-Tomato candidate | Second-quadrant v1 | 20 | 55.0% | 72030.9 | 284.9 | 73.4 wheat, 156.8 carrot, 78.0 melon, 143.2 strawberry, 3.4 tomato, 120.0 milk, 87.0 wool | Focused validation: 20W, 16L, 4T; average opponent 71965.8; average lead 65.1; zero leftovers and errors |
+| Adaptive Tomato v1 | Second-quadrant v1 | 20 | 55.0% | 72086.9 | 285.2 | 73.4 wheat, 157.5 carrot, 78.0 melon, 143.2 strawberry, 3.4 tomato, 120.0 milk, 87.0 wool | Opponent-aware delayed sales: 20W, 16L, 4T; average opponent 71940.3; average lead 146.6; zero leftovers and errors |
+| Delayed two-Tomato candidate | Second-quadrant v1 | 20 | 50.0% | 72042.6 | 285.6 | 69.2 wheat, 157.7 carrot, 78.0 melon, 143.0 strawberry, 5.0 tomato, 120.0 milk, 87.0 wool | Rejected 0/1/2 retest: 18W, 18L, 4T; average opponent 71888.1; average lead 154.5; lower match score despite slightly higher mean margin |
+| Adaptive Tomato v1 | Adaptive Strawberry sales v1 | 5 | 100.0% | 61243.2 | 284.8 | 89.0 wheat, 158.4 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 50770.4; zero leftovers and errors |
+| Adaptive Tomato v1 | Endgame liquidation v1 | 5 | 100.0% | 62894.4 | 284.4 | 97.4 wheat, 157.5 carrot, 78.0 melon, 135.8 strawberry, 4.0 tomato, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 56823.4; zero leftovers and errors |
+| Adaptive Tomato v1 | Four Sheep v1 | 5 | 100.0% | 64747.4 | 285.2 | 74.6 wheat, 156.6 carrot, 78.0 melon, 143.4 strawberry, 3.2 tomato, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 62252.8; zero leftovers and errors |
+| Adaptive Tomato v1 | Second-quadrant v1 | 5 | 60.0% | 68280.7 | 284.6 | 88.2 wheat, 158.4 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Regression test: 5W, 3L, 2T; average opponent 67887.3; zero leftovers and errors |
+| Adaptive Tomato v1 | One Tomato v1 | 5 | 50.0% | 68016.7 | 284.4 | 88.2 wheat, 157.8 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Near-self-play control: 1W, 1L, 8T; opponent average also 68016.7; zero leftovers and errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -296,3 +304,26 @@ candidate averaged 72434.9 coins and led by 2545.0. It subsequently won all 40
 matches in a four-opponent, five-seed regression suite. Combined, the focused
 validation and regression suite finished 80W-0L, with zero final leftovers for
 every tracked crop and animal product.
+
+Adaptive Tomato v1 reserves at most one of the 39 premium-crop positions for a
+Tomato when at least one Pizza Shop or Farmers Market is unlocked early enough
+to complete a production cycle. Strawberry retains priority for the remaining
+premium positions. The late-shop control bought no Tomato seeds, while the
+one-plant trace bought exactly one seed, completed all four scheduled harvests,
+and sold four Tomatoes with no leftovers.
+
+The initial 0/3/6 allocation was too aggressive, producing a 40.0% five-seed
+score against Second-quadrant v1. A 20-seed 0/1/2 test also scored 40.0% and
+averaged 76.8 fewer coins than the opponent; games producing eight Tomatoes were
+the clear weakness. Reducing the policy to 0/1/1 raised the focused 20-seed score
+to 55.0% and produced a 65.1 average lead.
+
+The final policy also adapts Tomato sale timing. When the opponent has no active
+Tomato plants, the agent holds its small harvest until day 29; otherwise it sells
+immediately. Against the Tomato-free Second-quadrant baseline, this retained the
+55.0% match score while increasing the average lead from 65.1 to 146.6. Restoring
+a second Tomato reduced the score to 50.0%, so the one-plant cap was retained.
+Against One Tomato v1, the adaptive seller produced exact average-score parity
+and a 50.0% match score, confirming that it switches safely to immediate sales.
+The final five-opponent regression suite finished 36W-4L-10T for an 82.0% macro
+match score, with zero errors and zero final leftovers for every tracked product.

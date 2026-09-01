@@ -129,7 +129,6 @@ PREMIUM_CROP_PLANT_TARGET = 39
 TOMATO_PLANTS_PER_DEMAND_SHOP = 3
 MAX_TOMATO_PLANT_TARGET = 6
 TOMATO_START_DAY = 10
-TOMATO_FORCE_SELL_DAY = 29
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
@@ -887,18 +886,16 @@ def agent(obs):
     opponent_id = 1 - player_id
     opponent_farm = obs["farms"][opponent_id]
 
-    opponent_strawberries = count_crop_plants(opponent_farm, "STRAWBERRY")
+    opponent_strawberries = count_crop_plants(
+        opponent_farm,
+        "STRAWBERRY",
+    )
 
     opponent_is_strawberry_heavy = (
         opponent_strawberries
         >= HEAVY_OPPONENT_STRAWBERRY_THRESHOLD
     )
     STRAWBERRY_SALE_HOUR = 0
-    
-    opponent_tomatoes = count_crop_plants(
-        opponent_farm,
-        "TOMATO",
-    )       
     
     remaining_animal_feeds = sum(
         not animal_tiles[position].get("fed_today", False)
@@ -938,14 +935,6 @@ def agent(obs):
                     and obs["market"]["prices"]["STRAWBERRY"] < STRAWBERRY_SELL_PRICE_THRESHOLD
                     and obs["day"] < STRAWBERRY_FORCE_SELL_DAY):
                 quantity_to_sell = min(quantity_to_sell, STRAWBERRY_DAILY_SELL_CAP)
-        
-        # Hold Tomatoes when the opponent has no active Tomato production.
-        if crop == "TOMATO":
-            if (
-                opponent_tomatoes == 0
-                and obs["day"] < TOMATO_FORCE_SELL_DAY
-            ):
-                quantity_to_sell = 0
         
         if quantity_to_sell > 0:
             market_orders.append(["SELL", crop, quantity_to_sell])

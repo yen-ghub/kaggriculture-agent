@@ -22,6 +22,8 @@ from baselines.low_strawberry_test import agent as low_strawberry_agent
 from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
 from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
 from baselines.four_sheep_v1 import agent as four_sheep_agent
+from baselines.full_second_quadrant_v1 import agent as second_quadrant_agent
+from baselines.one_tomato_v1 import agent as one_tomato_agent
 
 # Define variables
 SEEDS = list(range(1,6))
@@ -46,10 +48,12 @@ OPPONENTS = {
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
-    "low_strawberry_agent":low_strawberry_agent,
+    # "low_strawberry_agent":low_strawberry_agent,
     "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
     "endgame_liquidation_sales_v1": endgame_liquidation_agent,
     "four_sheep_v1": four_sheep_agent,
+    "second_quadrant_v1": second_quadrant_agent,
+    "one_tomato_v1": one_tomato_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")
@@ -144,7 +148,7 @@ def evaluate_opponent(
         opponent_name,
         opponent,
         seeds,
-        verbose=False,
+        verbose=True,
 ):
     # These must reset for every opponent.
     results = {
@@ -213,7 +217,7 @@ def evaluate_opponent(
                     f"ours={our_state.reward}, "
                     f"opponent_score={opponent_state.reward}, "
                     f"result={result} "
-                    f"milk sold: {diagnostics["sold"]["MILK"]}"
+                    f"tomato sold: {diagnostics["sold"]["TOMATO"]}"
                 )
 
     completed_matches = (results["WIN"] + results["LOSS"] + results["TIE"]
@@ -288,7 +292,7 @@ def main():
             opponent_name,
             opponent,
             SEEDS,
-            verbose=False,
+            verbose=True,
         )
 
         print_opponent_summary(summary)

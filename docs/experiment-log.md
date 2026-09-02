@@ -358,3 +358,27 @@ errors. The 20-seed run averaged 73490.6 coins, led by 2066.4, and averaged
 277.1 harvests, 136.7 Milk sold, and 96.8 Wool sold. Every tracked crop and
 animal product finished with zero leftovers except for an average 1.4 Wheat,
 which remains a small feed-reserve liquidation opportunity.
+
+Strawberry expansion v1 uses the additional capacity created by Third quadrant
+v1 to raise the normal Strawberry target from 33 to 39 and the high-demand
+target from 39 to 45. The shared premium-crop capacity rises from 39 to 45 so
+the extra Strawberry allocation does not remove the existing Tomato reservation.
+Strawberry planting is allowed through day 18 instead of requiring enough time
+for every possible ongoing production cycle; a day-18 planting can still
+complete a profitable harvest before the final liquidation.
+
+A focused 20-seed sweep compared Strawberry bonuses of zero, three, six, and
+nine against frozen Third quadrant v1. The respective match scores were 82.5%,
+92.5%, 95.0%, and 90.0%. Bonus three produced the highest average money at
+77198.2, but bonus six was only 234.9 lower, produced the strongest match score,
+and led by 1889.0 on average. Bonus nine sold more Strawberries but reduced both
+money and match score, demonstrating diminishing returns and greater crop
+displacement. The six-plant bonus was therefore selected.
+
+The selected candidate won all 30 matches in the five-seed regression against
+Four Sheep v1, Second quadrant v1, and Adaptive Tomato v1. Against Third
+quadrant v1 it won eight of ten matches, with both losses coming from the known
+seed-2 stress case; across the full 20-seed sweep it won 38 of 40. In the
+five-seed regression it averaged approximately 312--313 harvests and 163--165
+Strawberries sold, with no Strawberry, Tomato, Milk, or Wool leftovers and only
+0.4 Wheat left against Third quadrant v1.

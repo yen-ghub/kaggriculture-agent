@@ -1,21 +1,25 @@
 import main
 
 from evaluate import evaluate_opponent
-from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
+from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 
-STRAWBERRY_START_DAYS = [10]
-STRAWBERRY_TARGETS = [6, 7, 8]
-SEEDS = list(range(1, 6))
+STRAWBERRY_TARGET_BONUSES = [0, 3, 6, 9]
+SEEDS = list(range(1, 21))
+STRAWBERRY_LAST_PLANTING_DAY = 18
+# SEEDS = list(range(1, 6))
 
 
-# for strawberry_start_day in STRAWBERRY_START_DAYS:
-for strawberry_target in STRAWBERRY_TARGETS:
-    # main.STRAWBERRY_START_DAY = strawberry_start_day
-    main.STRAWBERRY_PLANT_TARGET = strawberry_target
+for strawberry_bonus in STRAWBERRY_TARGET_BONUSES:
+    main.STRAWBERRY_PLANT_TARGET = 33 + strawberry_bonus
+    main.HIGH_STRAWBERRY_PLANT_TARGET = 39 + strawberry_bonus
+    main.PREMIUM_CROP_PLANT_TARGET = 39 + strawberry_bonus
+    main.CROP_CONFIGS["STRAWBERRY"]["last_production_day"] = (
+        main.FINAL_DAY - STRAWBERRY_LAST_PLANTING_DAY
+    )
     
     summary = evaluate_opponent(
-        f"strawberry target {strawberry_target}",
-        expanded_wheat_agent,
+        f"third quadrant strawberry bonus {strawberry_bonus}",
+        third_quadrant_agent,
         SEEDS,
     )
 
@@ -27,7 +31,9 @@ for strawberry_target in STRAWBERRY_TARGETS:
     )
 
     print(
-        f"strawberries target={strawberry_target:2}, "
+        f"strawberry_bonus={strawberry_bonus:2}, "
+        f"targets={main.STRAWBERRY_PLANT_TARGET:2}/"
+        f"{main.HIGH_STRAWBERRY_PLANT_TARGET:2}, "
         f"score={100 * summary['match_score']:5.1f}%, "
         f"money={summary['average_ours']:8.1f}, "
         f"opponent={summary['average_opponent']:8.1f}, "

@@ -1,12 +1,19 @@
 from kaggle_environments import make
-from main import agent, TILES_MANAGED, COW_TILES
-from baselines.one_tomato_v1 import agent as baseline_agent
+from main import (
+    agent,
+    TILES_MANAGED,
+    COW_TILES,
+    ADAPTIVE_ANIMAL_TILES,
+    MILK_DEMAND_SHOPS,
+    WOOL_DEMAND_SHOPS,
+)
+from baselines.adaptive_tomato_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
         "episodeSteps": 720,
-        "seed": 1,
+        "seed": 2,
     },
     debug=True,
 )
@@ -81,6 +88,16 @@ for step_number, step in enumerate(env.steps):
         for shop in shops
     )
 
+    milk_shop_count = sum(
+        shop in MILK_DEMAND_SHOPS
+        for shop in shops
+    )
+
+    wool_shop_count = sum(
+        shop in WOOL_DEMAND_SHOPS
+        for shop in shops
+    )
+
     expected_tomato_target = (
         1
         if tomato_shop_count > 0
@@ -127,6 +144,44 @@ for step_number, step in enumerate(env.steps):
     ]
     hand_actions = player_state.action["hands"]
     hires_today = obs.farms[0].hires_today
+    adaptive_tiles = [
+        describe_tile(farm.tiles[y][x])
+        for x, y in ADAPTIVE_ANIMAL_TILES
+    ]
+    adaptive_market_orders = [
+        order
+        for order in market_action
+        if order[0] in ("BUY_LAND", "BUY_ANIMAL")
+    ]
+    farmer_on_adaptive_tile = position in ADAPTIVE_ANIMAL_TILES
+    placed_animal_counts = {
+        animal: sum(
+            isinstance(tile, dict)
+            and tile.get("kind") == "PASTURE"
+            and tile.get("animal") == animal
+            for row in farm.tiles
+            for tile in row
+        )
+        for animal in ("COW", "SHEEP")
+    }
+    loose_animal_counts = {
+        animal: (
+            obs.private.shed.get(animal, 0)
+            + sum(
+                inventory.get(animal, 0)
+                for inventory in obs.private.inventories
+            )
+        )
+        for animal in ("COW", "SHEEP")
+    }
+    farmer_animal_products = {
+        product: obs.private.inventories[0].get(product, 0)
+        for product in ("MILK", "WOOL")
+    }
+    shed_animal_products = {
+        product: obs.private.shed.get(product, 0)
+        for product in ("MILK", "WOOL")
+    }
     home_tile = obs.farms[0].tiles[4][4]
     second_tile = obs.farms[0].tiles[4][3]
     first_cow_tile = obs.farms[0].tiles[4][4]
@@ -201,32 +256,29 @@ for step_number, step in enumerate(env.steps):
     #     )
     # ):
     if (
-        9 <= obs.day <= 29
+        11 <= obs.day <= 29
         and (
             obs.hour in (0, 1, 23)
-            or tomato_actions
-            or tomato_market_orders
+            or adaptive_market_orders
+            or farmer_on_adaptive_tile
+            or obs.day == 29
         )
     ):
         print(
-            # f"record={step_number:2}, "
-            # f"step={obs.step:2}, "
-            f"day={obs.day}, "
+            f"day={obs.day:2}, "
             f"hr={obs.hour:2}, "
-            f"tomato_shops={tomato_shop_count}, "
-            f"targets=(tomato={expected_tomato_target}, "
-            f"strawberry={expected_strawberry_target}), "
-            f"plants=(tomato={tomato_plant_count}, "
-            f"strawberry={strawberry_plant_count}), "
-            f"opponent_tomatoes={opponent_tomato_plant_count}, "
-            f"tomato_yield={tomato_yield_available}, "
-            f"tomato_seeds={obs.private.seeds.get('TOMATO', 0)}, "
-            f"tomato_shed={obs.private.shed.get('TOMATO', 0)}, "
-            f"tomato_price={obs.market.prices['TOMATO']}, "
-            f"tomato_inventory={obs.market.inventory['TOMATO']}, "
-            f"tomato_actions={tomato_actions}, "
-            f"tomato_market={tomato_market_orders}, "
-            f"shops={shops}"
+            f"act={farmer_action}, "
+            f"position={position}, "
+            f"milk_shops={milk_shop_count}, "
+            f"wool_shops={wool_shop_count}, "
+            f"placed={placed_animal_counts}, "
+            f"loose={loose_animal_counts}, "
+            f"farmer_products={farmer_animal_products}, "
+            f"shed_products={shed_animal_products}, "
+            f"adaptive_tiles={adaptive_tiles}, "
+            f"unlocked={list(farm.unlocked_quadrants)}, "
+            f"money={farm.money}, "
+            f"market={adaptive_market_orders}"
             # f"act={player_state.action['farmer']}, "
             # f"position={position}, "
             # f"hands={hands}, "

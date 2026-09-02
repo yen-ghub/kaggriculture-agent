@@ -22,6 +22,11 @@ SECOND_QUADRANT_LAND_COST = 1000
 SECOND_QUADRANT_PURCHASE_DAY = 9        # To stagger COW production days
 LAND_WORKING_CAPITAL_RESERVE = 1000
 
+THIRD_QUADRANT_NAME = "SW"
+THIRD_QUADRANT_LAND_COST = 2000
+THIRD_QUADRANT_PURCHASE_START_DAY = 12
+THIRD_QUADRANT_PURCHASE_LAST_DAY = 15
+
 # Combine the two quadrants
 TILE_ROUTE = (
     FIRST_QUADRANT_ROUTE
@@ -133,7 +138,6 @@ TOMATO_FORCE_SELL_DAY = 29
    
 LAST_HOUR_TODAY     = 23
 FINAL_DAY           = 29
-SHED_ACCESS_TILE    = (4,4)
 
 # Animal related (generalised from COW)
 INITIAL_COW_TILES = (
@@ -170,6 +174,16 @@ SHEEP_TILES = (
 SHEEP_START_DAY = 11
 SHEEP_TILE_REPLANT_CUTOFF_DAY = SHEEP_START_DAY - 1
 
+ADAPTIVE_ANIMAL_TILES = (
+    (6, 4),
+    (6, 3),
+)
+
+ADAPTIVE_ANIMAL_START_DAY = 12
+ADAPTIVE_ANIMAL_LAST_START_DAY = 15
+MILK_DEMAND_SHOP_THRESHOLD = 2
+WOOL_DEMAND_SHOP_THRESHOLD = 1
+
 # Every position permanently reserved for livestock.
 ANIMAL_TILES = COW_TILES + SHEEP_TILES
 
@@ -191,8 +205,8 @@ ANIMAL_HARVEST_THRESHOLD = 1
 SHED_ACCESS_TILES = (
     (4, 4),
     (5, 4),
-    (4, 5),
-    (5, 5),
+    # (4, 5),
+    # (5, 5),
 )
 
 
@@ -251,6 +265,16 @@ STRAWBERRY_DEMAND_SHOPS = {
     "FARMERS_MARKET",
 }
 
+MILK_DEMAND_SHOPS = {
+    "PIZZA_SHOP",
+    "ICE_CREAM_SHOP",
+    "SMOOTHIE_SHOP",
+}
+
+WOOL_DEMAND_SHOPS = {
+    "YARN_STORE",
+}
+
 #######################################################################################################
 
 # Start the main agent function
@@ -296,9 +320,48 @@ def agent(obs):
     farm            = obs["farms"][player_id]
     private         = obs["private"]
     shed            = private["shed"]
+    unlocked_shops  = obs["town"]["unlocked_shops"]
     farmer_inventory = private["inventories"][0]
     
     pos_current = tuple(farm["farmer"])
+    
+    # Check shop count to add animals
+    milk_demand_shop_count = sum(
+        shop in MILK_DEMAND_SHOPS
+        for shop in unlocked_shops
+    )
+
+    wool_demand_shop_count = sum(
+        shop in WOOL_DEMAND_SHOPS
+        for shop in unlocked_shops
+    )
+
+    existing_adaptive_animals = []
+    adaptive_animal_setup_started = False
+
+    for position in ADAPTIVE_ANIMAL_TILES:
+        x, y = position
+        tile = farm["tiles"][y][x]
+
+        if (
+            isinstance(tile, dict)
+            and tile.get("kind") == "PASTURE"
+        ):
+            adaptive_animal_setup_started = True
+
+            if tile.get("animal") in ANIMAL_PRODUCTS:
+                existing_adaptive_animals.append(
+                    tile["animal"]
+                )
+
+    if existing_adaptive_animals:
+        adaptive_animal_type = existing_adaptive_animals[0]
+    elif wool_demand_shop_count >= WOOL_DEMAND_SHOP_THRESHOLD:
+        adaptive_animal_type = "SHEEP"
+    elif milk_demand_shop_count >= MILK_DEMAND_SHOP_THRESHOLD:
+        adaptive_animal_type = "COW"
+    else:
+        adaptive_animal_type = None
     
     if SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]:
         hands_to_hire_today = EXPANDED_HAND_COUNT
@@ -353,13 +416,58 @@ def agent(obs):
             for position in ADDITIONAL_SHEEP_TILES
         })
 
-    # When second quadrant is unlocked, add more animal tiles
+    # When second and third quadrants are unlocked, add more animal tiles
     if SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]:
         active_animal_plan.update({
             position: "COW"
             for position in EXPANSION_COW_TILES[:EXPANSION_COW_COUNT]
         })
+    
+    def animal_is_placed(position, expected_animal):
+        x, y = position
+        tile = farm["tiles"][y][x]
 
+        return (
+            isinstance(tile, dict)
+            and tile.get("kind") == "PASTURE"
+            and tile.get("animal") == expected_animal
+        )
+        
+    base_animal_setup_complete = (
+        all(
+            animal_is_placed(position, "COW")
+            for position in COW_TILES
+        )
+        and all(
+            animal_is_placed(position, "SHEEP")
+            for position in SHEEP_TILES
+        )
+    )
+    adaptive_animal_phase_active = (
+        SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
+        and adaptive_animal_type is not None
+        and base_animal_setup_complete
+        and (
+            adaptive_animal_setup_started
+            or (
+                ADAPTIVE_ANIMAL_START_DAY
+                <= obs["day"]
+                <= ADAPTIVE_ANIMAL_LAST_START_DAY
+            )
+        )
+    )
+    adaptive_animal_tiles_reserved = (
+        SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
+        and adaptive_animal_type is not None
+        and obs["day"] >= ADAPTIVE_ANIMAL_START_DAY
+    )
+
+    if adaptive_animal_phase_active:
+        active_animal_plan.update({
+            position: adaptive_animal_type
+            for position in ADAPTIVE_ANIMAL_TILES
+        })
+    
     active_animal_tiles = list(active_animal_plan)
     animal_count_target = len(active_animal_tiles)
     animal_feed_reserve = 2 * animal_count_target
@@ -401,10 +509,6 @@ def agent(obs):
         for shop in obs["town"]["unlocked_shops"]
     )
 
-    # tomato_plant_target = min(
-    #     MAX_TOMATO_PLANT_TARGET,
-    #     tomato_shop_count * TOMATO_PLANTS_PER_DEMAND_SHOP,
-    # )
     tomato_plant_target = (
             1
             if tomato_shop_count > 0
@@ -649,9 +753,15 @@ def agent(obs):
                 if ((position in SHEEP_TILES)
                         and obs["day"] >= SHEEP_TILE_REPLANT_CUTOFF_DAY):
                     continue
+
+                adaptive_tile_is_reserved = (
+                    adaptive_animal_tiles_reserved
+                    and position in ADAPTIVE_ANIMAL_TILES
+                )
                 
                 can_plant = (
-                    crop_to_plant is not None
+                    not adaptive_tile_is_reserved
+                    and crop_to_plant is not None
                     and available_seed_counts[crop_to_plant] > 0
                     and obs["hour"] < LAST_HOUR_TODAY
                     and obs["day"] <= last_planting_day
@@ -704,7 +814,8 @@ def agent(obs):
         sheep_positions = [
             position
             for position in animal_positions
-            if active_animal_plan[position] == "SHEEP"
+            if active_animal_plan[position] == "SHEEP" 
+                and position in SHEEP_TILES         # Keep hand away from SW sheep (assigned to farmer)
         ]
 
         if not sheep_positions:
@@ -821,7 +932,7 @@ def agent(obs):
     farmer_animal_positions = [
         position
         for position in animal_positions
-        if active_animal_plan[position] != "SHEEP"
+        if active_animal_plan[position] != "SHEEP" or position in ADAPTIVE_ANIMAL_TILES
     ]
 
     # Get animal count depending on their exact location
@@ -1138,14 +1249,28 @@ def agent(obs):
     
     # Choose what to do with animals (very large block!)
     def choose_animal_action():
-        # Build pastures and place missing livestock before ordinary care.
-        setup_targets = [
-            position
-            for position in active_animal_tiles
-            if position not in animal_positions
-        ]
+        
+        def animal_needs_attention(position):
+            animal_tile = animal_tiles[position]
 
-        if setup_targets:
+            yield_is_ready = (
+                animal_tile.get("yield_units", 0)
+                >= ANIMAL_HARVEST_THRESHOLD
+            )
+
+            if obs["day"] == FINAL_DAY:
+                return yield_is_ready
+
+            return (
+                not animal_tile.get("fed_today", False)
+                or not animal_tile.get("cared_today", False)
+                or yield_is_ready
+            )
+
+        def choose_setup_action(setup_targets):
+            if not setup_targets:
+                return None
+
             carried_setup_targets = [
                 position
                 for position in setup_targets
@@ -1161,11 +1286,13 @@ def agent(obs):
                 )
             else:
                 animal_to_pickup = None
+
                 for animal in ANIMAL_PRODUCTS:
                     needs_animal = any(
                         active_animal_plan[position] == animal
                         for position in setup_targets
                     )
+
                     if needs_animal and animals_in_shed[animal] > 0:
                         animal_to_pickup = animal
                         break
@@ -1178,6 +1305,7 @@ def agent(obs):
                         active_animal_plan[position] == animal_to_pickup
                         for position in setup_targets
                     )
+
                     return [
                         "PICKUP",
                         animal_to_pickup,
@@ -1187,7 +1315,10 @@ def agent(obs):
                         ),
                     ]
 
-                target = nearest_position(pos_current, setup_targets)
+                target = nearest_position(
+                    pos_current,
+                    setup_targets,
+                )
 
             if pos_current != target:
                 return move_to(pos_current, target)
@@ -1207,6 +1338,50 @@ def agent(obs):
 
                 return ["PASS"]
 
+            return None         # End of choose_setup_action()
+
+        base_setup_targets = [
+            position
+            for position in active_animal_tiles
+            if (
+                position not in animal_positions
+                and position not in ADAPTIVE_ANIMAL_TILES
+            )
+        ]
+
+        base_setup_action = choose_setup_action(
+            base_setup_targets
+        )
+
+        if base_setup_action is not None:
+            return base_setup_action
+        
+        
+        # On the final day, service the outer animals first and work
+        # inward toward the shed.
+        if obs["day"] == FINAL_DAY:
+            outer_attention_targets = [
+                position
+                for position in reversed(ADAPTIVE_ANIMAL_TILES)
+                if (
+                    position in farmer_animal_positions
+                    and animal_needs_attention(position)
+                )
+            ]
+
+            if outer_attention_targets:
+                target = outer_attention_targets[0]
+                target_animal = animal_tiles[target]
+
+                if (
+                    not target_animal.get("fed_today", False)
+                    and wheat_in_farmer_inventory == 0
+                ):
+                    return get_wheat_action()
+
+                if pos_current != target:
+                    return move_to(pos_current, target)
+                
         # Service the animal at the current position first.
         current_animal = animal_tiles.get(pos_current)
 
@@ -1214,7 +1389,8 @@ def agent(obs):
         if (isinstance(current_animal, dict)
                 and current_animal.get("kind") == "PASTURE"
                 and current_animal.get("animal") == active_animal_plan.get(pos_current)
-                and pos_current in farmer_animal_positions):
+                and pos_current in farmer_animal_positions
+                and animal_needs_attention(pos_current)):
             if not current_animal.get("fed_today", False):
                 if wheat_in_farmer_inventory > 0:
                     return ["FEED"]
@@ -1234,12 +1410,7 @@ def agent(obs):
         attention_targets = [
             position
             for position in farmer_animal_positions
-            if (
-                not animal_tiles[position].get("fed_today", False)
-                or not animal_tiles[position].get("cared_today", False)
-                or animal_tiles[position].get("yield_units", 0)
-                    >= ANIMAL_HARVEST_THRESHOLD
-            )
+            if animal_needs_attention(position)
         ]
 
         if attention_targets:
@@ -1274,8 +1445,20 @@ def agent(obs):
                 product,
                 animal_products_in_farmer_inventory[product],
             ]
+            
+        # base setup → routine animal care → deposit products → adaptive setup
+        adaptive_setup_targets = [
+            position
+            for position in ADAPTIVE_ANIMAL_TILES
+            if (
+                position in active_animal_tiles
+                and position not in animal_positions
+            )
+        ]
 
-        return None
+        return choose_setup_action(
+            adaptive_setup_targets
+        )
 
 
     animal_action = choose_animal_action()
@@ -1307,7 +1490,9 @@ def agent(obs):
         if backpack_counts[crop] > 0:
             n_crops_carried += 1
     
-    actions_to_liquidate = n_crops_carried + distance_between(pos_current, SHED_ACCESS_TILE)
+    liquidation_shed_target = nearest_position(pos_current, SHED_ACCESS_TILES)
+    
+    actions_to_liquidate = n_crops_carried + distance_between(pos_current, liquidation_shed_target)
     actions_remaining = (LAST_HOUR_TODAY) - obs["hour"]
     
     # Create flags for liquidation conditions (start liquidation if either is True)
@@ -1325,8 +1510,8 @@ def agent(obs):
             and animal_action is None
             and backpack_total > 0
             and (liquidation_is_urgent or harvest_is_done)):    
-        if pos_current != SHED_ACCESS_TILE:
-            farmer_action = move_to(pos_current, SHED_ACCESS_TILE)
+        if pos_current not in SHED_ACCESS_TILES:
+            farmer_action = move_to(pos_current, liquidation_shed_target)
         else:
             crop_to_place       = None
             for crop in CROPS_MANAGED:
@@ -1442,7 +1627,27 @@ def agent(obs):
         market_orders.append(["BUY_LAND"])
         money_available -= SECOND_QUADRANT_LAND_COST
     
+    base_animal_setup_complete = all(
+        position in animal_positions
+        for position in COW_TILES + SHEEP_TILES
+    )    
     
+    # Unlock the third quadrant.
+    # if (
+    #     SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
+    #     and THIRD_QUADRANT_NAME not in farm["unlocked_quadrants"]
+    #     and adaptive_animal_type is not None
+    #     and THIRD_QUADRANT_PURCHASE_START_DAY
+    #         <= obs["day"]
+    #         <= THIRD_QUADRANT_PURCHASE_LAST_DAY
+    #     and money_available
+    #         >= THIRD_QUADRANT_LAND_COST + LAND_WORKING_CAPITAL_RESERVE
+    #     and len(market_orders) < MAX_MARKET_ORDERS_PER_TURN
+    #     and base_animal_setup_complete
+    # ):
+    #     market_orders.append(["BUY_LAND"])
+    #     money_available -= THIRD_QUADRANT_LAND_COST
+        
     return {
         "farmer": farmer_action,
         "hands": hand_actions,

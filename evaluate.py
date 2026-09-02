@@ -27,6 +27,7 @@ from baselines.adaptive_tomato_v1 import agent as adaptive_tomato_agent
 from baselines.adaptive_animal_v1 import agent as adaptive_animal_agent
 from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agent
+from baselines.hand_weed_clearing_v1 import agent as hand_weed_clearing_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -59,7 +60,8 @@ OPPONENTS = {
     # "adaptive_tomato_v1": adaptive_tomato_agent,
     # "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
-    "strawberry_expansion_v1": strawberry_expansion_agent,
+    # "strawberry_expansion_v1": strawberry_expansion_agent,
+    "hand_weed_clearing_v1": hand_weed_clearing_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

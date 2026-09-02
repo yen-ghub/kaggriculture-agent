@@ -117,6 +117,8 @@ All evaluations use both player positions.
 | Adaptive Tomato v1 | Four Sheep v1 | 5 | 100.0% | 64747.4 | 285.2 | 74.6 wheat, 156.6 carrot, 78.0 melon, 143.4 strawberry, 3.2 tomato, 120.0 milk, 87.0 wool | Regression test: 10W, 0L; average opponent 62252.8; zero leftovers and errors |
 | Adaptive Tomato v1 | Second-quadrant v1 | 5 | 60.0% | 68280.7 | 284.6 | 88.2 wheat, 158.4 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Regression test: 5W, 3L, 2T; average opponent 67887.3; zero leftovers and errors |
 | Adaptive Tomato v1 | One Tomato v1 | 5 | 50.0% | 68016.7 | 284.4 | 88.2 wheat, 157.8 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Near-self-play control: 1W, 1L, 8T; opponent average also 68016.7; zero leftovers and errors |
+| Eleven hands v1 | Hand weed clearing v1 | 5 | 100.0% | 74445.2 | 337.8 | 181.0 wheat, 154.8 carrot, 79.0 melon, 164.2 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Development test: 10W, 0L; average opponent 73526.0; average lead 919.2; zero errors |
+| Eleven hands v1 | Hand weed clearing v1 | 20 | 95.0% | 77331.0 | 338.9 | 172.3 wheat, 155.2 carrot, 79.5 melon, 166.8 strawberry, 2.8 tomato, 133.9 milk, 98.2 wool | Focused validation: 38W, 2L; average opponent 76531.2; average lead 799.8; only seed 12 lost; 0.1 wheat leftover and zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -404,3 +406,20 @@ Against frozen Strawberry expansion v1, the focused 20-seed validation produced
 Strawberries, and finished with zero leftovers for every tracked crop and animal
 product. The harvest gain reflects weed recovery across all hand-managed zones,
 not only the originally observed northeast corner.
+
+Eleven hands v1 extends the managed southwest route from 12 to 18 crop tiles
+and hires an eleventh hand after that quadrant is unlocked. The new hand owns
+the six added outer tiles. Hiring completes by hour 2, and the largest observed
+market submission contained nine orders, below the limit of ten. The hand
+established all six tiles by day 16 and handled routine watering comfortably.
+On synchronized Wheat harvest days, the combined water, harvest, replant, and
+rewater workload can leave part of the zone unattended, but the additional
+production still outweighed this routing inefficiency.
+
+The five-seed development comparison against Hand weed clearing v1 produced ten
+wins from ten games and an average lead of 919.2. The focused 20-seed validation
+produced 38 wins and two losses, a 95.0% match score, zero errors, and an average
+lead of 799.8. Both losses were the two player positions of seed 12 and had the
+same 259-point deficit, indicating a seed-specific scenario rather than a
+position-order weakness. The candidate averaged 338.9 harvests and finished
+with only 0.1 Wheat left over on average.

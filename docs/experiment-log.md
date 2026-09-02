@@ -327,3 +327,34 @@ Against One Tomato v1, the adaptive seller produced exact average-score parity
 and a 50.0% match score, confirming that it switches safely to immediate sales.
 The final five-opponent regression suite finished 36W-4L-10T for an 82.0% macro
 match score, with zero errors and zero final leftovers for every tracked product.
+
+Adaptive livestock v1 reserves the northeast tiles `(6, 4)` and `(6, 3)` for
+two additional animals after the four-Cow, four-Sheep base setup is complete.
+When a Yarn Store is visible, the tiles receive Sheep; otherwise, two or more
+Milk-demanding shops trigger Cows. Purchases may begin from day 12 through day
+15. From day 12 onward, qualifying adaptive tiles are withheld from hand
+replanting, preventing freshly planted Strawberries from being immediately dug
+up during pasture conversion.
+
+The first scheduling version serviced existing animals before every incomplete
+pasture. Although this protected the established herd, it also delayed the four
+base Sheep: the frozen baseline placed all four by day 11, hour 15, while the
+candidate did not finish until day 12, hour 21. That version scored only 32.5%
+in a 20-seed comparison against Adaptive Tomato v1, averaging 71347.5 coins and
+trailing by 699.8. Disabling the adaptive animals entirely scored 0.0% in the
+five-seed control, showing that the extra livestock was beneficial but was
+masking a more fundamental setup-priority regression.
+
+The final scheduler uses hybrid priority: incomplete base-animal setup comes
+first, followed by routine feeding, care, harvesting, and product placement;
+adaptive-animal setup is handled afterward. The trace again completed all four
+base Sheep by day 11, hour 15. On the Yarn-heavy seed 2, the two adaptive Sheep
+were bought on day 12, with the first placed on day 12 and the second on day 13;
+all final Milk and Wool were sold.
+
+The corrected candidate won all 10 five-seed development matches and all 40
+matches in its focused 20-seed validation against Adaptive Tomato v1, with zero
+errors. The 20-seed run averaged 73490.6 coins, led by 2066.4, and averaged
+277.1 harvests, 136.7 Milk sold, and 96.8 Wool sold. Every tracked crop and
+animal product finished with zero leftovers except for an average 1.4 Wheat,
+which remains a small feed-reserve liquidation opportunity.

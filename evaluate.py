@@ -24,9 +24,11 @@ from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
 from baselines.four_sheep_v1 import agent as four_sheep_agent
 from baselines.full_second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.adaptive_tomato_v1 import agent as adaptive_tomato_agent
+from baselines.adaptive_animal_v1 import agent as adaptive_animal_agent
+from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -51,9 +53,11 @@ OPPONENTS = {
     # "low_strawberry_agent":low_strawberry_agent,
     # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
     # "endgame_liquidation_sales_v1": endgame_liquidation_agent,
-    # "four_sheep_v1": four_sheep_agent,
-    # "second_quadrant_v1": second_quadrant_agent,
+    "four_sheep_v1": four_sheep_agent,
+    "second_quadrant_v1": second_quadrant_agent,
     "adaptive_tomato_v1": adaptive_tomato_agent,
+    "adaptive_animal_v1": adaptive_animal_agent,
+    "third_quadrant_v1": third_quadrant_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

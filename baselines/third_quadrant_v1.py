@@ -123,17 +123,15 @@ DEFAULT_SEED_TARGETS = {
 SELECTED_CROP_SEED_TARGET = 3
 WHEAT_PLANT_TARGET      = 18        # Currently no limit, to flood the carrot market and bring price down for the oponent
 
-#
 # STRAWBERRY related
-STRAWBERRY_PLANT_TARGET     = 39        # Fine-tuned: 39
-HIGH_STRAWBERRY_PLANT_TARGET = 45
-STRAWBERRY_START_DAY        = 10
-STRAWBERRY_DAILY_SELL_CAP   = 8
-STRAWBERRY_FORCE_SELL_DAY   = 29
+STRAWBERRY_PLANT_TARGET = 33        # Fine-tuned: 33
+STRAWBERRY_START_DAY    = 10
+STRAWBERRY_DAILY_SELL_CAP = 8
+STRAWBERRY_FORCE_SELL_DAY = 29
 STRAWBERRY_SELL_PRICE_THRESHOLD = 250
 HEAVY_OPPONENT_STRAWBERRY_THRESHOLD = 10
-HIGH_STRAWBERRY_SHOP_THRESHOLD = 2
-STRAWBERRY_LAST_PLANTING_DAY = 18 
+HIGH_STRAWBERRY_PLANT_TARGET = 39
+HIGH_STRAWBERRY_SHOP_THRESHOLD = 2 
 
 # TOMATO related
 TOMATO_DEMAND_SHOPS = {
@@ -141,7 +139,7 @@ TOMATO_DEMAND_SHOPS = {
     "FARMERS_MARKET",
 }
 
-PREMIUM_CROP_PLANT_TARGET = 45
+PREMIUM_CROP_PLANT_TARGET = 39
 TOMATO_PLANTS_PER_DEMAND_SHOP = 3
 MAX_TOMATO_PLANT_TARGET = 6
 TOMATO_START_DAY = 10
@@ -647,10 +645,11 @@ def agent(obs):
     def choose_crop_for_planting():
         # Strawberry as priority
         our_strawberries = count_crop_plants(farm,"STRAWBERRY")
+        strawberry_last_full_cycle_day = (FINAL_DAY - CROP_CONFIGS["STRAWBERRY"]["last_production_day"])
 
         if (our_strawberries < strawberry_plant_target
                 and obs["day"] >= STRAWBERRY_START_DAY
-                and obs["day"] <= STRAWBERRY_LAST_PLANTING_DAY):
+                and obs["day"] <= strawberry_last_full_cycle_day):
             return "STRAWBERRY"
         
         # Tomato test

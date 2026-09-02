@@ -7,7 +7,7 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.strawberry_expansion_v1 import agent as baseline_agent
+from baselines.hand_weed_clearing_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
@@ -23,14 +23,16 @@ env.run([agent, baseline_agent])
 #final_step = env.steps[-1]
 
 max_market_order_count = 0
-previous_outer_ne_state = None
+previous_new_sw_state = None
+previous_hires_today = None
 
-OUTER_NE_TILES = (
-    (5, 0),
-    (6, 0),
-    (7, 0),
-    (8, 0),
-    (9, 0),
+NEW_SW_TILES = (
+    (2, 7),
+    (1, 7),
+    (0, 7),
+    (0, 8),
+    (1, 8),
+    (2, 8),
 )
 
 ###########################################################################
@@ -152,22 +154,31 @@ for step_number, step in enumerate(env.steps):
         for hand_position in obs.farms[0].hands
     ]
     hand_actions = player_state.action["hands"]
-    outer_ne_state = tuple(
+    new_sw_state = tuple(
         describe_tile(farm.tiles[y][x])
-        for x, y in OUTER_NE_TILES
+        for x, y in NEW_SW_TILES
     )
-    outer_ne_weeds = tuple(
+    new_sw_weeds = tuple(
         position
-        for position in OUTER_NE_TILES
+        for position in NEW_SW_TILES
         if (
             isinstance(farm.tiles[position[1]][position[0]], dict)
             and farm.tiles[position[1]][position[0]].get("kind") == "WEED"
         )
     )
-    outer_ne_hand_action = (
-        hand_actions[7]
-        if len(hand_actions) > 7
+    new_sw_hand_action = (
+        hand_actions[10]
+        if len(hand_actions) > 10
         else None
+    )
+    new_sw_hand_position = (
+        hands[10]
+        if len(hands) > 10
+        else None
+    )
+    hire_order_count = sum(
+        order[0] == "HIRE"
+        for order in market_action
     )
     hires_today = obs.farms[0].hires_today
     adaptive_tiles = [
@@ -282,20 +293,24 @@ for step_number, step in enumerate(env.steps):
     #     )
     # ):
     if (
-        10 <= obs.day <= 14
+        15 <= obs.day <= 20
         and (
-            outer_ne_state != previous_outer_ne_state
-            or outer_ne_hand_action in (["DIG"], ["PLANT", "STRAWBERRY"])
+            new_sw_state != previous_new_sw_state
+            or hires_today != previous_hires_today
+            or hire_order_count > 0
+            or new_sw_hand_action not in (None, ["PASS"])
             or obs.hour in (0, 23)
         )
     ):
         print(
             f"day={obs.day:2}, "
             f"hr={obs.hour:2}, "
-            f"farmer={farmer_action}@{position}, "
-            f"hand_7={outer_ne_hand_action}@{hands[7] if len(hands) > 7 else None}, "
-            f"weeds={outer_ne_weeds}, "
-            f"outer_ne={outer_ne_state}"
+            f"hires={hires_today}, "
+            f"hire_orders={hire_order_count}, "
+            f"market_orders={market_order_count}, "
+            f"hand_10={new_sw_hand_action}@{new_sw_hand_position}, "
+            f"weeds={new_sw_weeds}, "
+            f"new_sw={new_sw_state}"
             # f"act={player_state.action['farmer']}, "
             # f"position={position}, "
             # f"hands={hands}, "
@@ -334,7 +349,8 @@ for step_number, step in enumerate(env.steps):
             # f"second={describe_tile(second_tile)}"
         )
 
-    previous_outer_ne_state = outer_ne_state
+    previous_new_sw_state = new_sw_state
+    previous_hires_today = hires_today
 
 print(
     f"\nMaximum submitted market orders: "

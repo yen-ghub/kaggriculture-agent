@@ -7,7 +7,7 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.adaptive_tomato_v1 import agent as baseline_agent
+from baselines.strawberry_expansion_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
@@ -23,6 +23,15 @@ env.run([agent, baseline_agent])
 #final_step = env.steps[-1]
 
 max_market_order_count = 0
+previous_outer_ne_state = None
+
+OUTER_NE_TILES = (
+    (5, 0),
+    (6, 0),
+    (7, 0),
+    (8, 0),
+    (9, 0),
+)
 
 ###########################################################################
 # Helper functions:
@@ -143,6 +152,23 @@ for step_number, step in enumerate(env.steps):
         for hand_position in obs.farms[0].hands
     ]
     hand_actions = player_state.action["hands"]
+    outer_ne_state = tuple(
+        describe_tile(farm.tiles[y][x])
+        for x, y in OUTER_NE_TILES
+    )
+    outer_ne_weeds = tuple(
+        position
+        for position in OUTER_NE_TILES
+        if (
+            isinstance(farm.tiles[position[1]][position[0]], dict)
+            and farm.tiles[position[1]][position[0]].get("kind") == "WEED"
+        )
+    )
+    outer_ne_hand_action = (
+        hand_actions[7]
+        if len(hand_actions) > 7
+        else None
+    )
     hires_today = obs.farms[0].hires_today
     adaptive_tiles = [
         describe_tile(farm.tiles[y][x])
@@ -256,29 +282,20 @@ for step_number, step in enumerate(env.steps):
     #     )
     # ):
     if (
-        11 <= obs.day <= 29
+        10 <= obs.day <= 14
         and (
-            obs.hour in (0, 1, 23)
-            or adaptive_market_orders
-            or farmer_on_adaptive_tile
-            or obs.day == 29
+            outer_ne_state != previous_outer_ne_state
+            or outer_ne_hand_action in (["DIG"], ["PLANT", "STRAWBERRY"])
+            or obs.hour in (0, 23)
         )
     ):
         print(
             f"day={obs.day:2}, "
             f"hr={obs.hour:2}, "
-            f"act={farmer_action}, "
-            f"position={position}, "
-            f"milk_shops={milk_shop_count}, "
-            f"wool_shops={wool_shop_count}, "
-            f"placed={placed_animal_counts}, "
-            f"loose={loose_animal_counts}, "
-            f"farmer_products={farmer_animal_products}, "
-            f"shed_products={shed_animal_products}, "
-            f"adaptive_tiles={adaptive_tiles}, "
-            f"unlocked={list(farm.unlocked_quadrants)}, "
-            f"money={farm.money}, "
-            f"market={adaptive_market_orders}"
+            f"farmer={farmer_action}@{position}, "
+            f"hand_7={outer_ne_hand_action}@{hands[7] if len(hands) > 7 else None}, "
+            f"weeds={outer_ne_weeds}, "
+            f"outer_ne={outer_ne_state}"
             # f"act={player_state.action['farmer']}, "
             # f"position={position}, "
             # f"hands={hands}, "
@@ -316,6 +333,8 @@ for step_number, step in enumerate(env.steps):
             # f"home={describe_tile(home_tile)}, "
             # f"second={describe_tile(second_tile)}"
         )
+
+    previous_outer_ne_state = outer_ne_state
 
 print(
     f"\nMaximum submitted market orders: "

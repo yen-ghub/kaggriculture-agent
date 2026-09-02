@@ -382,3 +382,25 @@ seed-2 stress case; across the full 20-seed sweep it won 38 of 40. In the
 five-seed regression it averaged approximately 312--313 harvests and 163--165
 Strawberries sold, with no Strawberry, Tomato, Milk, or Wool leftovers and only
 0.4 Wheat left against Third quadrant v1.
+
+Hand weed clearing v1 fixes a responsibility gap in the farm-hand scheduler.
+Hands previously handled empty and planted tiles but silently ignored `WEED`
+tiles in their assigned zones. Although the farmer could detect those weeds,
+livestock work and the daily position reset made distant hand-owned tiles
+impractical for the farmer to recover. In the seed-2 trace, the outer northeast
+hand watered `(5, 0)` through `(7, 0)` and then passed beside persistent weeds
+at `(8, 0)` and `(9, 0)`.
+
+Each hand now maintains local weed targets and uses the priority harvest, water,
+dig, then plant. The farmer excludes currently hand-owned weeds from its own
+targets, preventing duplicate travel. In the validation trace, the two outer
+northeast tiles became weeds on day 13; hand index seven dug, replanted with
+Strawberry, and watered both by hour 21. All five outer tiles were productive
+again on day 14.
+
+Against frozen Strawberry expansion v1, the focused 20-seed validation produced
+38 wins and two losses, a 95.0% match score, zero errors, and an average lead of
+2406.0. The candidate averaged 77097.5 coins and 322.7 harvests, sold 168.4
+Strawberries, and finished with zero leftovers for every tracked crop and animal
+product. The harvest gain reflects weed recovery across all hand-managed zones,
+not only the originally observed northeast corner.

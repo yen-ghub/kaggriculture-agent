@@ -1,13 +1,5 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
-# from baselines.carrot_v1 import agent as carrot_agent
-# from baselines.melon_v1 import agent as melon_agent
-# from baselines.mixed_v1 import agent as mixed_agent
-# from baselines.adaptive_v1 import agent as adaptive_agent
-# from baselines.hand_v1 import agent as hand1_agent
-# from baselines.hand_v2 import agent as hand2_agent
-# from baselines.seed_buffer_v1 import agent as seed_buffer_agent
-# from baselines.wheat_v1 import agent as wheat_agent
 # from baselines.two_hands_v1 import agent as two_hands_agent
 # from baselines.hand_planting_v1 import agent as hand_planting_agent
 # from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
@@ -30,7 +22,7 @@ from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agen
 from baselines.hand_weed_clearing_v1 import agent as hand_weed_clearing_agent
 from baselines.eleven_hand_v1 import agent as eleven_hand_agent
 from baselines.sw_strawberry_allocation_v1 import agent as sw_strawberry_allocation_agent
-from baselines.temp_cutoff_4 import agent as temp_cutoff_4_agent
+from baselines.early_sheep_v1 import agent as early_sheep_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -55,10 +47,10 @@ OPPONENTS = {
     # "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
     # "strawberry_expansion_v1": strawberry_expansion_agent,
-    "hand_weed_clearing_v1": hand_weed_clearing_agent,
-    "eleven_hand_v1": eleven_hand_agent,
-    "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
-    # "temp_cutoff_4": temp_cutoff_4_agent,
+    # "hand_weed_clearing_v1": hand_weed_clearing_agent,
+    # "eleven_hand_v1": eleven_hand_agent,
+    # "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
+    "early_sheep_v1": early_sheep_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

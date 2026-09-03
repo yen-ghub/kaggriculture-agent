@@ -479,3 +479,18 @@ v1, and SW Strawberry allocation v1, its average leads were respectively
 4096.8, 2993.2, and 2767.2. It averaged approximately 328 harvests, 115
 Carrots, 171 Strawberries, 131 Milk, and 111 Wool sold. All tracked products
 finished with zero leftovers except for an average 2.1 Wheat feed reserve.
+
+Early SW v1 advances the southwest-quadrant purchase window from day 15 to day
+11. A seed-2 trace confirmed that the additional early income comfortably
+supports the faster expansion: the northeast quadrant was purchased on day 11,
+hour 2, the last required base animal was placed on day 11, hour 19, and the
+southwest quadrant was purchased immediately afterward at hour 20. The land
+purchase reduced available money from 10102 to 8102, leaving substantially more
+than the configured 1000 working-capital reserve.
+
+Against frozen Early Sheep v1, the focused 20-seed validation won all 40
+mirrored matches with zero errors. The candidate averaged 77362.7 coins against
+74431.1, an average lead of 2931.6, and averaged 340.2 harvests. It sold 207.7
+Wheat, 108.5 Carrots, 79.2 Melons, 171.2 Strawberries, 2.8 Tomatoes, 129.0 Milk,
+and 110.2 Wool. Every tracked product finished with zero leftovers except for
+an average 0.6 Wheat.

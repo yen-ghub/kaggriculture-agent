@@ -7,7 +7,7 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.temp_cutoff_4 import agent as baseline_agent
+from baselines.early_sheep_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",

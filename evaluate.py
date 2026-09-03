@@ -29,20 +29,13 @@ from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agent
 from baselines.hand_weed_clearing_v1 import agent as hand_weed_clearing_agent
 from baselines.eleven_hand_v1 import agent as eleven_hand_agent
+from baselines.sw_strawberry_allocation_v1 import agent as sw_strawberry_allocation_agent
+from baselines.temp_cutoff_4 import agent as temp_cutoff_4_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [1]
 OPPONENTS = {
-    # "starter": "starter",
-    # "carrot_v1": carrot_agent,
-    # "melon_v1": melon_agent,
-    # "mixed_v1": mixed_agent,
-    # "adaptive_v1": adaptive_agent,
-    # "hand_v1": hand1_agent,
-    # "hand_v2": hand2_agent,
-    # "seed_buffer_v1": seed_buffer_agent,
-    # "wheat_v1": wheat_agent,
     # "two_hands_v1": two_hands_agent,
     # "hand_planting_v1": hand_planting_agent,
     # "expanded_wheat_v1": expanded_wheat_agent,
@@ -53,17 +46,19 @@ OPPONENTS = {
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
-    "low_strawberry_agent":low_strawberry_agent,
+    # "low_strawberry_agent":low_strawberry_agent,
     # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
     # "endgame_liquidation_sales_v1": endgame_liquidation_agent,
     # "four_sheep_v1": four_sheep_agent,
     # "second_quadrant_v1": second_quadrant_agent,
     # "adaptive_tomato_v1": adaptive_tomato_agent,
-    "adaptive_animal_v1": adaptive_animal_agent,
+    # "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
-    "strawberry_expansion_v1": strawberry_expansion_agent,
+    # "strawberry_expansion_v1": strawberry_expansion_agent,
     "hand_weed_clearing_v1": hand_weed_clearing_agent,
-    # "eleven_hand_v1": eleven_hand_agent,
+    "eleven_hand_v1": eleven_hand_agent,
+    "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
+    # "temp_cutoff_4": temp_cutoff_4_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")

@@ -7,7 +7,7 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.hand_weed_clearing_v1 import agent as baseline_agent
+from baselines.temp_cutoff_4 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
@@ -20,11 +20,50 @@ env = make(
 
 env.run([agent, baseline_agent])
 
+for player_index, label in enumerate(("cutoff_3", "cutoff_4")):
+    first_ne_unlock = None
+    carrot_sales = []
+    sheep_purchases = []
+    land_purchases = []
+
+    for step in env.steps:
+        player_state = step[player_index]
+        obs = player_state.observation
+        action = player_state.action
+
+        if action is None:
+            continue
+
+        unlocked = obs.farms[player_index].unlocked_quadrants
+        if first_ne_unlock is None and "NE" in unlocked:
+            first_ne_unlock = (obs.day, obs.hour)
+
+        for order in action["market"]:
+            if order[:2] == ["SELL", "CARROT"]:
+                carrot_sales.append(
+                    (obs.day, obs.hour, order[2], obs.market.prices["CARROT"])
+                )
+            elif order[:2] == ["BUY_ANIMAL", "SHEEP"]:
+                sheep_purchases.append((obs.day, obs.hour, order[2]))
+            elif order[0] == "BUY_LAND":
+                land_purchases.append((obs.day, obs.hour))
+
+    final_state = env.steps[-1][player_index]
+    print(
+        f"COMPARE {label}: reward={final_state.reward}, "
+        f"first_ne={first_ne_unlock}, "
+        f"carrot_sales={carrot_sales}, "
+        f"sheep_buys={sheep_purchases}, "
+        f"land_buys={land_purchases}"
+    )
+
 #final_step = env.steps[-1]
 
 max_market_order_count = 0
 previous_new_sw_state = None
 previous_hires_today = None
+previous_sheep_state = None
+previous_unlocked_quadrants = None
 
 NEW_SW_TILES = (
     (2, 7),
@@ -292,25 +331,58 @@ for step_number, step in enumerate(env.steps):
     #         or market_action
     #     )
     # ):
+    sheep_state = (
+        describe_tile(sheep_1_tile),
+        describe_tile(sheep_2_tile),
+        describe_tile(sheep_3_tile),
+        describe_tile(sheep_4_tile),
+    )
+    unlocked_quadrants = tuple(obs.farms[0].unlocked_quadrants)
+    relevant_market_orders = [
+        order
+        for order in market_action
+        if order[0] in (
+            "BUY_LAND",
+            "BUY_ANIMAL",
+            "BUY_PRODUCT",
+            "SELL",
+        )
+    ]
+
     if (
-        15 <= obs.day <= 20
+        obs.day <= 12
         and (
-            new_sw_state != previous_new_sw_state
-            or hires_today != previous_hires_today
-            or hire_order_count > 0
-            or new_sw_hand_action not in (None, ["PASS"])
+            5 <= obs.day <= 7
+            or
+            sheep_state != previous_sheep_state
+            or unlocked_quadrants != previous_unlocked_quadrants
+            or farmer_action[0] in (
+                "BUILD_PASTURE",
+                "PICKUP",
+                "PLACE",
+                "FEED",
+                "CARE",
+                "HARVEST",
+            )
+            or relevant_market_orders
             or obs.hour in (0, 23)
         )
     ):
         print(
             f"day={obs.day:2}, "
             f"hr={obs.hour:2}, "
-            f"hires={hires_today}, "
-            f"hire_orders={hire_order_count}, "
-            f"market_orders={market_order_count}, "
-            f"hand_10={new_sw_hand_action}@{new_sw_hand_position}, "
-            f"weeds={new_sw_weeds}, "
-            f"new_sw={new_sw_state}"
+            f"act={farmer_action}, "
+            f"position={position}, "
+            f"sheep_hand={hand_actions[0] if hand_actions else None}, "
+            f"cow_1={describe_tile(first_cow_tile)}, "
+            f"cow_2={describe_tile(second_cow_tile)}, "
+            f"sheep={sheep_state}, "
+            f"cow_3={describe_tile(cow_3_tile)}, "
+            f"cow_4={describe_tile(cow_4_tile)}, "
+            f"unlocked={list(unlocked_quadrants)}, "
+            f"money={obs.farms[0].money}, "
+            f"market_count={market_order_count}, "
+            f"market={relevant_market_orders}"
             # f"act={player_state.action['farmer']}, "
             # f"position={position}, "
             # f"hands={hands}, "
@@ -351,6 +423,8 @@ for step_number, step in enumerate(env.steps):
 
     previous_new_sw_state = new_sw_state
     previous_hires_today = hires_today
+    previous_sheep_state = sheep_state
+    previous_unlocked_quadrants = unlocked_quadrants
 
 print(
     f"\nMaximum submitted market orders: "

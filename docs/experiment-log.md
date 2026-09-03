@@ -119,6 +119,11 @@ All evaluations use both player positions.
 | Adaptive Tomato v1 | One Tomato v1 | 5 | 50.0% | 68016.7 | 284.4 | 88.2 wheat, 157.8 carrot, 78.0 melon, 139.6 strawberry, 2.4 tomato, 120.0 milk, 87.0 wool | Near-self-play control: 1W, 1L, 8T; opponent average also 68016.7; zero leftovers and errors |
 | Eleven hands v1 | Hand weed clearing v1 | 5 | 100.0% | 74445.2 | 337.8 | 181.0 wheat, 154.8 carrot, 79.0 melon, 164.2 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Development test: 10W, 0L; average opponent 73526.0; average lead 919.2; zero errors |
 | Eleven hands v1 | Hand weed clearing v1 | 20 | 95.0% | 77331.0 | 338.9 | 172.3 wheat, 155.2 carrot, 79.5 melon, 166.8 strawberry, 2.8 tomato, 133.9 milk, 98.2 wool | Focused validation: 38W, 2L; average opponent 76531.2; average lead 799.8; only seed 12 lost; 0.1 wheat leftover and zero errors |
+| SW Strawberry allocation v1 | Eleven hands v1 | 20 | 67.5% | 78325.3 | — | — | Focused mirror comparison: 16W, 2L, 22T; average opponent 78041.3; average lead 284.0; only seed 11 lost, by 83 |
+| SW Strawberry allocation v1 | Low-Strawberry test | 5 | 100.0% | 71861.7 | 338.2 | 132.4 wheat, 154.8 carrot, 78.0 melon, 151.2 strawberry, 1.4 tomato, 127.2 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 49462.0; average lead 22399.7; zero leftovers and errors |
+| SW Strawberry allocation v1 | Adaptive livestock v1 | 5 | 100.0% | 70541.4 | 339.6 | 158.8 wheat, 154.2 carrot, 78.0 melon, 171.4 strawberry, 3.0 tomato, 132.6 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 65457.8; average lead 5083.6; zero leftovers and errors |
+| SW Strawberry allocation v1 | Strawberry expansion v1 | 5 | 100.0% | 75500.5 | 339.6 | 160.0 wheat, 154.2 carrot, 78.0 melon, 171.4 strawberry, 2.4 tomato, 132.6 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 72374.5; average lead 3126.0; zero leftovers and errors |
+| SW Strawberry allocation v1 | Hand weed clearing v1 | 5 | 100.0% | 74615.6 | 338.6 | 170.0 wheat, 154.8 carrot, 79.0 melon, 167.8 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Regression test: 10W, 0L; average opponent 73474.4; average lead 1141.2; zero leftovers and errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -423,3 +428,26 @@ lead of 799.8. Both losses were the two player positions of seed 12 and had the
 same 259-point deficit, indicating a seed-specific scenario rather than a
 position-order weakness. The candidate averaged 338.9 harvests and finished
 with only 0.1 Wheat left over on average.
+
+SW Strawberry allocation v1 adds three plants to both Strawberry targets only
+when the southwest quadrant is unlocked, at least three Strawberry-demand shops
+are visible, and one of the six outer southwest crop tiles is still empty. The
+premium-crop capacity rises by the same amount, preserving the existing Tomato
+reservation. Requiring immediately usable capacity prevents a late shop unlock
+from buying three Strawberry seeds after those tiles have already been filled
+with Wheat.
+
+An unconditional three-plant bonus scored 70.0% against Eleven hands v1 but
+lost six of 20 seed scenarios, including deficits of 1369 on seed 2 and 2207 on
+seed 18. Adding only the shop guard reduced the score to 60.0% and exposed exact
+300-point losses caused by three purchased but unplanted seeds. The final
+shop-and-capacity guard produced 16 wins, two losses, and 22 ties in the 40-game
+mirror comparison, for a 67.5% match score and an average lead of 284.0. It
+activated in nine seed scenarios and won eight; the sole loss was seed 11 by
+only 83 points.
+
+The candidate then won all 40 matches in a four-opponent, five-seed regression
+suite against Low-Strawberry test, Adaptive livestock v1, Strawberry expansion
+v1, and Hand weed clearing v1. It recorded zero errors and zero final leftovers
+for every tracked crop and animal product. These results support the guarded
+policy as a low-risk use of the eleventh hand's late southwest capacity.

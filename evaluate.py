@@ -28,9 +28,10 @@ from baselines.adaptive_animal_v1 import agent as adaptive_animal_agent
 from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agent
 from baselines.hand_weed_clearing_v1 import agent as hand_weed_clearing_agent
+from baselines.eleven_hand_v1 import agent as eleven_hand_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [1]
 OPPONENTS = {
     # "starter": "starter",
@@ -52,16 +53,17 @@ OPPONENTS = {
     # "two_cows_agent": two_cows_agent,
     # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
-    # "low_strawberry_agent":low_strawberry_agent,
+    "low_strawberry_agent":low_strawberry_agent,
     # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
     # "endgame_liquidation_sales_v1": endgame_liquidation_agent,
     # "four_sheep_v1": four_sheep_agent,
     # "second_quadrant_v1": second_quadrant_agent,
     # "adaptive_tomato_v1": adaptive_tomato_agent,
-    # "adaptive_animal_v1": adaptive_animal_agent,
+    "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
-    # "strawberry_expansion_v1": strawberry_expansion_agent,
+    "strawberry_expansion_v1": strawberry_expansion_agent,
     "hand_weed_clearing_v1": hand_weed_clearing_agent,
+    # "eleven_hand_v1": eleven_hand_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")
@@ -156,7 +158,7 @@ def evaluate_opponent(
         opponent_name,
         opponent,
         seeds,
-        verbose=True,
+        verbose=False,
 ):
     # These must reset for every opponent.
     results = {
@@ -225,7 +227,8 @@ def evaluate_opponent(
                     f"ours={our_state.reward}, "
                     f"opponent_score={opponent_state.reward}, "
                     f"result={result} "
-                    f"tomato sold: {diagnostics["sold"]["TOMATO"]}"
+                    # f"tomato sold: {diagnostics["sold"]["TOMATO"]}"
+                    f"sberry sold: {diagnostics["sold"]["STRAWBERRY"]}"
                 )
 
     completed_matches = (results["WIN"] + results["LOSS"] + results["TIE"]

@@ -451,3 +451,31 @@ suite against Low-Strawberry test, Adaptive livestock v1, Strawberry expansion
 v1, and Hand weed clearing v1. It recorded zero errors and zero final leftovers
 for every tracked crop and animal product. These results support the guarded
 policy as a low-risk use of the eleventh hand's late southwest capacity.
+
+Early Sheep v1 reserves the initial Sheep tiles at `(3, 3)` and `(3, 4)` for
+Carrots instead of Melons. Two Carrot cycles fit before conversion: the first is
+harvested and replanted on day 3, the second is harvested on day 6, and two
+Sheep are purchased and placed on day 7. The Sheep hand feeds and cares for
+both animals on their setup day.
+
+The first implementation exposed a setup-scheduler loop. When the agent could
+not yet afford the Sheep, the farmer repeatedly travelled between an incomplete
+pasture and the shed instead of servicing the existing Cows. Setup now yields
+control whenever its required animal is neither carried nor available in the
+shed. This preserves routine Cow care while waiting for the purchase to become
+affordable. The corrected trace kept both Cows healthy throughout the opening.
+
+A direct 20-seed comparison selected a replant cutoff of day 4 over day 3.
+Cutoff 4 won 32 of 40 mirrored matches and averaged 77520.9 coins against
+77458.3, a small 62.6 average advantage. In the seed-2 trace, it sold 101
+Carrots versus 81, finished 690 coins ahead, and both variants unlocked the
+northeast quadrant on day 9. This confirmed that the extra Carrots are
+profitable and that land timing depends on the shared market rather than the
+cutoff alone.
+
+The selected cutoff then won all 120 matches in a three-opponent, 20-seed
+validation suite, with zero errors. Against Hand weed clearing v1, Eleven hands
+v1, and SW Strawberry allocation v1, its average leads were respectively
+4096.8, 2993.2, and 2767.2. It averaged approximately 328 harvests, 115
+Carrots, 171 Strawberries, 131 Milk, and 111 Wool sold. All tracked products
+finished with zero leftovers except for an average 2.1 Wheat feed reserve.

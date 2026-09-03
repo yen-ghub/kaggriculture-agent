@@ -494,3 +494,22 @@ mirrored matches with zero errors. The candidate averaged 77362.7 coins against
 Wheat, 108.5 Carrots, 79.2 Melons, 171.2 Strawberries, 2.8 Tomatoes, 129.0 Milk,
 and 110.2 Wool. Every tracked product finished with zero leftovers except for
 an average 0.6 Wheat.
+
+Melon first v1 gives every Melon sale index-zero priority while preserving the
+relative order of all other market actions. The day-11 trace had previously
+submitted the six-Carrot sale before the 78-Melon sale, allowing an opponent's
+Melons to reach the shared market first. Moving the Melon order to the front
+raised the candidate's post-turn seed-2 balance from 16142 to 20216, a gain of
+4074 on that sale turn.
+
+The focused 20-seed comparison against frozen Early SW v1 won all 40 mirrored
+matches with zero errors. The candidate averaged 86100.2 coins against 77824.8,
+an average lead of 8275.4, and averaged 343.8 harvests. It sold 193.4 Wheat,
+118.1 Carrots, 79.5 Melons, 176.9 Strawberries, 2.5 Tomatoes, 133.1 Milk, and
+111.3 Wool, with only 0.2 Wheat left over on average.
+
+The five-seed regression suite added another 30 wins from 30 matches against
+Eleven hands v1, SW Strawberry allocation v1, and Early Sheep v1. Average leads
+were respectively 13876.2, 13708.6, and 11201.1, with zero errors. This confirms
+that the improvement is not confined to the direct Early SW comparison and
+that explicit market priority is a major strategic lever.

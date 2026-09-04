@@ -537,3 +537,26 @@ candidate averaged 81928.0 coins against 80819.1, an average lead of 1108.9,
 and averaged 343.3 harvests. It sold 142.1 Milk and 113.4 Wool with no animal-
 product leftovers; only 1.6 Wheat remained on average. Seed 20 was the only
 consistent two-position loss, trailing by 729 in each position.
+
+Fertilizer collection v1 gives the southwest livestock hand a secondary task
+after all four southwest animals have been established and all urgent feeding,
+care, and product harvesting is complete. The hand collects available
+Fertilizer from the compact livestock block. Fertilizer is submitted after all
+strategic market orders so it cannot displace purchases or higher-priority
+sales when the ten-order limit is reached, and final-day hand liquidation also
+handles any Fertilizer still being carried.
+
+Traces covered both adaptive extremes. On seed 2, the four-Sheep layout
+collected and sold 60 Fertilizer; on seed 13, the four-Cow layout collected and
+sold 59. Both finished with zero Fertilizer left over. Collection began on day
+14 after setup was complete, and the first collected batch was sold on day 15.
+
+The focused 20-seed comparison against frozen Adaptive SW livestock v1
+produced 28 wins, four losses, and eight ties for an 80.0% match score, with
+zero errors. The candidate averaged 83542.6 coins against 80892.5, an average
+lead of 2650.1. It sold 17.9 Fertilizer per match on average and finished with
+zero Fertilizer left over. Average harvests remained 343.3, while Milk and Wool
+sales remained 142.1 and 113.4 respectively, providing strong evidence that
+the secondary collection task added income without reducing the established
+crop or livestock output. Compared with the preceding adaptive-livestock
+validation, the match score improved from 75.0% to 80.0%.

@@ -1174,6 +1174,30 @@ def agent(obs):
             target = nearest_position(hand_position, attention_targets)
             return move_to(hand_position, target)
 
+        sw_setup_complete = (
+            len(sw_animal_positions) == len(SW_LIVESTOCK_TILES)
+        )
+
+        if sw_setup_complete:
+            fertilizer_targets = [
+                position
+                for position in sw_animal_positions
+                if animal_tiles[position].get(
+                    "fertilizer_available",
+                    False,
+                )
+            ]
+
+            if hand_position in fertilizer_targets:
+                return ["COLLECT_FERTILIZER"]
+
+            if fertilizer_targets:
+                target = nearest_position(
+                    hand_position,
+                    fertilizer_targets,
+                )
+                return move_to(hand_position, target)
+
         carried_products = [
             product
             for product in ANIMAL_PRODUCT_ORDER
@@ -1270,7 +1294,11 @@ def agent(obs):
         if obs["day"] != FINAL_DAY:
             return None
 
-        product_order = CROPS_MANAGED + ANIMAL_PRODUCT_ORDER
+        product_order = (
+            CROPS_MANAGED
+            + ANIMAL_PRODUCT_ORDER
+            + ("FERTILIZER",)
+        )
 
         carried_products = [
             product
@@ -2067,6 +2095,33 @@ def agent(obs):
     ):
         market_orders.append(["BUY_LAND"])
         money_available -= THIRD_QUADRANT_LAND_COST
+
+    # Fertilizer is optional income, so sell it after every strategic order.
+    # If all market slots are occupied, keep it in the shed for a later turn.
+    fertilizer_sell_order = None
+
+    for order in market_orders:
+        if order[:2] == ["SELL", "FERTILIZER"]:
+            fertilizer_sell_order = order
+            break
+
+    fertilizer_in_shed = shed.get("FERTILIZER", 0)
+
+    if fertilizer_sell_order is not None:
+        fertilizer_sell_order[2] += fertilizer_in_shed
+        market_orders.remove(fertilizer_sell_order)
+    elif fertilizer_in_shed > 0:
+        fertilizer_sell_order = [
+            "SELL",
+            "FERTILIZER",
+            fertilizer_in_shed,
+        ]
+
+    if (
+        fertilizer_sell_order is not None
+        and len(market_orders) < MAX_MARKET_ORDERS_PER_TURN
+    ):
+        market_orders.append(fertilizer_sell_order)
         
     return {
         "farmer": farmer_action,

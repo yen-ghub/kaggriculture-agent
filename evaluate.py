@@ -24,7 +24,7 @@ from baselines.sw_strawberry_allocation_v1 import agent as sw_strawberry_allocat
 from baselines.early_sheep_v1 import agent as early_sheep_agent
 from baselines.early_sw_v1 import agent as early_sw_agent
 from baselines.melon_first_v1 import agent as melon_first_agent
-from baselines.sw_livestock_v1 import agent as sw_livestock_agent
+from baselines.adaptive_sw_livestock import agent as adaptive_sw_livestock_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -53,11 +53,11 @@ OPPONENTS = {
     # "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
     # "early_sheep_v1": early_sheep_agent,
     # "melon_first_v1": melon_first_agent,
-    "sw_livestock_v1": sw_livestock_agent,
+    "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
        
 }    
 
-PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL")
+PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL", "FERTILIZER")
 
 # Define helper functions
 def play_match(seed, our_position, opponent):

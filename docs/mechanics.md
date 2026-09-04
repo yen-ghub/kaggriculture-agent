@@ -593,6 +593,29 @@ With `FINAL_DAY = 29`, this permits new Strawberry plants only through day
 `13`. This is a strategy choice rather than a legality rule: a later planting
 could produce some fruit, but not all four scheduled yields.
 
+## Shops and demand signals
+
+Unlocked shops are available through:
+
+```python
+obs["town"]["unlocked_shops"]
+```
+
+The list can contain the same shop type more than once. Each entry represents
+a separate unlocked shop, so demand-sensitive logic must count matching list
+entries rather than converting the list to a set or checking only whether a
+name is present. For example:
+
+```python
+yarn_store_count = sum(
+    shop == "YARN_STORE"
+    for shop in obs["town"]["unlocked_shops"]
+)
+```
+
+Local traces include seeds with two Yarn Stores and seeds with multiple
+Milk-demand shops of the same type.
+
 ## Shared market
 
 The market is shared by both players.

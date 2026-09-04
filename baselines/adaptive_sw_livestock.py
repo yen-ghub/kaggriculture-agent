@@ -148,7 +148,7 @@ TOMATO_DEMAND_SHOPS = {
 PREMIUM_CROP_PLANT_TARGET = 45
 TOMATO_PLANTS_PER_DEMAND_SHOP = 3
 MAX_TOMATO_PLANT_TARGET = 6
-TOMATO_START_DAY = 13
+TOMATO_START_DAY = 10
 TOMATO_FORCE_SELL_DAY = 29
    
 LAST_HOUR_TODAY     = 23
@@ -203,14 +203,6 @@ SW_LIVESTOCK_PLAN = {
     (4, 6): "COW",
 }
 SW_LIVESTOCK_TILES = tuple(SW_LIVESTOCK_PLAN)
-SW_ALL_SHEEP_PLAN = {
-    position: "SHEEP"
-    for position in SW_LIVESTOCK_TILES
-}
-SW_ALL_COW_PLAN = {
-    position: "COW"
-    for position in SW_LIVESTOCK_TILES
-}
 
 ADAPTIVE_ANIMAL_START_DAY = 12
 ADAPTIVE_ANIMAL_LAST_START_DAY = 15
@@ -221,8 +213,6 @@ MILK_DEMAND_SHOP_THRESHOLD = 2
 WOOL_DEMAND_SHOP_THRESHOLD = 1
 SW_MILK_DEMAND_SHOP_THRESHOLD = 1
 SW_WOOL_DEMAND_SHOP_THRESHOLD = 1
-SW_ALL_SHEEP_SHOP_THRESHOLD = 2
-SW_ALL_COW_SHOP_THRESHOLD = 3
 SW_LIVESTOCK_MIN_MILK_PRICE = 150
 
 # Every position permanently reserved for livestock.
@@ -404,54 +394,10 @@ def agent(obs):
                     tile["animal"]
                 )
 
-    existing_sw_animals = []
-    sw_livestock_setup_started = False
-
-    for position in SW_LIVESTOCK_TILES:
-        x, y = position
-        tile = farm["tiles"][y][x]
-
-        if (
-            isinstance(tile, dict)
-            and tile.get("kind") == "PASTURE"
-        ):
-            sw_livestock_setup_started = True
-
-            if tile.get("animal") in ANIMAL_PRODUCTS:
-                existing_sw_animals.append(tile["animal"])
-
-    if existing_sw_animals:
-        if all(
-            animal == "SHEEP"
-            for animal in existing_sw_animals
-        ):
-            active_sw_livestock_plan = SW_ALL_SHEEP_PLAN
-        elif all(
-            animal == "COW"
-            for animal in existing_sw_animals
-        ) and milk_demand_shop_count >= SW_ALL_COW_SHOP_THRESHOLD:
-            active_sw_livestock_plan = SW_ALL_COW_PLAN
-        else:
-            active_sw_livestock_plan = SW_LIVESTOCK_PLAN
-    elif milk_demand_shop_count >= SW_ALL_COW_SHOP_THRESHOLD:
-        active_sw_livestock_plan = SW_ALL_COW_PLAN
-    elif wool_demand_shop_count >= SW_ALL_SHEEP_SHOP_THRESHOLD:
-        active_sw_livestock_plan = SW_ALL_SHEEP_PLAN
-    else:
-        active_sw_livestock_plan = SW_LIVESTOCK_PLAN
-
-    sw_all_cow_condition = (
-        milk_demand_shop_count >= SW_ALL_COW_SHOP_THRESHOLD
-    )
-
-    sw_all_sheep_condition = (
-        wool_demand_shop_count >= SW_ALL_SHEEP_SHOP_THRESHOLD
-    )
-
-    sw_mixed_livestock_condition = (
-        milk_demand_shop_count >= SW_MILK_DEMAND_SHOP_THRESHOLD
-        and wool_demand_shop_count >= SW_WOOL_DEMAND_SHOP_THRESHOLD
-        and obs["market"]["prices"]["MILK"] >= SW_LIVESTOCK_MIN_MILK_PRICE
+    sw_livestock_setup_started = any(
+        isinstance(farm["tiles"][y][x], dict)
+        and farm["tiles"][y][x].get("kind") == "PASTURE"
+        for x, y in SW_LIVESTOCK_TILES
     )
 
     # Commit to this branch only while no incompatible adaptive pair exists.
@@ -460,11 +406,9 @@ def agent(obs):
         sw_livestock_setup_started
         or (
             THIRD_QUADRANT_NAME in farm["unlocked_quadrants"]
-            and (
-                sw_all_cow_condition
-                or sw_all_sheep_condition
-                or sw_mixed_livestock_condition
-            )
+            and milk_demand_shop_count >= SW_MILK_DEMAND_SHOP_THRESHOLD
+            and wool_demand_shop_count >= SW_WOOL_DEMAND_SHOP_THRESHOLD
+            and obs["market"]["prices"]["MILK"] >= SW_LIVESTOCK_MIN_MILK_PRICE
             and not adaptive_animal_setup_started
             and obs["day"] <= SW_LIVESTOCK_LAST_START_DAY
         )
@@ -594,7 +538,7 @@ def agent(obs):
         })
 
     if sw_livestock_phase_active:
-        active_animal_plan.update(active_sw_livestock_plan)
+        active_animal_plan.update(SW_LIVESTOCK_PLAN)
     
     active_animal_tiles = list(active_animal_plan)
     animal_count_target = len(active_animal_tiles)
@@ -663,8 +607,8 @@ def agent(obs):
     )
 
     tomato_plant_target = (
-            2
-            if tomato_shop_count > 1
+            1
+            if tomato_shop_count > 0
     else 0)
 
     third_quadrant_strawberry_bonus = 0
@@ -1203,7 +1147,7 @@ def agent(obs):
         carried_setup_targets = [
             position
             for position in setup_targets
-            if hand_inventory.get(active_sw_livestock_plan[position], 0) > 0
+            if hand_inventory.get(SW_LIVESTOCK_PLAN[position], 0) > 0
         ]
 
         if carried_setup_targets:
@@ -1216,7 +1160,7 @@ def agent(obs):
                 return move_to(hand_position, target)
 
             target_tile = animal_tiles[target]
-            target_animal = active_sw_livestock_plan[target]
+            target_animal = SW_LIVESTOCK_PLAN[target]
 
             if target_tile is None:
                 return ["BUILD_PASTURE"]
@@ -1233,7 +1177,7 @@ def agent(obs):
         for animal in ANIMAL_PRODUCTS:
             if (
                 any(
-                    active_sw_livestock_plan[position] == animal
+                    SW_LIVESTOCK_PLAN[position] == animal
                     for position in setup_targets
                 )
                 and animals_in_shed[animal] > 0
@@ -1252,7 +1196,7 @@ def agent(obs):
             return move_to(hand_position, shed_target)
 
         matching_targets = sum(
-            active_sw_livestock_plan[position] == animal_to_pickup
+            SW_LIVESTOCK_PLAN[position] == animal_to_pickup
             for position in setup_targets
         )
 

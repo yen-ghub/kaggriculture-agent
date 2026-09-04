@@ -124,6 +124,7 @@ All evaluations use both player positions.
 | SW Strawberry allocation v1 | Adaptive livestock v1 | 5 | 100.0% | 70541.4 | 339.6 | 158.8 wheat, 154.2 carrot, 78.0 melon, 171.4 strawberry, 3.0 tomato, 132.6 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 65457.8; average lead 5083.6; zero leftovers and errors |
 | SW Strawberry allocation v1 | Strawberry expansion v1 | 5 | 100.0% | 75500.5 | 339.6 | 160.0 wheat, 154.2 carrot, 78.0 melon, 171.4 strawberry, 2.4 tomato, 132.6 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 72374.5; average lead 3126.0; zero leftovers and errors |
 | SW Strawberry allocation v1 | Hand weed clearing v1 | 5 | 100.0% | 74615.6 | 338.6 | 170.0 wheat, 154.8 carrot, 79.0 melon, 167.8 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Regression test: 10W, 0L; average opponent 73474.4; average lead 1141.2; zero leftovers and errors |
+| Adaptive SW livestock v1 | SW livestock v1 | 20 | 75.0% | 81928.0 | 343.3 | 184.5 wheat, 117.2 carrot, 79.2 melon, 178.0 strawberry, 1.4 tomato, 142.1 milk, 113.4 wool | Focused validation: 25W, 5L, 10T; average opponent 80819.1; average lead 1108.9; 1.6 wheat leftover and zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -513,3 +514,26 @@ Eleven hands v1, SW Strawberry allocation v1, and Early Sheep v1. Average leads
 were respectively 13876.2, 13708.6, and 11201.1, with zero errors. This confirms
 that the improvement is not confined to the direct Early SW comparison and
 that explicit market priority is a major strategic lever.
+
+Adaptive SW livestock v1 varies the four southwest livestock tiles according
+to visible shop demand. At least three Milk-demand shops select four Cows; at
+least two Yarn Stores select four Sheep; otherwise the existing two-Cow,
+two-Sheep plan remains. The all-Cow condition has precedence when both special
+conditions are present. Hand index nine continues to own setup and care for the
+compact block.
+
+The first composition lock treated a partially placed mixed plan as all-Cow
+because its first placed animal was a Cow. This unintentionally converted the
+mixed branches on seeds 6 and 9 and caused large regressions. The corrected
+lock retains an all-Cow plan only when the placed animals are Cows and the
+three-shop Milk condition is still visible. Sheep-only groups retain the
+all-Sheep plan, while other partial or mixed groups retain the two-and-two plan.
+Traces confirmed mixed layouts on seeds 6 and 9, four Sheep on seed 2, and four
+Cows on seed 13.
+
+The corrected 20-seed comparison against frozen SW livestock v1 produced 25
+wins, five losses, and ten ties for a 75.0% match score, with zero errors. The
+candidate averaged 81928.0 coins against 80819.1, an average lead of 1108.9,
+and averaged 343.3 harvests. It sold 142.1 Milk and 113.4 Wool with no animal-
+product leftovers; only 1.6 Wheat remained on average. Seed 20 was the only
+consistent two-position loss, trailing by 729 in each position.

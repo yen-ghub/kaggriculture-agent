@@ -560,3 +560,36 @@ sales remained 142.1 and 113.4 respectively, providing strong evidence that
 the secondary collection task added income without reducing the established
 crop or livestock output. Compared with the preceding adaptive-livestock
 validation, the match score improved from 75.0% to 80.0%.
+
+Single Melon wave v1 prevents Melon planting after day 0. The existing crop
+selector judged Melons using their price at planting time and could not predict
+the market depression caused by the opening sale. Against the no-Melon Carrot
+v1 opponent, the previous policy planted another four to six Melons on days 11
+and 12 and sold that second wave on days 22 and 23. Although still nominally
+profitable, the long cycle occupied land and worker capacity that produced more
+value when reassigned to faster crops.
+
+The selected implementation retains the adaptive opening target of 13 or 15
+Melon plants but gives Melons a last planting day of zero. Its seed target also
+tapers with the remaining opening demand, avoiding the previous three-seed
+buffer after the target is complete. Traces against Carrot v1 and frozen
+Fertilizer collection v1 confirmed that every Melon was planted on day 0, none
+were planted afterward, and no Melon seeds remained at the end of the game.
+
+The focused 20-seed comparison against frozen Fertilizer collection v1
+produced 39 wins and one loss for a 97.5% match score, with zero errors. The
+candidate averaged 85393.0 coins against 82811.1, an average lead of 2581.9,
+and averaged 351.8 harvests. It sold 264.3 Wheat, 81.1 Carrots, and 69.1
+Melons, demonstrating that the released capacity shifted primarily into
+shorter Wheat cycles. All tracked products finished with zero leftovers except
+for an average 2.5 Wheat feed reserve. The only loss was seed 11 from player
+position zero; the reverse position won, indicating a position-sensitive
+shared-market interaction rather than a general regression.
+
+The five-seed regression suite won all 30 matches against Adaptive SW livestock
+v1, SW Strawberry allocation v1, and Strawberry expansion v1. Average leads
+were respectively 10743.3, 16604.8, and 18261.4. Across the three opponents,
+the candidate consistently averaged approximately 348--350 harvests, 276--291
+Wheat sold, and about 70 Melons sold, with zero errors. This supports the
+single-wave policy as a broad allocation improvement rather than an artifact
+of the direct frozen-baseline comparison.

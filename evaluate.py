@@ -1,16 +1,14 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
-# from baselines.hand_planting_v1 import agent as hand_planting_agent
 # from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
 # from baselines.strawberry_v1 import agent as strawberry_agent
-# from baselines.three_hands_v1 import agent as three_hands_agent
 # from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
 # from baselines.first_cow_v1 import agent as first_cow_agent
 # from baselines.two_cows_v1 import agent as two_cows_agent
 # from baselines.four_cows_v1 import agent as four_cows_agent
 # from baselines.second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.low_strawberry_test import agent as low_strawberry_agent
-from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
+# from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
 from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
 from baselines.four_sheep_v1 import agent as four_sheep_agent
 from baselines.full_second_quadrant_v1 import agent as second_quadrant_agent
@@ -25,15 +23,14 @@ from baselines.early_sheep_v1 import agent as early_sheep_agent
 from baselines.early_sw_v1 import agent as early_sw_agent
 from baselines.melon_first_v1 import agent as melon_first_agent
 from baselines.adaptive_sw_livestock import agent as adaptive_sw_livestock_agent
+from baselines.fertilizer_collection_v1 import agent as fertilizer_collection_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [6, 7, 9, 17]
 OPPONENTS = {
-    # "hand_planting_v1": hand_planting_agent,
     # "expanded_wheat_v1": expanded_wheat_agent,
     # "strawberry_agent_v1": strawberry_agent,
-    # "three_hands_agent_v1": three_hands_agent,
     # "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
     # "first_cow_v1": first_cow_agent,
     # "two_cows_agent": two_cows_agent,
@@ -47,13 +44,14 @@ OPPONENTS = {
     # "adaptive_tomato_v1": adaptive_tomato_agent,
     # "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
-    # "strawberry_expansion_v1": strawberry_expansion_agent,
+    "strawberry_expansion_v1": strawberry_expansion_agent,
     # "hand_weed_clearing_v1": hand_weed_clearing_agent,
     # "eleven_hand_v1": eleven_hand_agent,
-    # "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
-    # "early_sheep_v1": early_sheep_agent,
+    "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
+    "early_sheep_v1": early_sheep_agent,
     # "melon_first_v1": melon_first_agent,
     "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
+    # "fertilizer_collection_v1": fertilizer_collection_agent,
        
 }    
 

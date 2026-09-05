@@ -112,6 +112,7 @@ def make_fixed_crop_plan(melon_tile_count):
     return crop_plan
 
 # Crop related
+MELON_LAST_PLANTING_DAY = 0
 MELON_REPLANT_PRICE_THRESHOLD = 220
 POST_GLUT_MELON_TARGET = 4
 HEAVY_OPPONENT_MELON_TARGET = 13
@@ -119,7 +120,7 @@ DEFAULT_SEED_TARGETS = {
     "WHEAT": 1,
     "CARROT": 1,
     "STRAWBERRY": 0,
-    "MELON": 1,
+    "MELON": 0,
     "TOMATO":0
 }
 SELECTED_CROP_SEED_TARGET = 3
@@ -795,6 +796,24 @@ def agent(obs):
         return expected_profit / crop_config["harvest_day"]
     
     
+    def choose_melon_plant_target():
+        opponent_id = 1 - player_id
+        opponent_farm = obs["farms"][opponent_id]
+        opponent_melons = count_crop_plants(opponent_farm, "MELON")
+        opponent_carrots = count_crop_plants(opponent_farm, "CARROT")
+        current_melon_price = obs["market"]["prices"]["MELON"]
+
+        if current_melon_price < MELON_REPLANT_PRICE_THRESHOLD:
+            target_melons = POST_GLUT_MELON_TARGET
+        elif opponent_melons == 0:
+            target_melons = 15
+        elif opponent_carrots > 0 and opponent_melons <= 10:
+            target_melons = 13
+        else:
+            target_melons = HEAVY_OPPONENT_MELON_TARGET
+
+        return min(target_melons, len(TILES_MANAGED))
+
     ## 2.7 Adaptive crop selection, considering market price and opponent's crop selection
     def choose_crop_for_planting():
         # Strawberry as priority
@@ -830,10 +849,9 @@ def agent(obs):
             if obs["day"] <= last_planting_day and not wheat_target_reached:
                 eligible_staples.append(crop)
         
-        # Check melon too
-        melon_last_planting_day = (FINAL_DAY - CROP_CONFIGS["MELON"]["harvest_day"])
-        
-        melon_can_mature = (obs["day"] <= melon_last_planting_day)
+        # Melons are limited to the opening wave. Their planting-day price
+        # does not account for the first large sale depressing the market.
+        melon_can_mature = obs["day"] <= MELON_LAST_PLANTING_DAY
 
         # If there is no eligible staple crop, but melon is eligible, choose melon. Otherwise, return None.
         # Currently melon takes the longest to mature
@@ -868,29 +886,8 @@ def agent(obs):
 
 
         # Third decision layer, based on opponent's crop
-        opponent_id         = 1 - player_id
-        opponent_farm       = obs["farms"][opponent_id]
-        opponent_melons     = count_crop_plants(opponent_farm, "MELON")
-        opponent_carrots    = count_crop_plants(opponent_farm, "CARROT")
         our_melons          = count_crop_plants(farm, "MELON")
-        current_melon_price = obs["market"]["prices"]["MELON"]
-        
-        # Optimal number of melon tiles based on experiment
-        # Guard against melon price crash 
-        if current_melon_price < MELON_REPLANT_PRICE_THRESHOLD:
-            target_melons = POST_GLUT_MELON_TARGET
-        # If opponent not planting melon, go full melon
-        elif opponent_melons == 0:
-            target_melons = 15
-        elif (opponent_carrots > 0 and opponent_melons <= 10):
-            target_melons = 13
-        else:
-            target_melons = HEAVY_OPPONENT_MELON_TARGET
-
-        target_melons = min(
-            target_melons,
-            len(TILES_MANAGED),
-        )
+        target_melons = choose_melon_plant_target()
 
         if our_melons < target_melons:
             return "MELON"
@@ -1409,9 +1406,15 @@ def agent(obs):
     ## 3.2 Pick a crop based on the current strategy (market price + opponent's crops)
     crop_selected_for_planting = choose_crop_for_planting()       
     if crop_selected_for_planting is not None:
-        selected_harvest_day = CROP_CONFIGS[crop_selected_for_planting]["harvest_day"]
-
-        selected_last_planting_day = (FINAL_DAY - selected_harvest_day)
+        if crop_selected_for_planting == "MELON":
+            selected_last_planting_day = MELON_LAST_PLANTING_DAY
+        else:
+            selected_harvest_day = CROP_CONFIGS[
+                crop_selected_for_planting
+            ]["harvest_day"]
+            selected_last_planting_day = (
+                FINAL_DAY - selected_harvest_day
+            )
     else:
         selected_last_planting_day = -1
     
@@ -2002,16 +2005,21 @@ def agent(obs):
 
     planned_strawberry_count = count_crop_plants(farm, "STRAWBERRY")
     planned_tomato_count = count_crop_plants(farm, "TOMATO")
+    planned_melon_count = count_crop_plants(farm, "MELON")
     if farmer_action == ["PLANT", "STRAWBERRY"]:
         planned_strawberry_count += 1
     elif farmer_action == ["PLANT", "TOMATO"]:
         planned_tomato_count += 1
+    elif farmer_action == ["PLANT", "MELON"]:
+        planned_melon_count += 1
         
     for hand_action in hand_actions:
         if hand_action == ["PLANT", "STRAWBERRY"]:
             planned_strawberry_count += 1
         elif hand_action == ["PLANT", "TOMATO"]:
             planned_tomato_count += 1
+        elif hand_action == ["PLANT", "MELON"]:
+            planned_melon_count += 1
         elif hand_action[0] == "PLACE":
             product     = hand_action[1]
             quantity    = hand_action[2]
@@ -2038,12 +2046,26 @@ def agent(obs):
     
     ## Buy crop seed (i.e. maintain a certain number available seed for each crop)
     for crop in CROPS_MANAGED:
-        last_planting_day = FINAL_DAY - CROP_CONFIGS[crop]["harvest_day"]    
+        if crop == "MELON":
+            last_planting_day = MELON_LAST_PLANTING_DAY
+        else:
+            last_planting_day = (
+                FINAL_DAY - CROP_CONFIGS[crop]["harvest_day"]
+            )
         seed_cost = CROP_CONFIGS[crop]["seed_cost"]
         
         target_seed_count = DEFAULT_SEED_TARGETS[crop]
         if crop == crop_selected_for_planting:
-            if crop == "STRAWBERRY":
+            if crop == "MELON":
+                target_seed_count = min(
+                    SELECTED_CROP_SEED_TARGET,
+                    max(
+                        0,
+                        choose_melon_plant_target()
+                        - planned_melon_count,
+                    ),
+                )
+            elif crop == "STRAWBERRY":
                 target_seed_count = max(0, (strawberry_plant_target - planned_strawberry_count))
             elif crop == "TOMATO":
                 target_seed_count = max(0, (tomato_plant_target - planned_tomato_count))

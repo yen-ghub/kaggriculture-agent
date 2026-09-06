@@ -593,3 +593,29 @@ the candidate consistently averaged approximately 348--350 harvests, 276--291
 Wheat sold, and about 70 Melons sold, with zero errors. This supports the
 single-wave policy as a broad allocation improvement rather than an artifact
 of the direct frozen-baseline comparison.
+
+Farmer Fertilizer collection v1 extends collection to the livestock assigned
+to the farmer: the central Cow group and any adaptive animal tiles. Sheep-hand
+and southwest-hand animals remain excluded so ownership does not overlap. The
+farmer collects only when `choose_animal_action()` returns no work, its crop
+action would otherwise be `PASS`, and the game has not reached day 29. This
+keeps livestock setup, feeding, care, harvesting, product deposits, crop work,
+and final liquidation ahead of the optional collection task.
+
+Traces on seeds 2, 6, and 13 each recorded 91 farmer collections. The farmer
+collected twice daily from the initial Cows on days 1--9 and generally four
+times daily after the expanded Cow group became available. Day 11 fell to one
+collection while livestock setup took priority. Every observed collection
+occurred with all farmer-assigned animals already fed, cared for, and harvested;
+no collection occurred on day 29. Total Fertilizer sales reached 148--152 in
+the traced games and all three finished with zero Fertilizer left over.
+
+The focused 20-seed comparison against frozen Single Melon wave v1 won all 40
+mirrored matches with zero errors. The candidate averaged 89294.4 coins against
+84237.4, an average lead of 5057.0, and averaged 352.3 harvests. It sold 74.2
+Fertilizer per match and finished with none left over. Crop and livestock output
+remained healthy, including 256.4 Wheat, 176.4 Strawberries, 142.5 Milk, and
+109.9 Wool sold. Every tracked product finished with zero leftovers except for
+an average 1.0 Wheat feed reserve. No multi-opponent regression was run for
+this iteration; the candidate was accepted on the strength and consistency of
+the focused 20-seed result.

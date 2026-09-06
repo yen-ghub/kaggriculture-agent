@@ -24,9 +24,11 @@ from baselines.early_sw_v1 import agent as early_sw_agent
 from baselines.melon_first_v1 import agent as melon_first_agent
 from baselines.adaptive_sw_livestock import agent as adaptive_sw_livestock_agent
 from baselines.fertilizer_collection_v1 import agent as fertilizer_collection_agent
+from baselines.melon_single_wave_v1 import agent as melon_single_wave_agent
+
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [6, 7, 9, 17]
 OPPONENTS = {
     # "expanded_wheat_v1": expanded_wheat_agent,
@@ -44,14 +46,15 @@ OPPONENTS = {
     # "adaptive_tomato_v1": adaptive_tomato_agent,
     # "adaptive_animal_v1": adaptive_animal_agent,
     # "third_quadrant_v1": third_quadrant_agent,
-    "strawberry_expansion_v1": strawberry_expansion_agent,
+    # "strawberry_expansion_v1": strawberry_expansion_agent,
     # "hand_weed_clearing_v1": hand_weed_clearing_agent,
     # "eleven_hand_v1": eleven_hand_agent,
-    "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
-    "early_sheep_v1": early_sheep_agent,
+    # "sw_strawberry_allocation_v1": sw_strawberry_allocation_agent,
+    # "early_sheep_v1": early_sheep_agent,
     # "melon_first_v1": melon_first_agent,
-    "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
+    # "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
     # "fertilizer_collection_v1": fertilizer_collection_agent,
+    "melon_single_wave_v1": melon_single_wave_agent,
        
 }    
 

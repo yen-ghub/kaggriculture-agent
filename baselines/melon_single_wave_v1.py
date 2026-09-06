@@ -1748,7 +1748,10 @@ def agent(obs):
                     return [
                         "PICKUP",
                         animal_to_pickup,
-                        min(animals_in_shed[animal_to_pickup], matching_targets)
+                        min(
+                            animals_in_shed[animal_to_pickup],
+                            matching_targets,
+                        ),
                     ]
 
                 return None
@@ -1807,7 +1810,10 @@ def agent(obs):
                 target = outer_attention_targets[0]
                 target_animal = animal_tiles[target]
 
-                if (not target_animal.get("fed_today", False) and wheat_in_farmer_inventory == 0):
+                if (
+                    not target_animal.get("fed_today", False)
+                    and wheat_in_farmer_inventory == 0
+                ):
                     return get_wheat_action()
 
                 if pos_current != target:
@@ -1831,7 +1837,10 @@ def agent(obs):
             if not current_animal.get("cared_today", False):
                 return ["CARE"]
 
-            if (current_animal.get("yield_units", 0) >= ANIMAL_HARVEST_THRESHOLD):
+            if (
+                current_animal.get("yield_units", 0)
+                >= ANIMAL_HARVEST_THRESHOLD
+            ):
                 return ["HARVEST"]
 
         # Travel to another animal that requires attention.
@@ -1842,7 +1851,10 @@ def agent(obs):
         ]
 
         if attention_targets:
-            target = nearest_position(pos_current, attention_targets )
+            target = nearest_position(
+                pos_current,
+                attention_targets,
+            )
             target_animal = animal_tiles[target]
 
             if (
@@ -1891,29 +1903,16 @@ def agent(obs):
     if animal_action is not None:
         farmer_action = animal_action
 
-        if (farmer_action[0] == "PLACE" and farmer_action[1] in ANIMAL_PRODUCT_ORDER):
+        if (
+            farmer_action[0] == "PLACE"
+            and farmer_action[1] in ANIMAL_PRODUCT_ORDER
+        ):
             product = farmer_action[1]
             market_orders.append([
                 "SELL",
                 product,
                 animal_products_in_farmer_inventory[product],
             ])
-            
-    # Collect Fertilizer only when the farmer has no livestock or crop work.
-    if (animal_action is None
-            and farmer_action == ["PASS"]
-            and obs["day"] < FINAL_DAY):
-        fertilizer_targets = [
-            position
-            for position in farmer_animal_positions
-            if animal_tiles[position].get("fertilizer_available", False)
-        ]
-
-        if pos_current in fertilizer_targets:
-            farmer_action = ["COLLECT_FERTILIZER"]
-        elif fertilizer_targets:
-            target = nearest_position(pos_current, fertilizer_targets)
-            farmer_action = move_to(pos_current, target)
             
             
     ##########################################################            

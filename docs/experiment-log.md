@@ -619,3 +619,26 @@ remained healthy, including 256.4 Wheat, 176.4 Strawberries, 142.5 Milk, and
 an average 1.0 Wheat feed reserve. No multi-opponent regression was run for
 this iteration; the candidate was accepted on the strength and consistency of
 the focused 20-seed result.
+
+Day 3 Sheep v1 advances the initial two-Sheep purchase from day 6 to day 3.
+The two reserved Sheep tiles at `(3, 3)` and `(3, 4)` retain their opening
+Carrots but are no longer replanted on day 3. Starting on day 1, the agent
+protects a 1000-coin Sheep reserve from discretionary seed purchases and, on
+day 3, from Wheat-reserve replenishment. Hand zero immediately returns its
+first harvested Carrots to the shed, restoring liquidity after the livestock
+purchase.
+
+A five-seed timing trace confirmed identical setup across all tested seeds:
+both Sheep were purchased together on day 3, hour 6, then placed on day 3 at
+hours 11 and 14. This resolved the previous opening in which both target tiles
+were empty by day 3 but the agent had only 920 coins and therefore waited until
+day 4 or later to purchase the pair.
+
+The focused 20-seed comparison against frozen Farmer Fertilizer collection v1
+won all 40 mirrored matches with zero errors. The candidate averaged 90682.0
+coins against 87715.7, an average lead of 2966.3, and averaged 351.6 harvests.
+It sold 269.9 Wheat, 82.7 Carrots, 72.5 Melons, 172.2 Strawberries, 1.4
+Tomatoes, 147.9 Milk, 119.6 Wool, and 97.7 Fertilizer. Every tracked product
+finished with zero leftovers except for an average 1.8 Wheat. The consistent
+40--0 result supports the earlier Sheep timing as a new baseline despite the
+temporary opening cash constraint.

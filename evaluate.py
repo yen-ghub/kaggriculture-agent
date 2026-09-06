@@ -25,7 +25,7 @@ from baselines.melon_first_v1 import agent as melon_first_agent
 from baselines.adaptive_sw_livestock import agent as adaptive_sw_livestock_agent
 from baselines.fertilizer_collection_v1 import agent as fertilizer_collection_agent
 from baselines.melon_single_wave_v1 import agent as melon_single_wave_agent
-
+from baselines.farmer_fertilizer_v1 import agent as farmer_fertilizer_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -54,8 +54,8 @@ OPPONENTS = {
     # "melon_first_v1": melon_first_agent,
     # "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
     # "fertilizer_collection_v1": fertilizer_collection_agent,
-    "melon_single_wave_v1": melon_single_wave_agent,
-       
+    # "melon_single_wave_v1": melon_single_wave_agent,
+    "farmer_fertilizer_v1": farmer_fertilizer_agent,   
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL", "FERTILIZER")

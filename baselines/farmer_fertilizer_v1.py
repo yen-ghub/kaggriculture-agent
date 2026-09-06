@@ -187,13 +187,10 @@ SHEEP_TILES = (
     + ADDITIONAL_SHEEP_TILES
 )
 
-INITIAL_SHEEP_START_DAY     = 3
-ADDITIONAL_SHEEP_START_DAY  = 11
-INITIAL_SHEEP_TILE_REPLANT_CUTOFF_DAY       = 3
-ADDITIONAL_SHEEP_TILE_REPLANT_CUTOFF_DAY    = 10
-INITIAL_SHEEP_CASHOUT_HAND_INDEX = 0                # Early cashout to buy day 3 sheep
-INITIAL_SHEEP_CASH_RESERVE_START_DAY = 1
-INITIAL_SHEEP_CASH_RESERVE = 1000
+INITIAL_SHEEP_START_DAY = 5
+ADDITIONAL_SHEEP_START_DAY = 11
+INITIAL_SHEEP_TILE_REPLANT_CUTOFF_DAY = 4
+ADDITIONAL_SHEEP_TILE_REPLANT_CUTOFF_DAY = 10
 
 ADAPTIVE_ANIMAL_TILES = (
     (6, 4),
@@ -1327,32 +1324,6 @@ def agent(obs):
             product,
             hand_inventory[product],
         ]
-
-    # Cash out the first reserved Sheep-tile Carrots as soon as they are
-    # harvested, so their proceeds can fund both opening Sheep on day 3.
-    def choose_initial_sheep_cashout_action(
-            hand_index,
-            hand_position,
-            hand_inventory,
-    ):
-        carrot_quantity = hand_inventory.get("CARROT", 0)
-
-        if (
-            obs["day"] != INITIAL_SHEEP_START_DAY
-            or hand_index != INITIAL_SHEEP_CASHOUT_HAND_INDEX
-            or carrot_quantity == 0
-            or animals_owned["SHEEP"] >= len(INITIAL_SHEEP_TILES)
-        ):
-            return None
-
-        if hand_position not in SHED_ACCESS_TILES:
-            shed_target = nearest_position(
-                hand_position,
-                SHED_ACCESS_TILES,
-            )
-            return move_to(hand_position, shed_target)
-
-        return ["PLACE", "CARROT", carrot_quantity]
     
     
     
@@ -1420,16 +1391,6 @@ def agent(obs):
         )
         for animal in ANIMAL_PRODUCTS
     }
-
-    initial_sheep_purchase_pending = (
-        animals_owned["SHEEP"] < len(INITIAL_SHEEP_TILES)
-    )
-    initial_sheep_cash_reserve_active = (
-        INITIAL_SHEEP_CASH_RESERVE_START_DAY
-        <= obs["day"]
-        <= INITIAL_SHEEP_START_DAY
-        and initial_sheep_purchase_pending
-    )
 
     wheat_in_farmer_inventory = farmer_inventory.get("WHEAT", 0)
     animal_products_in_farmer_inventory = {
@@ -1578,20 +1539,7 @@ def agent(obs):
         wheat_price         = obs["market"]["prices"]["WHEAT"]
         wheat_purchase_cost = wheat_to_buy * wheat_price
 
-        cash_reserve_after_wheat_purchase = (
-            INITIAL_SHEEP_CASH_RESERVE
-            if (
-                initial_sheep_cash_reserve_active
-                and obs["day"] == INITIAL_SHEEP_START_DAY
-            )
-            else 0
-        )
-
-        if (
-            wheat_to_buy > 0
-            and money_available - wheat_purchase_cost
-                >= cash_reserve_after_wheat_purchase
-        ):
+        if (wheat_to_buy > 0 and money_available >= wheat_purchase_cost):
             market_orders.append(
                 ["BUY_PRODUCT", "WHEAT", wheat_to_buy]
             )
@@ -2035,13 +1983,6 @@ def agent(obs):
         # Choose action according to priority: liquidate -> sheep care for the designated HAND -> other actions
         hand_action = choose_hand_liquidation_action(tuple(hand_position), hand_inventory)
 
-        if hand_action is None:
-            hand_action = choose_initial_sheep_cashout_action(
-                hand_index,
-                tuple(hand_position),
-                hand_inventory,
-            )
-
         if (hand_action is None and (hand_index == SHEEP_HAND_INDEX)):
             hand_action = choose_sheep_hand_action(tuple(hand_position), hand_inventory)
 
@@ -2136,18 +2077,9 @@ def agent(obs):
 
         total_seed_cost = (quantity_to_buy * seed_cost)
         
-        cash_reserve_after_seed_purchase = (
-            INITIAL_SHEEP_CASH_RESERVE
-            if initial_sheep_cash_reserve_active
-            else 0
-        )
-
-        if (
-            quantity_to_buy > 0
-            and money_available - total_seed_cost
-                >= cash_reserve_after_seed_purchase
-            and obs["day"] <= last_planting_day
-        ):
+        if  (quantity_to_buy > 0 
+                and money_available >= total_seed_cost
+                and obs["day"] <= last_planting_day):
             market_orders.append(["BUY_SEED", crop, quantity_to_buy])          
             money_available -= total_seed_cost
     

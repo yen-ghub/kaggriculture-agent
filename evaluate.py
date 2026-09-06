@@ -1,11 +1,5 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
-# from baselines.expanded_wheat_v1 import agent as expanded_wheat_agent
-# from baselines.strawberry_v1 import agent as strawberry_agent
-# from baselines.full_quadrant_strawberry_v1 import agent as full_quad_strawberry_agent
-# from baselines.first_cow_v1 import agent as first_cow_agent
-# from baselines.two_cows_v1 import agent as two_cows_agent
-# from baselines.four_cows_v1 import agent as four_cows_agent
 # from baselines.second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.low_strawberry_test import agent as low_strawberry_agent
 # from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
@@ -26,17 +20,12 @@ from baselines.adaptive_sw_livestock import agent as adaptive_sw_livestock_agent
 from baselines.fertilizer_collection_v1 import agent as fertilizer_collection_agent
 from baselines.melon_single_wave_v1 import agent as melon_single_wave_agent
 from baselines.farmer_fertilizer_v1 import agent as farmer_fertilizer_agent
+from baselines.day3_sheep_v1 import agent as day3_sheep_agent
 
 # Define variables
 SEEDS = list(range(1,21))
 # SEEDS = [6, 7, 9, 17]
 OPPONENTS = {
-    # "expanded_wheat_v1": expanded_wheat_agent,
-    # "strawberry_agent_v1": strawberry_agent,
-    # "full_quad_strawberry_agent_v1": full_quad_strawberry_agent,
-    # "first_cow_v1": first_cow_agent,
-    # "two_cows_agent": two_cows_agent,
-    # "four_cows_agent":four_cows_agent,
     # "second_quadrant_agent":second_quadrant_agent,
     # "low_strawberry_agent":low_strawberry_agent,
     # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
@@ -55,7 +44,8 @@ OPPONENTS = {
     # "adaptive_sw_livestock_v1": adaptive_sw_livestock_agent,
     # "fertilizer_collection_v1": fertilizer_collection_agent,
     # "melon_single_wave_v1": melon_single_wave_agent,
-    "farmer_fertilizer_v1": farmer_fertilizer_agent,   
+    # "farmer_fertilizer_v1": farmer_fertilizer_agent,
+    "day3_sheep_v1": day3_sheep_agent,
 }    
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL", "FERTILIZER")

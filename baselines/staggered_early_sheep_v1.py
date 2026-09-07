@@ -240,7 +240,6 @@ SW_WOOL_DEMAND_SHOP_THRESHOLD = 1
 SW_ALL_SHEEP_SHOP_THRESHOLD = 2
 SW_ALL_COW_SHOP_THRESHOLD = 3
 SW_LIVESTOCK_MIN_MILK_PRICE = 150
-SW_LIVESTOCK_PRODUCT_RETURN_THRESHOLD = 8
 
 # Every position permanently reserved for livestock.
 ANIMAL_TILES = COW_TILES + SHEEP_TILES
@@ -611,10 +610,6 @@ def agent(obs):
         and not sw_livestock_selected
         and obs["day"] >= ADAPTIVE_ANIMAL_START_DAY
     )
-    sw_livestock_tiles_reserved = (sw_livestock_selected
-                                    or (THIRD_QUADRANT_NAME in farm["unlocked_quadrants"]
-                                        and obs["day"] < SW_LIVESTOCK_START_DAY)
-    )
 
     if adaptive_animal_phase_active:
         active_animal_plan.update({
@@ -956,19 +951,13 @@ def agent(obs):
             tile = tile_at(farm, position)
 
             if isinstance(tile, dict) and tile.get("kind") == "WEED":
-                    animal_tile_is_reserved = (
-                        (
-                            adaptive_animal_tiles_reserved
-                            and position in ADAPTIVE_ANIMAL_TILES
-                        )
-                        or (
-                            sw_livestock_tiles_reserved
-                            and position in SW_LIVESTOCK_TILES
-                        )
+                    adaptive_tile_is_reserved = (
+                        adaptive_animal_tiles_reserved
+                        and position in ADAPTIVE_ANIMAL_TILES
                     )
             
                     can_dig = (
-                        not animal_tile_is_reserved
+                        not adaptive_tile_is_reserved
                         and crop_to_plant is not None
                         and obs["day"] <= last_planting_day
                     )
@@ -1020,19 +1009,13 @@ def agent(obs):
                 ):
                     continue
 
-                animal_tile_is_reserved = (
-                    (
-                        adaptive_animal_tiles_reserved
-                        and position in ADAPTIVE_ANIMAL_TILES
-                    )
-                    or (
-                        sw_livestock_tiles_reserved
-                        and position in SW_LIVESTOCK_TILES
-                    )
+                adaptive_tile_is_reserved = (
+                    adaptive_animal_tiles_reserved
+                    and position in ADAPTIVE_ANIMAL_TILES
                 )
                 
                 can_plant = (
-                    not animal_tile_is_reserved
+                    not adaptive_tile_is_reserved
                     and position_crop_to_plant is not None
                     and available_seed_counts[crop_to_plant] > 0
                     and obs["hour"] < LAST_HOUR_TODAY
@@ -1237,30 +1220,7 @@ def agent(obs):
         sw_setup_complete = (
             len(sw_animal_positions) == len(SW_LIVESTOCK_TILES)
         )
-        
-        # This block is to protect shed overload
-        carried_products = [
-            product
-            for product in ANIMAL_PRODUCT_ORDER
-            if hand_inventory.get(product, 0) > 0
-        ]
-        carried_product_count = sum(
-            hand_inventory[product]
-            for product in carried_products
-        )
 
-        if (carried_products
-                and carried_product_count >= SW_LIVESTOCK_PRODUCT_RETURN_THRESHOLD):
-            if hand_position not in SHED_ACCESS_TILES:
-                shed_target = nearest_position(
-                    hand_position,
-                    SHED_ACCESS_TILES,
-                )
-                return move_to(hand_position, shed_target)
-
-            product = carried_products[0]
-            return ["PLACE",  product, hand_inventory[product]]
-            
         if sw_setup_complete:
             fertilizer_targets = [
                 position

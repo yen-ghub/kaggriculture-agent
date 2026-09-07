@@ -125,6 +125,7 @@ All evaluations use both player positions.
 | SW Strawberry allocation v1 | Strawberry expansion v1 | 5 | 100.0% | 75500.5 | 339.6 | 160.0 wheat, 154.2 carrot, 78.0 melon, 171.4 strawberry, 2.4 tomato, 132.6 milk, 100.6 wool | Regression test: 10W, 0L; average opponent 72374.5; average lead 3126.0; zero leftovers and errors |
 | SW Strawberry allocation v1 | Hand weed clearing v1 | 5 | 100.0% | 74615.6 | 338.6 | 170.0 wheat, 154.8 carrot, 79.0 melon, 167.8 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Regression test: 10W, 0L; average opponent 73474.4; average lead 1141.2; zero leftovers and errors |
 | Adaptive SW livestock v1 | SW livestock v1 | 20 | 75.0% | 81928.0 | 343.3 | 184.5 wheat, 117.2 carrot, 79.2 melon, 178.0 strawberry, 1.4 tomato, 142.1 milk, 113.4 wool | Focused validation: 25W, 5L, 10T; average opponent 80819.1; average lead 1108.9; 1.6 wheat leftover and zero errors |
+| SW livestock reservation and protected products | Staggered early Sheep v1 | 20 | 62.5% | 87433.6 | 354.2 | 292.8 wheat, 57.9 carrot, 72.0 melon, 175.5 strawberry, 3.2 tomato, 149.4 milk, 121.4 wool, 94.5 fertilizer | Focused validation: 25W, 15L; average opponent 86846.4; average lead 587.2; 1.8 wheat leftover and zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -667,3 +668,35 @@ position zero by 56 coins; the reverse position won by 88, leaving a positive
 paired margin. All 20 seeds had a positive average margin across their two
 positions, providing strong support for the staggered schedule as the new
 baseline.
+
+SW livestock reservation prevents the four conditional livestock tiles at
+`(4, 5)`, `(3, 5)`, `(3, 6)`, and `(4, 6)` from being planted between the
+southwest unlock and the day-12 livestock decision. Selected branches can now
+build their pastures without destroying an opening Strawberry wave. When the
+branch is not selected, the reservation expires and normal crop planting
+resumes on day 12.
+
+The first 20-seed comparison against frozen Staggered early Sheep v1 produced
+22 wins and 18 losses, averaged 87301.4 coins against 87016.7, and led by
+284.7. Eight of the nine seeds that activated southwest livestock improved,
+but seed 6 lost by 1096 in both positions. Its four Cows were established
+earlier and received the same care and harvest actions as the baseline, ruling
+out lost production.
+
+The seed-6 trace instead exposed the 100-item shed-capacity limit during the
+automatic end-of-day inventory deposit. On day 20, earlier-index crop hands
+deposited eight additional Wheat before hand index nine was processed. Only 10
+of that hand's 18 Milk then fit in the shed, so eight Milk were discarded while
+Wheat sold for 38 and Milk sold for 247 on the following turn. A smaller repeat
+later discarded one more Milk. The southwest livestock hand now returns animal
+products once it carries at least eight units, before taking optional
+Fertilizer work. This preserves batching while protecting higher-value output
+from overnight overflow.
+
+With protected product returns, seed 6 sold 192 Milk and changed from a
+1096-point loss to a 2164-point win. The repeated 20-seed evaluation improved
+to 25 wins and 15 losses, a 62.5% match score. The candidate averaged 87433.6
+coins against 86846.4, an average lead of 587.2, with zero errors. Fertilizer
+sales declined slightly from 96.2 to 94.5 as the hand spent time returning to
+the shed, but the higher-priority livestock sales more than compensated. Every
+tracked product finished with zero leftovers except for an average 1.8 Wheat.

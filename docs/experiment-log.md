@@ -126,6 +126,7 @@ All evaluations use both player positions.
 | SW Strawberry allocation v1 | Hand weed clearing v1 | 5 | 100.0% | 74615.6 | 338.6 | 170.0 wheat, 154.8 carrot, 79.0 melon, 167.8 strawberry, 2.4 tomato, 127.2 milk, 106.0 wool | Regression test: 10W, 0L; average opponent 73474.4; average lead 1141.2; zero leftovers and errors |
 | Adaptive SW livestock v1 | SW livestock v1 | 20 | 75.0% | 81928.0 | 343.3 | 184.5 wheat, 117.2 carrot, 79.2 melon, 178.0 strawberry, 1.4 tomato, 142.1 milk, 113.4 wool | Focused validation: 25W, 5L, 10T; average opponent 80819.1; average lead 1108.9; 1.6 wheat leftover and zero errors |
 | SW livestock reservation and protected products | Staggered early Sheep v1 | 20 | 62.5% | 87433.6 | 354.2 | 292.8 wheat, 57.9 carrot, 72.0 melon, 175.5 strawberry, 3.2 tomato, 149.4 milk, 121.4 wool, 94.5 fertilizer | Focused validation: 25W, 15L; average opponent 86846.4; average lead 587.2; 1.8 wheat leftover and zero errors |
+| Yarn-first SW Sheep v1 | SW livestock reservation v1 | 5 targeted | 90.0% | 93158.0 | — | — | Conditional A/B: 8W, 0L, 2T; average opponent 87955.6; average lead 5202.4; zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -700,3 +701,22 @@ coins against 86846.4, an average lead of 587.2, with zero errors. Fertilizer
 sales declined slightly from 96.2 to 94.5 as the hand spent time returning to
 the shed, but the higher-priority livestock sales more than compensated. Every
 tracked product finished with zero leftovers except for an average 1.8 Wheat.
+
+Yarn-first SW Sheep v1 adds a targeted override to the southwest livestock
+branch. When the first of the initial four shops is a Yarn Store and fewer
+than three of those shops demand Milk, all four southwest livestock tiles use
+Sheep. The established two-Yarn and three-Milk rules remain in place, and the
+new Yarn-first rule takes priority over the all-Cow branch.
+
+The conditional A/B used the frozen SW livestock reservation v1 baseline.
+Seeds 25 and 28 gained 5522 and 232 coins respectively in both player
+positions. Control seed 9 exchanged a 55-coin win and loss between positions,
+while seed 17 tied in both, giving a net-zero control result. Follow-up tests
+on seeds 38, 42, and 55 produced four wins and two ties: seed 38 was unchanged,
+seed 42 gained 15918 in both positions, and seed 55 gained 4362 and 4318.
+
+Across the five targeted seeds, the candidate produced eight wins, no losses,
+and two ties for a 90.0% match score with zero errors. It averaged 93158.0
+coins against 87955.6, an average improvement of 5202.4. Four of the five
+targeted seeds improved and the fifth tied, supporting the Yarn-first
+four-Sheep override as the next frozen baseline.

@@ -23,10 +23,12 @@ from baselines.farmer_fertilizer_v1 import agent as farmer_fertilizer_agent
 from baselines.day3_sheep_v1 import agent as day3_sheep_agent
 from baselines.day8_ne_strawberry_v1 import agent as day8_ne_strawberry_agent
 from baselines.staggered_early_sheep_v1 import agent as staggered_early_sheep_agent
+from baselines.sw_livestock_reservation_v1 import agent as sw_livestock_reservation_agent
+from baselines.yarn_first_sw_sheep_v1 import agent as yarn_first_sw_sheep_agent
 
 # Define variables
-SEEDS = list(range(1,21))
-# SEEDS = [6, 7, 9, 17]
+# SEEDS = list(range(1,21))
+SEEDS = [38, 42, 55]
 OPPONENTS = {
     # "second_quadrant_agent":second_quadrant_agent,
     # "low_strawberry_agent":low_strawberry_agent,
@@ -49,7 +51,9 @@ OPPONENTS = {
     # "farmer_fertilizer_v1": farmer_fertilizer_agent,
     # "day3_sheep_v1": day3_sheep_agent,
     # "day8_ne_strawberry_v1": day8_ne_strawberry_agent,
-    "staggered_early_sheep_v1": staggered_early_sheep_agent,
+    # "staggered_early_sheep_v1": staggered_early_sheep_agent,
+    # "sw_livestock_reservation_v1": sw_livestock_reservation_agent,
+    "yarn_first_sw_sheep_v1": yarn_first_sw_sheep_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL", "FERTILIZER")

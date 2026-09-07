@@ -642,3 +642,28 @@ Tomatoes, 147.9 Milk, 119.6 Wool, and 97.7 Fertilizer. Every tracked product
 finished with zero leftovers except for an average 1.8 Wheat. The consistent
 40--0 result supports the earlier Sheep timing as a new baseline despite the
 temporary opening cash constraint.
+
+Staggered early Sheep advances one of the two initial Sheep to day 0 while
+retaining the second reserved tile for its opening Carrot harvest. The early
+tile `(3, 3)` is converted immediately, while `(3, 4)` remains a crop tile
+until day 3. A focused trace confirmed that the first Sheep was purchased with
+the two opening Cows and placed on day 0, hour 13. Both Cows and the Sheep were
+fed and cared for before the end of day 0. The second Sheep was purchased on
+day 4, hour 2 and placed on day 4, hour 6.
+
+Buying both Sheep on day 0 was rejected. In a focused 20-seed comparison
+against frozen Day 8 NE Strawberry v1, that version produced 19 wins and 21
+losses, averaged 85331.1 coins against 85449.0, and trailed by 117.9 on
+average. The opening livestock expense removed too much liquidity and crop
+capacity despite increasing early Wool production.
+
+The staggered version won 39 of 40 mirrored matches against the same frozen
+baseline, with zero errors. It averaged 86660.7 coins against 85869.9, an
+average lead of 790.8, and averaged 354.6 harvests. It sold 307.6 Wheat, 63.0
+Carrots, 72.0 Melons, 170.4 Strawberries, 2.9 Tomatoes, 148.3 Milk, 123.7 Wool,
+and 78.2 Fertilizer. All tracked products finished with zero leftovers except
+for an average 1.4 Wheat. The only individual loss was seed 3 from player
+position zero by 56 coins; the reverse position won by 88, leaving a positive
+paired margin. All 20 seeds had a positive average margin across their two
+positions, providing strong support for the staggered schedule as the new
+baseline.

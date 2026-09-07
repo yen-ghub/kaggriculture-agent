@@ -176,9 +176,15 @@ COW_TILES = (
 )
 
 
-INITIAL_SHEEP_TILES = (
+EARLY_SHEEP_TILES = (
     (3, 3),
+)
+DELAYED_SHEEP_TILES = (
     (3, 4),
+)
+INITIAL_SHEEP_TILES = (
+    EARLY_SHEEP_TILES
+    + DELAYED_SHEEP_TILES
 )
 ADDITIONAL_SHEEP_TILES = (
     (2, 3),
@@ -190,13 +196,16 @@ SHEEP_TILES = (
     + ADDITIONAL_SHEEP_TILES
 )
 
-INITIAL_SHEEP_START_DAY     = 3
+EARLY_SHEEP_START_DAY       = 0
+DELAYED_SHEEP_START_DAY     = 3
 ADDITIONAL_SHEEP_START_DAY  = 11
-INITIAL_SHEEP_TILE_REPLANT_CUTOFF_DAY       = 3
+EARLY_SHEEP_TILE_REPLANT_CUTOFF_DAY         = 0
+DELAYED_SHEEP_TILE_REPLANT_CUTOFF_DAY       = 3
 ADDITIONAL_SHEEP_TILE_REPLANT_CUTOFF_DAY    = 10
-INITIAL_SHEEP_CASHOUT_HAND_INDEX = 0                # Early cashout to buy day 3 sheep
+INITIAL_SHEEP_CASHOUT_HAND_INDEX    = 0                # Early cashout to buy the delayed sheep
 INITIAL_SHEEP_CASH_RESERVE_START_DAY = 1
-INITIAL_SHEEP_CASH_RESERVE = 1000
+INITIAL_SHEEP_CASH_RESERVE_END_DAY  = 3
+INITIAL_SHEEP_CASH_RESERVE          = 1000
 
 ADAPTIVE_ANIMAL_TILES = (
     (6, 4),
@@ -514,7 +523,8 @@ def agent(obs):
         )
 
 
-    initial_sheep_phase_active      = sheep_group_is_active(INITIAL_SHEEP_TILES, INITIAL_SHEEP_START_DAY)
+    early_sheep_phase_active        = sheep_group_is_active(EARLY_SHEEP_TILES, EARLY_SHEEP_START_DAY)
+    delayed_sheep_phase_active      = sheep_group_is_active(DELAYED_SHEEP_TILES, DELAYED_SHEEP_START_DAY)
     additional_sheep_phase_active   = sheep_group_is_active(ADDITIONAL_SHEEP_TILES, ADDITIONAL_SHEEP_START_DAY)
 
     # Initial COWs are active from the opening.
@@ -524,10 +534,16 @@ def agent(obs):
     }
 
     # SHEEP activate only after their former crop tiles are available.
-    if initial_sheep_phase_active:
+    if early_sheep_phase_active:
         active_animal_plan.update({
             position: "SHEEP"
-            for position in INITIAL_SHEEP_TILES
+            for position in EARLY_SHEEP_TILES
+        })
+
+    if delayed_sheep_phase_active:
+        active_animal_plan.update({
+            position: "SHEEP"
+            for position in DELAYED_SHEEP_TILES
         })
 
     if additional_sheep_phase_active:
@@ -957,17 +973,29 @@ def agent(obs):
                 position_crop_to_plant = crop_to_plant
                 position_last_planting_day = last_planting_day
 
-                if position in INITIAL_SHEEP_TILES:
+                if position in EARLY_SHEEP_TILES:
                     position_crop_to_plant = "CARROT"
                     position_last_planting_day = (
-                        INITIAL_SHEEP_TILE_REPLANT_CUTOFF_DAY
+                        EARLY_SHEEP_TILE_REPLANT_CUTOFF_DAY
+                    )
+                elif position in DELAYED_SHEEP_TILES:
+                    position_crop_to_plant = "CARROT"
+                    position_last_planting_day = (
+                        DELAYED_SHEEP_TILE_REPLANT_CUTOFF_DAY
                     )
 
                 initial_sheep_tile_is_reserved = (
-                    position in INITIAL_SHEEP_TILES
+                    position in EARLY_SHEEP_TILES
                     and obs["day"]
-                        >= INITIAL_SHEEP_TILE_REPLANT_CUTOFF_DAY
+                        >= EARLY_SHEEP_TILE_REPLANT_CUTOFF_DAY
                 )
+
+                if (
+                    position in DELAYED_SHEEP_TILES
+                    and obs["day"]
+                        >= DELAYED_SHEEP_TILE_REPLANT_CUTOFF_DAY
+                ):
+                    initial_sheep_tile_is_reserved = True
 
                 additional_sheep_tile_is_reserved = (
                     position in ADDITIONAL_SHEEP_TILES
@@ -1353,7 +1381,7 @@ def agent(obs):
         carrot_quantity = hand_inventory.get("CARROT", 0)
 
         if (
-            obs["day"] != INITIAL_SHEEP_START_DAY
+            obs["day"] != DELAYED_SHEEP_START_DAY
             or hand_index != INITIAL_SHEEP_CASHOUT_HAND_INDEX
             or carrot_quantity == 0
             or animals_owned["SHEEP"] >= len(INITIAL_SHEEP_TILES)
@@ -1442,8 +1470,7 @@ def agent(obs):
     initial_sheep_cash_reserve_active = (
         INITIAL_SHEEP_CASH_RESERVE_START_DAY
         <= obs["day"]
-        <= INITIAL_SHEEP_START_DAY
-        and initial_sheep_purchase_pending
+        <= INITIAL_SHEEP_CASH_RESERVE_END_DAY
     )
 
     wheat_in_farmer_inventory = farmer_inventory.get("WHEAT", 0)
@@ -1597,7 +1624,7 @@ def agent(obs):
             INITIAL_SHEEP_CASH_RESERVE
             if (
                 initial_sheep_cash_reserve_active
-                and obs["day"] == INITIAL_SHEEP_START_DAY
+                and obs["day"] == DELAYED_SHEEP_START_DAY
             )
             else 0
         )

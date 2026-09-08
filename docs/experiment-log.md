@@ -127,6 +127,7 @@ All evaluations use both player positions.
 | Adaptive SW livestock v1 | SW livestock v1 | 20 | 75.0% | 81928.0 | 343.3 | 184.5 wheat, 117.2 carrot, 79.2 melon, 178.0 strawberry, 1.4 tomato, 142.1 milk, 113.4 wool | Focused validation: 25W, 5L, 10T; average opponent 80819.1; average lead 1108.9; 1.6 wheat leftover and zero errors |
 | SW livestock reservation and protected products | Staggered early Sheep v1 | 20 | 62.5% | 87433.6 | 354.2 | 292.8 wheat, 57.9 carrot, 72.0 melon, 175.5 strawberry, 3.2 tomato, 149.4 milk, 121.4 wool, 94.5 fertilizer | Focused validation: 25W, 15L; average opponent 86846.4; average lead 587.2; 1.8 wheat leftover and zero errors |
 | Yarn-first SW Sheep v1 | SW livestock reservation v1 | 5 targeted | 90.0% | 93158.0 | — | — | Conditional A/B: 8W, 0L, 2T; average opponent 87955.6; average lead 5202.4; zero errors |
+| Global idle-hand Fertilizer collection | Yarn-first SW Sheep v1 | 20 | 100.0% | 96569.0 | 356.1 | 297.4 wheat, 57.6 carrot, 72.0 melon, 175.4 strawberry, 2.4 tomato, 149.4 milk, 123.2 wool, 211.1 fertilizer | Focused validation: 40W, 0L; average opponent 88595.3; average lead 7973.7; 2.2 wheat leftover and zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -720,3 +721,27 @@ and two ties for a 90.0% match score with zero errors. It averaged 93158.0
 coins against 87955.6, an average improvement of 5202.4. Four of the five
 targeted seeds improved and the fifth tied, supporting the Yarn-first
 four-Sheep override as the next frozen baseline.
+
+Global idle-hand Fertilizer collection extends the optional collection task
+to every hand-managed livestock group. After normal crop and livestock work
+has been assigned, hands whose action is still `PASS` are matched greedily to
+the nearest available Fertilizer. Each animal tile is assigned to at most one
+hand, the farmer's selected target is reserved, and the southwest livestock
+tiles remain under their dedicated hand while that branch is active. This
+keeps planting, watering, harvesting, feeding, care, product returns, and
+endgame liquidation ahead of Fertilizer collection.
+
+Traces on seeds 1, 2, 3, and 19 confirmed successful hand collection in both
+southwest-livestock and non-southwest branches. Compared with the frozen
+baseline, Fertilizer sales increased by 85, 89, 204, and 169 respectively,
+while final scores improved by 16491, 35105, 17809, and 6916. The global
+target allocation prevented duplicate trips between hands and the farmer.
+
+The focused 20-seed comparison against frozen Yarn-first SW Sheep v1 won all
+40 mirrored matches with zero errors. The candidate averaged 96569.0 coins
+against 88595.3, an average lead of 7973.7, and averaged 356.1 harvests. It
+sold 211.1 Fertilizer per match and finished with none left over. Crop and
+livestock output remained healthy, including 297.4 Wheat, 175.4 Strawberries,
+149.4 Milk, and 123.2 Wool sold. Every tracked product finished with zero
+leftovers except for an average 2.2 Wheat. The consistent 40--0 result supports
+global idle-hand collection as the next baseline.

@@ -27,8 +27,8 @@ from baselines.sw_livestock_reservation_v1 import agent as sw_livestock_reservat
 from baselines.yarn_first_sw_sheep_v1 import agent as yarn_first_sw_sheep_agent
 
 # Define variables
-# SEEDS = list(range(1,21))
-SEEDS = [38, 42, 55]
+SEEDS = list(range(1,21))
+# SEEDS = [38, 42, 55]
 OPPONENTS = {
     # "second_quadrant_agent":second_quadrant_agent,
     # "low_strawberry_agent":low_strawberry_agent,

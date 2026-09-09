@@ -128,6 +128,7 @@ All evaluations use both player positions.
 | SW livestock reservation and protected products | Staggered early Sheep v1 | 20 | 62.5% | 87433.6 | 354.2 | 292.8 wheat, 57.9 carrot, 72.0 melon, 175.5 strawberry, 3.2 tomato, 149.4 milk, 121.4 wool, 94.5 fertilizer | Focused validation: 25W, 15L; average opponent 86846.4; average lead 587.2; 1.8 wheat leftover and zero errors |
 | Yarn-first SW Sheep v1 | SW livestock reservation v1 | 5 targeted | 90.0% | 93158.0 | — | — | Conditional A/B: 8W, 0L, 2T; average opponent 87955.6; average lead 5202.4; zero errors |
 | Global idle-hand Fertilizer collection | Yarn-first SW Sheep v1 | 20 | 100.0% | 96569.0 | 356.1 | 297.4 wheat, 57.6 carrot, 72.0 melon, 175.4 strawberry, 2.4 tomato, 149.4 milk, 123.2 wool, 211.1 fertilizer | Focused validation: 40W, 0L; average opponent 88595.3; average lead 7973.7; 2.2 wheat leftover and zero errors |
+| Selective premium-crop Fertilizer use | Fix hand Fertilizer v1 | 20 | 95.0% | 95821.2 | 356.4 | 293.7 wheat, 60.2 carrot, 72.0 melon, 197.2 strawberry, 2.5 tomato, 153.0 milk, 123.2 wool, 200.7 fertilizer | Focused validation: 38W, 2L; average opponent 92271.1; average lead 3550.1; only seed 11 lost, by 117 in both positions; 2.7 wheat leftover and zero errors |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -745,3 +746,26 @@ livestock output remained healthy, including 297.4 Wheat, 175.4 Strawberries,
 149.4 Milk, and 123.2 Wool sold. Every tracked product finished with zero
 leftovers except for an average 2.2 Wheat. The consistent 40--0 result supports
 global idle-hand collection as the next baseline.
+
+Selective premium-crop Fertilizer use spends only Fertilizer already carried
+by an otherwise-idle hand. Eligible targets are watered, unfertilized Tomato
+at age 7 and Strawberry at ages 9 or 13, reflecting that production occurs
+during the following nightly transition. A target is accepted only when its
+forecast incremental crop value is at least 120% of the current Fertilizer
+sale value; normal crop and livestock work remains higher priority.
+
+A seed-1 trace verified that all 11 submitted `FERTILIZE` actions were legal.
+In both player positions, the candidate scored 117138 against 112295 for
+frozen Fix hand Fertilizer v1, a gain of 4843.
+
+The focused 20-seed evaluation against Fix hand Fertilizer v1 finished with
+38 wins and 2 losses and zero errors. Average money was 95821.2 against
+92271.1, an average lead of 3550.1. The candidate sold 197.2 Strawberries and
+200.7 Fertilizer on average while leaving no Fertilizer unsold.
+
+Both losses occurred on seed 11 and were only 117 points in each position. On
+that seed, the candidate sold 13 fewer Fertilizer and 2 fewer Wheat in exchange
+for 18 additional Strawberries; those later Strawberries reached a weaker
+market than the action-time value estimate anticipated. The narrow exception
+was accepted without tuning to one seed, and the broader multi-opponent
+regression was intentionally skipped for now.

@@ -769,3 +769,22 @@ for 18 additional Strawberries; those later Strawberries reached a weaker
 market than the action-time value estimate anticipated. The narrow exception
 was accepted without tuning to one seed, and the broader multi-opponent
 regression was intentionally skipped for now.
+
+Staggered additional Sheep brings one of the two extra northern Sheep forward
+to day 4 while leaving the other on its previous day-11 schedule. Tile `(2, 4)`
+is reserved after its opening staple crop and becomes the day-4 Sheep tile;
+tile `(2, 3)` remains available for crops until it is reserved for the day-11
+Sheep. This was tested after the rejected attempt to establish both additional
+Sheep on day 4, which disrupted crop production and finished only 6--34
+against frozen Fertilize crops v1, averaging 85952.4 coins against 95800.2.
+
+The focused 20-seed evaluation of the staggered schedule against Fertilize
+crops v1 won 38 of 40 mirrored matches with zero errors. It averaged 95888.7
+coins against 93621.2, an average lead of 2267.5, and averaged 356.2 harvests.
+Average sales were 298.6 Wheat, 57.0 Carrots, 72.0 Melons, 198.1 Strawberries,
+2.7 Tomatoes, 145.7 Milk, 134.8 Wool, and 200.3 Fertilizer. Every tracked
+product finished with zero leftovers except for an average 2.4 Wheat. Both
+losses were on seed 13 and were only 93 coins in each player position. The
+result supports staggering the purchases: it captures additional Wool without
+the severe crop and liquidity cost of buying both Sheep on day 4. A broader
+multi-opponent regression was intentionally skipped for now.

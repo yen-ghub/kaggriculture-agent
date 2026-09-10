@@ -813,3 +813,31 @@ because subsequent construction, hiring, seed, and feed costs consumed it.
 The first Melon liquidation therefore acts as the practical funding and action
 capacity threshold for Geese. The day-11 version was retained and frozen as
 `baselines/day11_goose_v1.py`.
+
+Permanent southwest livestock allocation fixes a branch-switching failure
+found in replay `107430458.json`. The four-tile block was originally completed
+on day 13 as Cow, Sheep, Sheep, Cow. Later shop unlocks raised observed Milk
+demand to the all-Cow threshold, causing the agent to buy two Cows on day 18.
+When the Sheep disappeared at the day-20 transition, those Cows replaced them.
+This incurred unnecessary purchases and silently changed an established mixed
+livestock strategy.
+
+Once all four southwest pastures exist, the agent now locks their established
+allocation. It first identifies a fully occupied block directly; if an animal
+has escaped and left an empty pasture, it reconstructs the original decision
+from the earliest shop prefix that could have activated the branch. Later shop
+unlocks can therefore no longer convert mixed, all-Sheep, or all-Cow blocks.
+Replay-state verification confirmed that no replacement Cows are purchased on
+day 18 and escaped Sheep are replaced with Sheep instead.
+
+The 20-seed mirrored evaluation against Reshuffle Goose v1 finished with 30
+wins, 4 losses, and 6 ties for an 82.5% match score with zero errors. The
+candidate averaged 94822.3 coins against 93006.6, an average lead of 1815.7,
+and averaged 370.7 harvests. Average sales included 267.5 Wheat, 197.6
+Strawberries, 46.5 Eggs, 151.8 Milk, 130.8 Wool, and 213.1 Fertilizer. Every
+tracked product finished with zero leftovers except for an average 2.8 Wheat.
+Only seeds 11 and 15 lost, in both player positions.
+
+Relative to the preceding day-11 Goose result against the same baseline, match
+score improved from 70.0% to 82.5%, and average lead increased from 521.7 to
+1815.7. This supports retaining the permanent four-animal allocation.

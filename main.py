@@ -499,17 +499,77 @@ def agent(obs):
                 existing_adaptive_mammals.append(tile["animal"])
 
     sw_livestock_setup_started = False
-    for position in SW_LIVESTOCK_OUTER_TILES:
+    sw_pasture_count = 0
+    existing_sw_animals_by_position = {}
+
+    for position in SW_LIVESTOCK_TILES:
         x, y = position
         tile = farm["tiles"][y][x]
         if (
             isinstance(tile, dict)
             and tile.get("kind") == "PASTURE"
         ):
-            sw_livestock_setup_started = True
-            break
+            sw_pasture_count += 1
+            if position in SW_LIVESTOCK_OUTER_TILES:
+                sw_livestock_setup_started = True
+            if tile.get("animal") in ("COW", "SHEEP"):
+                existing_sw_animals_by_position[position] = tile["animal"]
 
-    if first_shop_yarn_sheep_condition:
+    locked_sw_livestock_plan = None
+    if sw_pasture_count == len(SW_LIVESTOCK_TILES):
+        # Once all four SW pastures exist, preserve the established animal
+        # allocation. Later shop unlocks must not turn escaped Sheep into Cows
+        # (or vice versa).
+        if len(existing_sw_animals_by_position) == len(SW_LIVESTOCK_TILES):
+            for candidate_plan in (
+                SW_ALL_SHEEP_PLAN,
+                SW_ALL_COW_PLAN,
+                SW_LIVESTOCK_PLAN,
+            ):
+                if existing_sw_animals_by_position == candidate_plan:
+                    locked_sw_livestock_plan = candidate_plan
+                    break
+
+        if locked_sw_livestock_plan is None:
+            # Empty pastures can remain after an animal escapes. Reconstruct
+            # the plan from the earliest shop prefix that could have activated
+            # the branch, rather than from later shops.
+            for shop_count in range(4, len(unlocked_shops) + 1):
+                shop_prefix = unlocked_shops[:shop_count]
+                prefix_milk_count = sum(
+                    shop in MILK_DEMAND_SHOPS
+                    for shop in shop_prefix
+                )
+                prefix_wool_count = sum(
+                    shop in WOOL_DEMAND_SHOPS
+                    for shop in shop_prefix
+                )
+                prefix_yarn_first = (
+                    shop_prefix[0] == "YARN_STORE"
+                    and sum(
+                        shop in MILK_DEMAND_SHOPS
+                        for shop in shop_prefix[:4]
+                    ) < SW_ALL_COW_SHOP_THRESHOLD
+                )
+
+                if prefix_yarn_first:
+                    locked_sw_livestock_plan = SW_ALL_SHEEP_PLAN
+                elif prefix_milk_count >= SW_ALL_COW_SHOP_THRESHOLD:
+                    locked_sw_livestock_plan = SW_ALL_COW_PLAN
+                elif prefix_wool_count >= SW_ALL_SHEEP_SHOP_THRESHOLD:
+                    locked_sw_livestock_plan = SW_ALL_SHEEP_PLAN
+                elif (
+                    prefix_milk_count >= SW_MILK_DEMAND_SHOP_THRESHOLD
+                    and prefix_wool_count >= SW_WOOL_DEMAND_SHOP_THRESHOLD
+                ):
+                    locked_sw_livestock_plan = SW_LIVESTOCK_PLAN
+
+                if locked_sw_livestock_plan is not None:
+                    break
+
+    if locked_sw_livestock_plan is not None:
+        active_sw_livestock_plan = locked_sw_livestock_plan
+    elif first_shop_yarn_sheep_condition:
         active_sw_livestock_plan = SW_ALL_SHEEP_PLAN
     elif sw_all_cow_condition:
         active_sw_livestock_plan = SW_ALL_COW_PLAN

@@ -242,12 +242,9 @@ SW_ALL_COW_PLAN = {
 
 ADAPTIVE_ANIMAL_START_DAY = 12
 ADAPTIVE_ANIMAL_LAST_START_DAY = 15
-ADAPTIVE_GOOSE_START_DAY = 11
-# ADAPTIVE_GOOSE_CASH_RESERVE = 800
 SW_LIVESTOCK_START_DAY = 12
 SW_LIVESTOCK_LAST_START_DAY = 15
 SW_LIVESTOCK_HAND_INDEX = 9
-ADAPTIVE_MAMMAL_HAND_INDEX = 8
 MILK_DEMAND_SHOP_THRESHOLD = 2
 WOOL_DEMAND_SHOP_THRESHOLD = 1
 SW_MILK_DEMAND_SHOP_THRESHOLD = 1
@@ -432,10 +429,9 @@ def agent(obs):
         for shop in unlocked_shops
     )
 
-    first_two_shops = unlocked_shops[:2]
-    first_two_shops_demand_eggs = any(
-        shop in EGG_DEMAND_SHOPS
-        for shop in first_two_shops
+    first_shop_demands_eggs = (
+        bool(unlocked_shops)
+        and unlocked_shops[0] in EGG_DEMAND_SHOPS
     )
 
     first_four_shops = unlocked_shops[:4]
@@ -476,11 +472,6 @@ def agent(obs):
             elif tile.get("kind") == "COOP":
                 # Keep the Goose branch after setup even if a Goose escapes.
                 existing_adaptive_geese.append("GOOSE")
-
-    adaptive_goose_selected = (
-        bool(existing_adaptive_geese)
-        or first_two_shops_demand_eggs
-    )
 
     existing_adaptive_mammals = []
     adaptive_mammal_setup_started = False
@@ -524,9 +515,9 @@ def agent(obs):
         and obs["market"]["prices"]["MILK"] >= SW_LIVESTOCK_MIN_MILK_PRICE
     )
 
-    # The full four-animal SW branch excludes only the smaller SW mammal pair.
-    # NE Geese are independent and can run alongside either SW plan. The full
-    # branch builds an outer tile first, which permanently marks its selection.
+    # The four-animal SW branch and the smaller Goose/mammal branch are mutually
+    # exclusive. The full branch builds an outer tile first, which acts as its
+    # persistent on-farm marker after setup begins.
     sw_livestock_selected = (
         sw_livestock_setup_started
         or (
@@ -536,6 +527,7 @@ def agent(obs):
                 or sw_all_sheep_condition
                 or sw_mixed_livestock_condition
             )
+            and not adaptive_goose_setup_started
             and not adaptive_mammal_setup_started
             and obs["day"] <= SW_LIVESTOCK_LAST_START_DAY
         )
@@ -550,6 +542,11 @@ def agent(obs):
     else:
         adaptive_mammal_type = None
 
+    adaptive_goose_selected = (
+        bool(existing_adaptive_geese)
+        or first_shop_demands_eggs
+    )
+    
     # Sheep tiles remain crop tiles until their opening crops have been cleared.
     def sheep_group_is_active(positions, start_day):
         target_tiles = [
@@ -667,7 +664,16 @@ def agent(obs):
     adaptive_goose_phase_active = (
         SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
         and adaptive_goose_selected
-        and obs["day"] >= ADAPTIVE_GOOSE_START_DAY
+        and not sw_livestock_selected
+        and base_animal_setup_complete
+        and (
+            adaptive_goose_setup_started
+            or (
+                ADAPTIVE_ANIMAL_START_DAY
+                <= obs["day"]
+                <= ADAPTIVE_ANIMAL_LAST_START_DAY
+            )
+        )
     )
     adaptive_mammal_phase_active = (
         THIRD_QUADRANT_NAME in farm["unlocked_quadrants"]
@@ -686,6 +692,8 @@ def agent(obs):
     adaptive_goose_tiles_reserved = (
         SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
         and adaptive_goose_selected
+        and not sw_livestock_selected
+        and obs["day"] >= ADAPTIVE_ANIMAL_START_DAY
     )
     adaptive_mammal_tiles_reserved = (
         THIRD_QUADRANT_NAME in farm["unlocked_quadrants"]
@@ -723,11 +731,6 @@ def agent(obs):
         active_sw_service_plan = active_sw_livestock_plan
 
     sw_hand_livestock_phase_active = bool(active_sw_service_plan)
-    active_sw_livestock_hand_index = (
-        SW_LIVESTOCK_HAND_INDEX
-        if sw_livestock_phase_active
-        else ADAPTIVE_MAMMAL_HAND_INDEX
-    )
     
     active_animal_tiles = list(active_animal_plan)
     animal_count_target = len(active_animal_tiles)
@@ -751,16 +754,15 @@ def agent(obs):
         current_hand_work_tiles_each[10] = remaining_sw_crop_tiles[6:]
     elif active_adaptive_mammal_plan:
         current_hand_work_tiles_each[8] = [
-            (2, 5), (2, 6),
-            (3, 6), (4, 6),
+            (2, 5), (1, 5), (0, 5),
+            (0, 6), (1, 6), (2, 6),
         ]
         current_hand_work_tiles_each[9] = [
-            (1, 5), (0, 5),
-            (0, 6), (1, 6),
-            (0, 7), (1, 7),
+            (3, 6), (4, 6),
+            (4, 7), (3, 7),
         ]
         current_hand_work_tiles_each[10] = [
-            (2, 7), (3, 7), (4, 7),
+            (2, 7), (1, 7), (0, 7),
             (0, 8), (1, 8), (2, 8),
         ]
 
@@ -1284,7 +1286,7 @@ def agent(obs):
 
         return None
 
-    # The hand owning the compact SW block handles its setup and daily care.
+    # The tenth hand owns setup and daily care for the compact SW livestock loop.
     def choose_sw_livestock_hand_action(hand_position, hand_inventory):
         if not sw_hand_livestock_phase_active:
             return None
@@ -1783,10 +1785,7 @@ def agent(obs):
         quantity_to_buy = max(0, animal_target_counts[animal] - animals_owned[animal])
         purchase_cost = quantity_to_buy * ANIMAL_COSTS[animal]
 
-        if (
-            quantity_to_buy > 0
-            and money_available >= purchase_cost
-        ):
+        if quantity_to_buy > 0 and money_available >= purchase_cost:
             market_orders.append([
                 "BUY_ANIMAL",
                 animal,
@@ -2119,42 +2118,6 @@ def agent(obs):
             if (current_animal.get("yield_units", 0) >= ANIMAL_HARVEST_THRESHOLD):
                 return ["HARVEST"]
 
-        # Finish the compact NE Goose setup before travelling to other
-        # livestock. The block above still services an animal already under
-        # the farmer before continuing setup.
-        adaptive_setup_targets = [
-            position
-            for position in ADAPTIVE_GOOSE_TILES
-            if (
-                position in active_animal_tiles
-                and position not in animal_positions
-            )
-        ]
-
-        goose_setup_feed_shortfall = max(
-            0,
-            len(adaptive_setup_targets) - wheat_in_farmer_inventory,
-        )
-
-        if goose_setup_feed_shortfall > 0:
-            if pos_current not in SHED_ACCESS_TILES:
-                return move_to_shed_access()
-
-            wheat_to_pickup = min(
-                shed_counts["WHEAT"],
-                goose_setup_feed_shortfall,
-            )
-
-            if wheat_to_pickup > 0:
-                return ["PICKUP", "WHEAT", wheat_to_pickup]
-
-        adaptive_setup_action = choose_setup_action(
-            adaptive_setup_targets
-        )
-
-        if adaptive_setup_action is not None:
-            return adaptive_setup_action
-
         # Travel to another animal that requires attention.
         attention_targets = [
             position
@@ -2192,7 +2155,19 @@ def agent(obs):
                 animal_products_in_farmer_inventory[product],
             ]
             
-        return None
+        # base setup → routine animal care → deposit products → NE Goose setup
+        adaptive_setup_targets = [
+            position
+            for position in ADAPTIVE_GOOSE_TILES
+            if (
+                position in active_animal_tiles
+                and position not in animal_positions
+            )
+        ]
+
+        return choose_setup_action(
+            adaptive_setup_targets
+        )
 
 
     animal_action = choose_animal_action()
@@ -2309,7 +2284,7 @@ def agent(obs):
 
         if (
             hand_action is None
-            and hand_index == active_sw_livestock_hand_index
+            and hand_index == SW_LIVESTOCK_HAND_INDEX
         ):
             hand_action = choose_sw_livestock_hand_action(
                 tuple(hand_position),

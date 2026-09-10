@@ -788,3 +788,28 @@ losses were on seed 13 and were only 93 coins in each player position. The
 result supports staggering the purchases: it captures additional Wool without
 the severe crop and liquidity cost of buying both Sheep on day 4. A broader
 multi-opponent regression was intentionally skipped for now.
+
+Day-11 Goose setup allows the two northeast Geese to coexist with the full
+four-animal southwest livestock branch. The Geese remain farmer-managed while
+the southwest animals remain hand-managed. Goose tiles are reserved once Egg
+demand is identified from the first two shops, preventing crops from blocking
+their later setup.
+
+Against frozen Reshuffle Goose v1 over 20 mirrored seeds, the day-11 candidate
+finished with 23 wins, 7 losses, and 10 ties for a 70.0% match score with zero
+errors. It averaged 93749.5 coins against 93227.8, an average lead of 521.7.
+On seed 11, allowing the branches to coexist retained eight Cows, four Sheep,
+and two Geese and reduced the previous 5687-point deficit to 887 points.
+
+Moving Goose setup forward to day 10 was rejected. The same 20-seed comparison
+fell to 18 wins, 12 losses, and 10 ties, a 57.5% match score, while the average
+lead declined to 142.2. Controlled traces on seeds 5, 8, and 10 showed that the
+earlier setup gained only one Goose production cycle, approximately five Eggs,
+but interrupted the first Melon wave and crop scheduling. Melon sales fell
+from 72 to 69--70, setup cash dropped as low as 48 coins, and southwest land
+purchase was occasionally delayed. A nominal purchase reserve was insufficient
+because subsequent construction, hiring, seed, and feed costs consumed it.
+
+The first Melon liquidation therefore acts as the practical funding and action
+capacity threshold for Geese. The day-11 version was retained and frozen as
+`baselines/day11_goose_v1.py`.

@@ -24,10 +24,12 @@ from baselines.sw_livestock_reservation_v1 import agent as sw_livestock_reservat
 from baselines.yarn_first_sw_sheep_v1 import agent as yarn_first_sw_sheep_agent
 from baselines.fix_hand_fertilizer_v1 import agent as fix_hand_fertilizer_v1_agent
 from baselines.fertilize_crops_v1 import agent as fertilize_crops_v1_agent
+from baselines.staggered_additional_sheep_v1 import agent as staggered_additional_sheep_v1_agent
+from baselines.reshuffle_goose_v1 import agent as reshuffle_goose_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
-# SEEDS = [38, 42, 55]
+# SEEDS = [5, 8, 9]
 OPPONENTS = {
     # "low_strawberry_agent":low_strawberry_agent,
     # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
@@ -51,10 +53,17 @@ OPPONENTS = {
     # "sw_livestock_reservation_v1": sw_livestock_reservation_agent,
     # "yarn_first_sw_sheep_v1": yarn_first_sw_sheep_agent,
     # "fix_hand_fertilizer_v1": fix_hand_fertilizer_v1_agent,
-    "fertilize_crops_v1": fertilize_crops_v1_agent,
+    # "fertilize_crops_v1": fertilize_crops_v1_agent,
+    # "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
+    "reshuffle_goose_v1": reshuffle_goose_v1_agent,
 }
 
-PRODUCTS_TRACKED = CROPS_MANAGED + ("MILK", "WOOL", "FERTILIZER")
+PRODUCTS_TRACKED = CROPS_MANAGED + (
+    "EGG",
+    "MILK",
+    "WOOL",
+    "FERTILIZER",
+)
 
 # Define helper functions
 def play_match(seed, our_position, opponent):

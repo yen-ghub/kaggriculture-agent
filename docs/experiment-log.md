@@ -841,3 +841,33 @@ Only seeds 11 and 15 lost, in both player positions.
 Relative to the preceding day-11 Goose result against the same baseline, match
 score improved from 70.0% to 82.5%, and average lead increased from 521.7 to
 1815.7. This supports retaining the permanent four-animal allocation.
+
+Day-0 livestock v1 advances the second initial Sheep from day 3 to day 0, so
+the opening purchases two Cows and two Sheep. The first implementation placed
+the Cows before the Sheep. Although all four animals were eventually serviced,
+the farmer completed every placement before returning to the established Cows,
+creating unnecessary backtracking and delaying parallel livestock work.
+
+The selected route places both Sheep first. Their dedicated hand can feed and
+care for them while the farmer returns to establish and service the two Cows
+beside the shed. A seed-1 trace confirmed that both Sheep were placed by day 0,
+hour 8, both Cows were placed by hour 16, and both Cows were fed and cared for
+by hour 23. Seed 1 still lost by 1437 because the additional opening purchase
+reduced Melon seed purchases from 13 to 10, resulting in 60 Melons sold rather
+than 72; its four additional Wool did not offset the missing crop revenue.
+
+The focused 20-seed evaluation against frozen Locked SW livestock v1 produced
+32 wins and eight losses for an 80.0% match score with zero errors. The
+candidate averaged 94255.6 coins against 93535.6, an average lead of 720.0,
+and averaged 367.6 harvests. It sold 275.6 Wheat, 57.1 Carrots, 60.0 Melons,
+199.1 Strawberries, 1.7 Tomatoes, 40.3 Eggs, 152.9 Milk, 134.1 Wool, and 220.8
+Fertilizer. All tracked products finished with zero leftovers except for an
+average 2.4 Wheat.
+
+Five-seed regression tests won all ten mirrored matches against both Yarn-first
+SW Sheep v1 and Fertilize crops v1. The candidate averaged 91607.6 and 88278.2
+coins respectively, leading by 16005.2 and 3520.8. Against Staggered additional
+Sheep v1 it produced six wins and four losses, averaging 90539.4 against
+89212.8 for a positive lead of 1326.6. These results support freezing the
+Sheep-first day-0 livestock opening as `baselines/day0_livestock_v1.py`, while
+retaining the reduced opening Melon count as its principal known tradeoff.

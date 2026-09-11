@@ -871,3 +871,41 @@ Sheep v1 it produced six wins and four losses, averaging 90539.4 against
 89212.8 for a positive lead of 1326.6. These results support freezing the
 Sheep-first day-0 livestock opening as `baselines/day0_livestock_v1.py`, while
 retaining the reduced opening Melon count as its principal known tradeoff.
+
+Early NE expansion v1 moves the second-quadrant purchase threshold from day 8
+to day 6. Available cash caused the actual purchase to occur on day 7 in the
+traced seed. Moving only the land purchase was rejected: the first five-seed
+comparison lost all ten mirrored matches. The newly hired NE hands began partway
+through day 7 while the fixed three-seed staple buffer was replenished only as
+seeds were consumed, producing a fragmented and inefficient expansion shift.
+
+Increasing the selected staple seed buffer from three to eight after NE unlock
+improved seed availability but did not solve the economic regression by itself.
+The extra hands still generated many idle or travel actions, and the larger
+buffer tied up additional cash. Advancing the six-tile NE Strawberry allocation
+to the same expansion threshold improved the combined five-seed result to six
+wins and four losses, with a small positive average lead, but remained too weak
+on its own.
+
+The selected design also advances the two NE expansion Cows from day 8 to the
+new expansion threshold. On seed 1, NE was purchased on day 7, hour 2 and both
+Cows were purchased on hour 3. This converted the earlier seed-1 deficit into a
+659-point win, showing that immediate livestock production was needed to recoup
+the earlier land, hiring, and seed investment.
+
+The focused 20-seed comparison against frozen Day-0 livestock v1 produced 33
+wins and seven losses for an 82.5% match score with zero errors. The candidate
+averaged 93648.3 coins against 92657.4, an average lead of 990.9, and averaged
+372.6 harvests. It sold 270.0 Wheat, 47.5 Carrots, 60.0 Melons, 202.7
+Strawberries, 3.0 Tomatoes, 46.5 Eggs, 155.6 Milk, 130.5 Wool, and 219.0
+Fertilizer. All tracked products finished with zero leftovers except for an
+average 2.0 Wheat.
+
+Five-seed regression tests remained positive against three additional
+livestock baselines. The candidate scored 80.0% against Staggered additional
+Sheep v1 with a 2196.6 average lead, 100.0% against Reshuffle Goose v1 with a
+1424.6 lead, and 80.0% against Locked SW livestock v1 with a 1458.8 lead. The
+three tests averaged 375.8, 375.0, and 375.4 harvests respectively, with zero
+errors and no product leftovers apart from the Wheat feed reserve. The
+coordinated earlier land, larger seed buffer, immediate Strawberry allocation,
+and immediate Cow activation is retained as the next baseline.

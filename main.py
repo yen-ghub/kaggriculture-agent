@@ -27,7 +27,7 @@ THIRD_QUADRANT_ROUTE = [
 SECOND_QUADRANT_TILE_COUNT  = 25
 SECOND_QUADRANT_NAME        = "NE"
 SECOND_QUADRANT_LAND_COST   = 1000
-SECOND_QUADRANT_PURCHASE_DAY = 8        # To stagger COW production days
+SECOND_QUADRANT_PURCHASE_DAY = 6        # Earlier NE expansion after opening livestock
 LAND_WORKING_CAPITAL_RESERVE = 1000
 
 THIRD_QUADRANT_TILE_COUNT   = len(THIRD_QUADRANT_ROUTE)
@@ -124,6 +124,7 @@ DEFAULT_SEED_TARGETS = {
     "TOMATO":0
 }
 SELECTED_CROP_SEED_TARGET = 3
+NE_SELECTED_CROP_SEED_TARGET = 8
 WHEAT_PLANT_TARGET      = 18        # Currently no limit, to flood the carrot market and bring price down for the oponent
 
 #
@@ -131,7 +132,7 @@ WHEAT_PLANT_TARGET      = 18        # Currently no limit, to flood the carrot ma
 STRAWBERRY_PLANT_TARGET     = 39        # Fine-tuned: 39
 HIGH_STRAWBERRY_PLANT_TARGET = 45
 STRAWBERRY_START_DAY        = 10
-EARLY_NE_STRAWBERRY_START_DAY = 8
+EARLY_NE_STRAWBERRY_START_DAY = SECOND_QUADRANT_PURCHASE_DAY
 EARLY_NE_STRAWBERRY_TARGET = 6
 STRAWBERRY_DAILY_SELL_CAP   = 8
 STRAWBERRY_FORCE_SELL_DAY   = 29
@@ -168,7 +169,7 @@ EXPANSION_COW_TILES = (
     (5, 3),
 )
 EXPANSION_COW_COUNT = 2
-EXPANSION_COW_START_DAY = 9
+EXPANSION_COW_START_DAY = SECOND_QUADRANT_PURCHASE_DAY
 # Every position permanently reserved for a cow.
 COW_TILES = (
     INITIAL_COW_TILES
@@ -2570,6 +2571,12 @@ def agent(obs):
     # 7. Closing market order (buy seeds and purchase land)
     
     ## Buy crop seed (i.e. maintain a certain number available seed for each crop)
+    selected_crop_seed_target = (
+        NE_SELECTED_CROP_SEED_TARGET
+        if SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
+        else SELECTED_CROP_SEED_TARGET
+    )
+
     for crop in CROPS_MANAGED:
         if crop == "MELON":
             last_planting_day = MELON_LAST_PLANTING_DAY
@@ -2592,7 +2599,7 @@ def agent(obs):
         elif crop == crop_selected_for_planting:
             if crop == "MELON":
                 target_seed_count = min(
-                    SELECTED_CROP_SEED_TARGET,
+                    selected_crop_seed_target,
                     max(
                         0,
                         choose_melon_plant_target()
@@ -2604,7 +2611,7 @@ def agent(obs):
             elif crop == "TOMATO":
                 target_seed_count = max(0, (tomato_plant_target - planned_tomato_count))
             else:
-                target_seed_count = SELECTED_CROP_SEED_TARGET
+                target_seed_count = selected_crop_seed_target
         
         quantity_to_buy = (target_seed_count - available_seed_counts[crop])
 

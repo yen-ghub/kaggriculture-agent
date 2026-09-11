@@ -56,10 +56,10 @@ OPPONENTS = {
     # "yarn_first_sw_sheep_v1": yarn_first_sw_sheep_agent,
     # "fix_hand_fertilizer_v1": fix_hand_fertilizer_v1_agent,
     # "fertilize_crops_v1": fertilize_crops_v1_agent,
-    # "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
-    # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
-    # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
-    "day0_livestock_v1": day0_livestock_v1_agent,
+    "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
+    "reshuffle_goose_v1": reshuffle_goose_v1_agent,
+    "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
+    # "day0_livestock_v1": day0_livestock_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

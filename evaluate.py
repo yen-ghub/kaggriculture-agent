@@ -27,9 +27,10 @@ from baselines.fertilize_crops_v1 import agent as fertilize_crops_v1_agent
 from baselines.staggered_additional_sheep_v1 import agent as staggered_additional_sheep_v1_agent
 from baselines.reshuffle_goose_v1 import agent as reshuffle_goose_v1_agent
 from baselines.locked_sw_livestock_v1 import agent as locked_sw_livestock_v1_agent
+from baselines.day0_livestock_v1 import agent as day0_livestock_v1_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [5, 8, 9]
 OPPONENTS = {
     # "low_strawberry_agent":low_strawberry_agent,
@@ -57,7 +58,8 @@ OPPONENTS = {
     # "fertilize_crops_v1": fertilize_crops_v1_agent,
     # "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
     # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
-    "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
+    # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
+    "day0_livestock_v1": day0_livestock_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

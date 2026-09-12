@@ -1,9 +1,5 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
-from baselines.low_strawberry_test import agent as low_strawberry_agent
-# from baselines.adaptive_strawberry_sales_v1 import agent as adaptive_strawberry_sales_agent
-from baselines.endgame_liquidation_v1 import agent as endgame_liquidation_agent
-from baselines.four_sheep_v1 import agent as four_sheep_agent
 from baselines.full_second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agent
@@ -28,15 +24,12 @@ from baselines.staggered_additional_sheep_v1 import agent as staggered_additiona
 from baselines.reshuffle_goose_v1 import agent as reshuffle_goose_v1_agent
 from baselines.locked_sw_livestock_v1 import agent as locked_sw_livestock_v1_agent
 from baselines.day0_livestock_v1 import agent as day0_livestock_v1_agent
+from baselines.ne_wheat_buffer_v1 import agent as ne_wheat_buffer_v1_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [5, 8, 9]
 OPPONENTS = {
-    # "low_strawberry_agent":low_strawberry_agent,
-    # "adaptive_strawberry_sales_v1": adaptive_strawberry_sales_agent,
-    # "endgame_liquidation_sales_v1": endgame_liquidation_agent,
-    # "four_sheep_v1": four_sheep_agent,
     # "second_quadrant_v1": second_quadrant_agent,
     # "third_quadrant_v1": third_quadrant_agent,
     # "strawberry_expansion_v1": strawberry_expansion_agent,
@@ -56,10 +49,11 @@ OPPONENTS = {
     # "yarn_first_sw_sheep_v1": yarn_first_sw_sheep_agent,
     # "fix_hand_fertilizer_v1": fix_hand_fertilizer_v1_agent,
     # "fertilize_crops_v1": fertilize_crops_v1_agent,
-    "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
-    "reshuffle_goose_v1": reshuffle_goose_v1_agent,
-    "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
+    # "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
+    # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
+    # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
     # "day0_livestock_v1": day0_livestock_v1_agent,
+    # "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

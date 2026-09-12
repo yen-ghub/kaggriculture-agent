@@ -909,3 +909,35 @@ three tests averaged 375.8, 375.0, and 375.4 harvests respectively, with zero
 errors and no product leftovers apart from the Wheat feed reserve. The
 coordinated earlier land, larger seed buffer, immediate Strawberry allocation,
 and immediate Cow activation is retained as the next baseline.
+
+NE Wheat buffer v1 addresses the day-10 shed overflow created when the opening
+Melon wave and the first NE staple harvest arrive together. A seed-1 trace of
+the retained Early NE expansion strategy showed 109 units distributed between
+the shed and carried inventories immediately before the transition. The
+100-unit shed retained 12 Carrots but discarded another nine Carrots and one
+Fertilizer.
+
+Two direct liquidation approaches were rejected. Unconditionally returning
+hands to sell products on day 10 scored approximately 60.0% against Day-0
+livestock v1, while a capacity-triggered version improved to only 27 wins and
+13 losses (67.5%). The latter averaged 93185.4 coins against 92467.4. In both
+cases, diverting hands from late field work cost more than the recovered
+inventory was worth.
+
+The selected alternative changes five NE Carrot plantings to Wheat only during
+days 7 through 9. The chosen tiles are `(8, 0)`, `(9, 0)`, `(8, 1)`, `(9, 1)`,
+and `(5, 2)`. This staggers their harvest beyond the day-10 Melon transition
+without changing earlier Carrot income or permanently fixing their later crop
+allocation. In the seed-1 trace, pre-transition inventory fell from 109 to 97
+units, all 60 Melons were preserved, and no product was discarded or sold
+early.
+
+The focused 20-seed mirrored evaluation against Day-0 livestock v1 produced 34
+wins and six losses for an 85.0% match score with zero errors. The candidate
+averaged 95742.3 coins against 94695.1, an average lead of 1047.2, and averaged
+371.3 harvests. Average sales were 265.6 Wheat, 52.5 Carrots, 60.0 Melons,
+205.5 Strawberries, 2.2 Tomatoes, 46.5 Eggs, 152.1 Milk, 133.9 Wool, and 217.3
+Fertilizer. Every tracked product finished with zero average leftovers except
+1.9 Wheat and 0.1 Strawberry. Relative to Early NE expansion v1, match score
+improved from 82.5% to 85.0% and average lead increased from 990.9 to 1047.2.
+The strategy is frozen as `baselines/ne_wheat_buffer_v1.py`.

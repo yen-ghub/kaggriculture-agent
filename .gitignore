@@ -18,4 +18,5 @@ logs/
 # Secrets
 .env
 access_token
-kaggle.json 
+kaggle.json
+AGENTS.md

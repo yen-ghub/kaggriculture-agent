@@ -941,3 +941,29 @@ Fertilizer. Every tracked product finished with zero average leftovers except
 1.9 Wheat and 0.1 Strawberry. Relative to Early NE expansion v1, match score
 improved from 82.5% to 85.0% and average lead increased from 990.9 to 1047.2.
 The strategy is frozen as `baselines/ne_wheat_buffer_v1.py`.
+
+Hand 5 Goose v1 advances the two conditional northeast Geese from day 11 to
+day 8 while splitting their workload. Hand 5, whose NE crop route begins at
+`(6, 4)`, establishes and services the Goose on that tile. The farmer retains
+responsibility for the second Goose at `(6, 3)`. This includes animal pickup,
+coop construction, feeding, care, harvesting, product return, and Fertilizer
+collection. The farmer excludes Hand 5's Goose from its own setup and service
+targets, preventing duplicate work.
+
+The workload split was introduced after a farmer-only day-8 trial remained
+slightly weaker than the day-11 baseline. On diagnostic seed 6, the
+farmer-only version spent eight actions establishing both Geese, reduced its
+day-8 cash balance to 235 coins, and finished 739 coins behind the frozen
+baseline despite selling 10 additional Eggs. With Hand 5 assisting, the first
+Goose was established by day 8, hour 7 and the farmer completed the second by
+hour 12. The same seed then scored 111417 against 108229.
+
+The focused 20-seed mirrored evaluation against frozen NE Wheat buffer v1
+produced 30 wins, no losses, and 10 ties for an 87.5% match score with zero
+errors. The candidate averaged 96657.8 coins against 94590.7, an average lead
+of 2067.1, and averaged 376.9 harvests. Average sales were 270.0 Wheat, 52.5
+Carrots, 60.0 Melons, 205.5 Strawberries, 2.0 Tomatoes, 57.0 Eggs, 154.2 Milk,
+135.8 Wool, and 225.1 Fertilizer. Every tracked product finished with zero
+leftovers except for an average 2.7 Wheat. The result supports both the day-8
+Goose timing and the Hand 5 service split, frozen as
+`baselines/hand5_goose_v1.py`.

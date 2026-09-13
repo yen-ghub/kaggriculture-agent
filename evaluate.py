@@ -53,7 +53,7 @@ OPPONENTS = {
     # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
     # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
     # "day0_livestock_v1": day0_livestock_v1_agent,
-    # "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
+    "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

@@ -189,17 +189,6 @@ COW_TILES = (
     + EXPANSION_COW_TILES[:EXPANSION_COW_COUNT]
 )
 
-# First stage of the shop-aware livestock ladder.  This western tile sits on
-# Hand 0's existing Sheep route, so the extra Cow does not extend the farmer's
-# daily circuit. The tile stays in normal crop production until qualifying
-# demand is visible; its current crop is harvested before pasture conversion.
-STAGED_COW_TILES = (
-    (1, 4),
-)
-STAGED_COW_START_DAY = 8
-STAGED_COW_LAST_START_DAY = 10
-STAGED_COW_MILK_SHOP_THRESHOLD = 2
-
 
 EARLY_SHEEP_TILES = (
     (3, 3),
@@ -682,59 +671,6 @@ def agent(obs):
         DAY11_ADDITIONAL_SHEEP_START_DAY,
     )
 
-    def animal_is_placed(position, expected_animal):
-        x, y = position
-        tile = farm["tiles"][y][x]
-
-        return (
-            isinstance(tile, dict)
-            and tile.get("kind") == ANIMAL_STRUCTURES[expected_animal]
-            and tile.get("animal") == expected_animal
-        )
-
-    staged_cow_setup_started = any(
-        isinstance(farm["tiles"][y][x], dict)
-        and farm["tiles"][y][x].get("kind") == "PASTURE"
-        for x, y in STAGED_COW_TILES
-    )
-    expansion_cow_setup_complete = all(
-        animal_is_placed(position, "COW")
-        for position in EXPANSION_COW_TILES[:EXPANSION_COW_COUNT]
-    )
-    staged_cow_selected = (
-        milk_demand_shop_count >= STAGED_COW_MILK_SHOP_THRESHOLD
-    )
-    staged_cow_tile_is_ready = all(
-        farm["tiles"][y][x] is None
-        or (
-            isinstance(farm["tiles"][y][x], dict)
-            and farm["tiles"][y][x].get("kind") in {"WEED", "PASTURE"}
-        )
-        for x, y in STAGED_COW_TILES
-    )
-    staged_cow_phase_active = (
-        staged_cow_setup_started
-        or (
-            staged_cow_selected
-            and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
-            and STAGED_COW_START_DAY
-                <= obs["day"]
-                <= STAGED_COW_LAST_START_DAY
-            and expansion_cow_setup_complete
-            and staged_cow_tile_is_ready
-        )
-    )
-    staged_cow_tile_is_reserved = (
-        staged_cow_setup_started
-        or (
-            staged_cow_selected
-            and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
-            and STAGED_COW_START_DAY
-                <= obs["day"]
-                <= STAGED_COW_LAST_START_DAY
-        )
-    )
-
     # Initial COWs are active from the opening.
     active_animal_plan = {
         position: "COW"
@@ -766,12 +702,6 @@ def agent(obs):
             for position in DAY11_ADDITIONAL_SHEEP_TILES
         })
 
-    if staged_cow_phase_active:
-        active_animal_plan.update({
-            position: "COW"
-            for position in STAGED_COW_TILES
-        })
-
     # When second and third quadrants are unlocked, add more animal tiles
     if (SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
             and obs["day"] >= EXPANSION_COW_START_DAY):
@@ -780,6 +710,16 @@ def agent(obs):
             for position in EXPANSION_COW_TILES[:EXPANSION_COW_COUNT]
         })
     
+    def animal_is_placed(position, expected_animal):
+        x, y = position
+        tile = farm["tiles"][y][x]
+
+        return (
+            isinstance(tile, dict)
+            and tile.get("kind") == ANIMAL_STRUCTURES[expected_animal]
+            and tile.get("animal") == expected_animal
+        )
+        
     base_animal_setup_complete = (
         all(
             animal_is_placed(position, "COW")
@@ -788,13 +728,6 @@ def agent(obs):
         and all(
             animal_is_placed(position, "SHEEP")
             for position in SHEEP_TILES
-        )
-        and (
-            not staged_cow_phase_active
-            or all(
-                animal_is_placed(position, "COW")
-                for position in STAGED_COW_TILES
-            )
         )
     )
 
@@ -839,8 +772,6 @@ def agent(obs):
     sw_livestock_tiles_reserved = sw_livestock_selected
 
     reserved_adaptive_animal_tiles = set()
-    if staged_cow_tile_is_reserved:
-        reserved_adaptive_animal_tiles.update(STAGED_COW_TILES)
     if adaptive_goose_tiles_reserved:
         reserved_adaptive_animal_tiles.update(ADAPTIVE_GOOSE_TILES)
     if sw_livestock_tiles_reserved:
@@ -1373,42 +1304,37 @@ def agent(obs):
 
         return 0
 
-    # 2.9 Hand 0 owns the NW Sheep circuit and the staged western Cow.
+    # 2.9 To get a HAND to help the FARMER to care for sheep
     def choose_sheep_hand_action(hand_position, hand_inventory):
-        nw_livestock_positions = [
+        sheep_positions = [
             position
             for position in animal_positions
-            if (
-                (
-                    active_animal_plan[position] == "SHEEP"
-                    and position in SHEEP_TILES
-                )
-                or position in STAGED_COW_TILES
-            )
+            if active_animal_plan[position] == "SHEEP"
+                and position in SHEEP_TILES  # SW sheep belong to Hand 10.
         ]
 
-        if not nw_livestock_positions:
+        if not sheep_positions:
             return None
 
-        current_animal = animal_tiles.get(hand_position)
+        current_sheep = animal_tiles.get(hand_position)
         wheat_carried = hand_inventory.get("WHEAT", 0)
 
-        if (isinstance(current_animal, dict)
-                and hand_position in nw_livestock_positions):
-            if not current_animal.get("fed_today", False):
+        if (isinstance(current_sheep, dict)
+                and hand_position in sheep_positions):
+            if not current_sheep.get("fed_today", False):
                 if wheat_carried > 0:
                     return ["FEED"]
 
-            elif not current_animal.get("cared_today", False):
+            elif not current_sheep.get("cared_today", False):
                 return ["CARE"]
 
-            elif (current_animal.get("yield_units", 0)
+            elif (current_sheep.get("yield_units", 0)
                     >= ANIMAL_HARVEST_THRESHOLD):
                 return ["HARVEST"]
 
-        attention_targets = [
+        sheep_attention_targets = [
             position
-            for position in nw_livestock_positions
+            for position in sheep_positions
             if (
                 not animal_tiles[position].get("fed_today", False)
                 or not animal_tiles[position].get("cared_today", False)
@@ -1417,12 +1343,12 @@ def agent(obs):
             )
         ]
 
-        unfed_animal_count = sum(
+        unfed_sheep_count = sum(
             not animal_tiles[position].get("fed_today", False)
-            for position in nw_livestock_positions
+            for position in sheep_positions
         )
 
-        if unfed_animal_count > wheat_carried:
+        if unfed_sheep_count > wheat_carried:
             if hand_position not in SHED_ACCESS_TILES:
                 target = nearest_position(
                     hand_position,
@@ -1430,62 +1356,15 @@ def agent(obs):
                 )
                 return move_to(hand_position, target)
 
-            quantity_to_pickup = min(
-                shed_counts["WHEAT"],
-                unfed_animal_count - wheat_carried,
-            )
+            quantity_to_pickup = min(shed_counts["WHEAT"], (unfed_sheep_count - wheat_carried))
             if quantity_to_pickup > 0:
                 return ["PICKUP", "WHEAT", quantity_to_pickup]
 
-        if attention_targets:
-            target = nearest_position(hand_position, attention_targets)
+        if sheep_attention_targets:
+            target = nearest_position(hand_position, sheep_attention_targets)
             return move_to(hand_position, target)
 
-        staged_setup_targets = [
-            position
-            for position in STAGED_COW_TILES
-            if (
-                staged_cow_phase_active
-                and position not in animal_positions
-            )
-        ]
-
-        if not staged_setup_targets:
-            return None
-
-        if hand_inventory.get("COW", 0) > 0:
-            target = nearest_position(
-                hand_position,
-                staged_setup_targets,
-            )
-
-            if hand_position != target:
-                return move_to(hand_position, target)
-
-            target_tile = animal_tiles[target]
-
-            if target_tile is None:
-                return ["BUILD_PASTURE"]
-
-            if target_tile.get("kind") != "PASTURE":
-                return ["DIG"]
-
-            if target_tile.get("animal") is None:
-                return ["PLACE", "COW", 1]
-
-            return None
-
-        if animals_in_shed["COW"] <= 0:
-            return None
-
-        if hand_position not in SHED_ACCESS_TILES:
-            target = nearest_position(
-                hand_position,
-                SHED_ACCESS_TILES,
-            )
-            return move_to(hand_position, target)
-
-        return ["PICKUP", "COW", 1]
+        return None
 
     # The hand owning the compact SW block handles its setup and daily care.
     def choose_sw_livestock_hand_action(hand_position, hand_inventory):
@@ -1910,7 +1789,6 @@ def agent(obs):
             active_animal_plan[position] != "SHEEP"
             and position not in active_sw_service_plan
             and position != GOOSE_HAND_TILE
-            and position not in STAGED_COW_TILES
         )
     ]
 
@@ -2399,7 +2277,6 @@ def agent(obs):
                 position not in animal_positions
                 and position not in ADAPTIVE_GOOSE_TILES
                 and position not in SW_LIVESTOCK_TILES
-                and position not in STAGED_COW_TILES
             )
         ]
 
@@ -2917,14 +2794,10 @@ def agent(obs):
         market_orders.append(["BUY_LAND"])
         money_available -= SECOND_QUADRANT_LAND_COST
     
-    required_base_animal_tiles = COW_TILES + SHEEP_TILES
-    if staged_cow_phase_active:
-        required_base_animal_tiles += STAGED_COW_TILES
-
     base_animal_setup_complete = all(
         position in animal_positions
-        for position in required_base_animal_tiles
-    )
+        for position in COW_TILES + SHEEP_TILES
+    )    
     
     # Unlock the third quadrant.
     if (

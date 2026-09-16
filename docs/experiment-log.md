@@ -129,6 +129,11 @@ All evaluations use both player positions.
 | Yarn-first SW Sheep v1 | SW livestock reservation v1 | 5 targeted | 90.0% | 93158.0 | — | — | Conditional A/B: 8W, 0L, 2T; average opponent 87955.6; average lead 5202.4; zero errors |
 | Global idle-hand Fertilizer collection | Yarn-first SW Sheep v1 | 20 | 100.0% | 96569.0 | 356.1 | 297.4 wheat, 57.6 carrot, 72.0 melon, 175.4 strawberry, 2.4 tomato, 149.4 milk, 123.2 wool, 211.1 fertilizer | Focused validation: 40W, 0L; average opponent 88595.3; average lead 7973.7; 2.2 wheat leftover and zero errors |
 | Selective premium-crop Fertilizer use | Fix hand Fertilizer v1 | 20 | 95.0% | 95821.2 | 356.4 | 293.7 wheat, 60.2 carrot, 72.0 melon, 197.2 strawberry, 2.5 tomato, 153.0 milk, 123.2 wool, 200.7 fertilizer | Focused validation: 38W, 2L; average opponent 92271.1; average lead 3550.1; only seed 11 lost, by 117 in both positions; 2.7 wheat leftover and zero errors |
+| Full SW with twelfth hand | Hand 5 Goose v1 | 5 | 0.0% | 91159.6 | 397.6 | 325.4 wheat, 83.6 carrot, 60.0 melon, 192.2 strawberry, 4.6 tomato, 45.6 egg, 140.4 milk, 155.2 wool, 226.6 fertilizer | Rejected: 0W, 10L; average opponent 93728.0; average deficit 2568.4; the 144-coin twelfth hire cost repeated daily outweighed the extra Wheat production |
+| Full SW split across eleven hands | Hand 5 Goose v1 | 5 | 40.0% | 95834.6 | 377.6 | 287.9 wheat, 61.3 carrot, 60.0 melon, 195.8 strawberry, 3.2 tomato, 45.6 egg, 147.6 milk, 148.2 wool, 221.4 fertilizer | Rejected fallback: 4W, 6L; average opponent 96638.3; average deficit 803.7; complete 25-tile coverage added almost no net harvests because the existing SW hands were already at capacity |
+| Four-animal SW 7/7 crop rebalance | Hand 5 Goose v1 | 5 | 60.0% | 92354.8 | 374.8 | 293.0 wheat, 59.8 carrot, 60.0 melon, 191.6 strawberry, 4.6 tomato, 45.6 egg, 147.6 milk, 148.2 wool, 224.2 fertilizer | Rejected: 4W, 2L, 4T; average opponent 92491.8; average deficit 137.0. Transferring adjacent `(2, 7)` was better than transferring `(4, 7)`, but seed 5 lost higher-value Strawberry, Carrot, and Fertilizer output for extra Wheat |
+| Day-4 western additional Cow | Hand 5 Goose v1 | 5 | 40.0% | 85355.2 | 366.6 | 271.8 wheat, 52.8 carrot, 60.0 melon, 192.4 strawberry, 3.0 tomato, 37.8 egg, 164.4 milk, 125.6 wool, 227.0 fertilizer | Rejected: 4W, 6L; average opponent 89070.4; average deficit 3715.2. The `(1, 3)` Cow consumed the cash and setup slot intended for the proven day-4 Sheep, delaying it until day 6, then added a long daily farmer detour. On seed 3 the deficit grew from 1796 on day 10 to 11583 at the finish despite the extra Milk |
+| Two-shop staged Cow v1 | Twelve Melon opening v1 | 20 | 62.5% | 97501.4 | 368.7 | 185.8 wheat, 42.1 carrot, 72.0 melon, 198.8 strawberry, 2.6 tomato, 49.0 egg, 159.4 milk, 138.4 wool, 233.8 fertilizer | Accepted: 10W, 0L, 30T; average opponent 96841.4; average lead 660.0; 3.0 wheat leftover and zero errors. Five-seed regression against Day-0 livestock v1 was 10W--0L with a 5332.2 average lead |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -967,3 +972,86 @@ Carrots, 60.0 Melons, 205.5 Strawberries, 2.0 Tomatoes, 57.0 Eggs, 154.2 Milk,
 leftovers except for an average 2.7 Wheat. The result supports both the day-8
 Goose timing and the Hand 5 service split, frozen as
 `baselines/hand5_goose_v1.py`.
+
+The twelve-Melon opening candidate recovered the two Melon plants lost in the
+day-0 livestock build without delaying its critical milestones. The main cash
+leak was the feed reserve: Wheat carried by hands was not counted as committed
+feed stock, so the market logic repeatedly bought replacement Wheat after
+pickup. The candidate counts Wheat across the shed, farmer, and all hands, and
+sizes its reserve from the animals still awaiting setup or feeding. It also
+defers day-0 Carrot and Wheat seed buffers and clears the day-4 Sheep tile
+without planting a crop on it.
+
+A seed-1 milestone trace confirmed twelve Melons and two Cows plus two Sheep by
+the start of day 1. The third Sheep was established at day 4, hour 7 and NE was
+unlocked at day 7, hour 2, exactly matching Hand 5 Goose v1. The focused
+20-seed mirrored evaluation against Hand 5 Goose v1 produced 38 wins and two
+losses for a 95.0% match score with zero errors. The candidate averaged 95176.2
+coins against 93423.4, an average lead of 1752.8, and averaged 372.1 harvests.
+Average sales were 198.3 Wheat, 40.0 Carrots, 72.0 Melons, 198.8 Strawberries,
+3.6 Tomatoes, 54.5 Eggs, 150.6 Milk, 135.8 Wool, and 226.3 Fertilizer. Average
+leftovers were 2.5 Wheat and zero for every other tracked product.
+
+Five-seed regression tests won all ten mirrored matches against both Locked SW
+livestock v1 and Day-0 livestock v1. The candidate averaged 81483.2 against
+76516.6 in the former and 93867.0 against 89369.2 in the latter, with zero
+errors. These results support accepting the twelve-Melon opening as the next
+candidate, frozen as `baselines/twelve_melon_opening_v1.py`.
+
+The first P3 workload-aware hand-count experiment tested a twelfth daily surge
+hand without adding land or livestock. It estimated the field work and travel
+remaining on Hand 11's southwest route, hired the helper when that work exceeded
+one hand's remaining turns, and split the route while the helper was present.
+The twelfth daily hire cost was 144 coins.
+
+The initial loose trigger was rejected after a five-seed mirrored screen against
+Twelve Melon opening v1. It produced four wins, four losses, and two ties for a
+50.0% match score, averaging 103698.8 coins against 103647.8, a lead of only
+51.0. Although the helper performed real work, it was also hired for ordinary
+recurring-crop cycles whose work Hand 11 would usually finish without help.
+
+A stricter trigger required an estimated backlog of at least six actions and
+allowed hiring only through hour 2. A five-seed trace showed the helper was then
+hired only on seed 1, on days 21 and 25; it completed 21 productive actions on
+those two full shifts without passing. The five-seed screen improved to two
+wins, no losses, and eight ties, with a 35.2 average-money lead.
+
+The final twenty-seed mirrored gate remained regression-free but too narrow:
+two wins, no losses, and 38 ties for a 52.5% match score, zero errors, and an
+average of 96634.9 coins against 96626.1, a lead of only 8.8. Seed 1 gained 176
+coins in each player position and the other nineteen seeds were unchanged. A
+five-seed comparison against Hand 5 Goose v1 was exactly identical to the
+frozen Twelve Melon opening baseline, so the P3 change demonstrated no
+generalized incremental gain. The surge-hand experiment is rejected and
+`main.py` is restored to the eleven-hand frozen baseline.
+
+The first safe P1 livestock-ladder stage adds one Cow at `(1, 4)`, adjacent to
+Hand 1's established NW Sheep circuit. It activates only when at least two
+Milk-demand shops are visible, after both NE expansion Cows are established
+and the tile's current crop has cleared. Hand 1 owns pickup, pasture setup,
+feeding, care, harvest, and the associated travel; the farmer's service route
+is unchanged. Nonqualifying seeds keep the normal crop schedule and remain
+behaviorally identical to Twelve Melon opening v1.
+
+The initial one-shop trigger was too broad. On diagnostic seed 2, the added Cow
+sold 21 more Milk and enabled 15 more Fertilizer, but Hand 1's two additional
+daily service actions displaced 23 Carrots, 15 Wheat, and two Strawberries, in
+addition to the 400-coin purchase and feed cost. Merely raising the trigger was
+not sufficient while `(1, 4)` was reserved unconditionally: that reservation
+still changed nonqualifying openings. The final version reserves the tile only
+after qualifying demand is known and waits for its crop to clear before
+activating the Cow.
+
+The twenty-seed mirrored gate against Twelve Melon opening v1 produced 10 wins,
+no losses, and 30 ties for a 62.5% match score with zero errors. The candidate
+averaged 97501.4 coins against 96841.4, a lead of 660.0, and averaged 368.7
+harvests. Average sales were 185.8 Wheat, 42.1 Carrots, 72.0 Melons, 198.8
+Strawberries, 2.6 Tomatoes, 49.0 Eggs, 159.4 Milk, 138.4 Wool, and 233.8
+Fertilizer. Average leftovers were 3.0 Wheat and zero for every other tracked
+product. Thirty exact ties show that the branch stays isolated on
+nonqualifying seeds.
+
+A five-seed regression against Day-0 livestock v1 won all ten mirrored matches
+with zero errors, averaging 95388.6 against 90056.4 for a 5332.2 lead. This
+cross-opponent result supports accepting the staged Cow as the next baseline,
+frozen as `baselines/staged_cow_v1.py`.

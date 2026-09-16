@@ -25,9 +25,11 @@ from baselines.reshuffle_goose_v1 import agent as reshuffle_goose_v1_agent
 from baselines.locked_sw_livestock_v1 import agent as locked_sw_livestock_v1_agent
 from baselines.day0_livestock_v1 import agent as day0_livestock_v1_agent
 from baselines.ne_wheat_buffer_v1 import agent as ne_wheat_buffer_v1_agent
+from baselines.twelve_melon_opening_v1 import agent as twelve_melon_opening_v1_agent
+from baselines.staged_cow_v1 import agent as staged_cow_v1_agent
 
 # Define variables
-SEEDS = list(range(1,21))
+SEEDS = list(range(1,6))
 # SEEDS = [5, 8, 9]
 OPPONENTS = {
     # "second_quadrant_v1": second_quadrant_agent,
@@ -53,7 +55,9 @@ OPPONENTS = {
     # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
     # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
     # "day0_livestock_v1": day0_livestock_v1_agent,
-    "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
+    # "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
+    # "twelve_melon_opening_v1": twelve_melon_opening_v1_agent,
+    "staged_cow_v1": staged_cow_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

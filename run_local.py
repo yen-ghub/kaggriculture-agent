@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from kaggle_environments import make
 from main import (
     agent,
@@ -7,18 +9,24 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.early_sheep_v1 import agent as baseline_agent
+from baselines.staged_cow_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
         "episodeSteps": 720,
-        "seed": 2,
+        "seed": 3,
     },
     debug=True,
 )
 
 env.run([agent, baseline_agent])
+
+replay_path = Path("replays/seed_5_trace.html")
+replay_path.parent.mkdir(parents=True, exist_ok=True)
+replay_html = env.render(mode="html")
+replay_path.write_text(replay_html, encoding="utf-8")
+print(f"Visual replay saved to: {replay_path.resolve()}")
 
 for player_index, label in enumerate(("cutoff_3", "cutoff_4")):
     first_ne_unlock = None

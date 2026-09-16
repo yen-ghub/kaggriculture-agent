@@ -134,6 +134,8 @@ All evaluations use both player positions.
 | Four-animal SW 7/7 crop rebalance | Hand 5 Goose v1 | 5 | 60.0% | 92354.8 | 374.8 | 293.0 wheat, 59.8 carrot, 60.0 melon, 191.6 strawberry, 4.6 tomato, 45.6 egg, 147.6 milk, 148.2 wool, 224.2 fertilizer | Rejected: 4W, 2L, 4T; average opponent 92491.8; average deficit 137.0. Transferring adjacent `(2, 7)` was better than transferring `(4, 7)`, but seed 5 lost higher-value Strawberry, Carrot, and Fertilizer output for extra Wheat |
 | Day-4 western additional Cow | Hand 5 Goose v1 | 5 | 40.0% | 85355.2 | 366.6 | 271.8 wheat, 52.8 carrot, 60.0 melon, 192.4 strawberry, 3.0 tomato, 37.8 egg, 164.4 milk, 125.6 wool, 227.0 fertilizer | Rejected: 4W, 6L; average opponent 89070.4; average deficit 3715.2. The `(1, 3)` Cow consumed the cash and setup slot intended for the proven day-4 Sheep, delaying it until day 6, then added a long daily farmer detour. On seed 3 the deficit grew from 1796 on day 10 to 11583 at the finish despite the extra Milk |
 | Two-shop staged Cow v1 | Twelve Melon opening v1 | 20 | 62.5% | 97501.4 | 368.7 | 185.8 wheat, 42.1 carrot, 72.0 melon, 198.8 strawberry, 2.6 tomato, 49.0 egg, 159.4 milk, 138.4 wool, 233.8 fertilizer | Accepted: 10W, 0L, 30T; average opponent 96841.4; average lead 660.0; 3.0 wheat leftover and zero errors. Five-seed regression against Day-0 livestock v1 was 10W--0L with a 5332.2 average lead |
+| Double-Egg third-Goose candidate | Staged Cow v1 | 20 | 52.5% | 95581.0 | 370.0 | 185.8 wheat, 41.4 carrot, 72.0 melon, 198.0 strawberry, 2.6 tomato, 54.4 egg, 162.8 milk, 131.3 wool, 234.2 fertilizer | Rejected: 4W, 2L, 34T; average opponent 95555.9; average lead only 25.1. Seed 11 lost by 698 in both positions; 3.0 wheat leftover and zero errors |
+| Early NE livestock branch | Staged Cow v1 | 20 | 62.5% | 98123.7 | 366.1 | 187.2 wheat, 39.8 carrot, 72.0 melon, 197.9 strawberry, 2.5 tomato, 41.4 egg, 158.8 milk, 143.8 wool, 233.3 fertilizer | Accepted: 10W, 0L, 30T; average opponent 97155.2; +968.5 average lead, zero errors. First-two-shop Yarn selects four Sheep; double Milk selects four Cows. Five-seed regressions won 10W--0L against Locked SW livestock (+5996.0) and Day-0 livestock (+6227.4) |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -1055,3 +1057,41 @@ A five-seed regression against Day-0 livestock v1 won all ten mirrored matches
 with zero errors, averaging 95388.6 against 90056.4 for a 5332.2 lead. This
 cross-opponent result supports accepting the staged Cow as the next baseline,
 frozen as `baselines/staged_cow_v1.py`.
+
+The double-Egg third-Goose candidate added one Goose at `(7, 4)` under Hand 5,
+adjacent to that hand's existing Goose at `(6, 4)`. It activated only when both
+of the first two shops demanded Eggs, reserved the tile only on qualifying
+seeds, and waited for the original two Geese to be established. This limited
+activation to seeds 2, 7, and 11 in the twenty-seed screen. A seed-2 trace was
+mechanically healthy: the Goose was placed on day 9, serviced through the end
+of the game, and the candidate gained 1081 coins. Nonqualifying seed 1 tied the
+baseline exactly.
+
+The full twenty-seed mirrored gate produced only four wins, two losses, and 34
+ties for a 52.5% match score. Average money was 95581.0 against 95555.9, a lead
+of just 25.1. Seed 11 lost by 698 in both positions, so one of the three
+qualifying scenarios regressed despite the strict early-demand signal. Average
+Egg sales rose to 54.4, but Strawberry and Wool output fell, and the incremental
+animal failed to create a reliable net gain. The candidate is rejected and
+`main.py` is restored to frozen Staged Cow v1.
+
+## Early NE livestock branch -- accepted
+
+The strong-demand NE branch replaces the conditional Goose route only when the
+first two shops already give a clear signal: any Yarn Store selects four Sheep;
+two Milk-demand shops select four Cows. Hand 6 builds pastures at `(6, 4)`,
+`(7, 4)`, `(6, 3)`, and `(7, 3)` on day 8, then batches animal pickup and
+placement on day 9. The early NE branch suppresses both conditional NE Geese
+and the independent four-animal SW branch, while nonqualifying seeds keep the
+Staged Cow behavior exactly.
+
+The direct twenty-seed mirrored gate against Staged Cow v1 finished
+10W--0L--30T (62.5% match score), zero errors, and 98123.7 average money versus
+97155.2: a 968.5 lead. It averaged 366.1 harvests, with 3.1 Wheat left over and
+zero leftovers for every other tracked product. The thirty exact ties are
+expected: the demand branch is inactive on those seeds.
+
+Two five-seed regressions both won every mirrored match with zero errors:
+10W--0L against Locked SW livestock v1 (82288.2 versus 76292.2, +5996.0) and
+10W--0L against Day-0 livestock v1 (93401.6 versus 87174.2, +6227.4). The
+branch is accepted and frozen as `baselines/early_ne_livestock_v1.py`.

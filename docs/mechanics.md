@@ -408,7 +408,9 @@ The purchased cow first enters the shed and must be collected by the farmer:
 ```
 
 Multiple cows can be picked up together and then placed one at a time in their
-pastures.
+pastures. A farmhand can likewise carry multiple animals and Wheat in the same
+inventory, so a compact livestock route can prebuild pastures one day and batch
+pickup, placement, and initial feeding on the following day.
 
 An established cow requires two ordered care actions every day:
 

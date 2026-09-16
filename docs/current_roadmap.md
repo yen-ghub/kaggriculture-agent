@@ -6,7 +6,7 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/staged_cow_v1.py`
+`baselines/early_ne_livestock_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below.
@@ -20,6 +20,10 @@ Current characteristics:
 - Two Cows and two Sheep established on day 0.
 - One additional Sheep starts on day 4 and another on day 11.
 - Two expansion Cows start with the NE expansion.
+- When either of the first two shops is Yarn or both demand Milk, the normal
+  NE Goose branch is replaced by four early NE livestock: Sheep for Yarn or
+  Cows for double Milk. Hand 6 prebuilds their pastures on day 8 and establishes
+  them in a batch on day 9; the SW four-animal branch remains inactive.
 - When at least two Milk-demand shops are visible, one staged Cow may be added
   at `(1, 4)` after the NE Cows are established and the existing crop clears.
   Hand 1 owns its setup and service as part of the NW Sheep circuit.
@@ -33,18 +37,18 @@ Current characteristics:
   when the projected return clears the value margin.
 - Endgame liquidation and the NE Wheat overflow buffer are active.
 
-Latest frozen validation against Twelve Melon opening v1:
+Latest frozen validation against Staged Cow v1:
 
 - 10 wins, 0 losses, and 30 ties over 20 mirrored seeds.
 - 62.5% match score with zero errors.
-- Average money: 97,501.4 versus 96,841.4, a lead of 660.0.
-- Average harvests: 368.7.
-- Average sales: 185.8 Wheat, 42.1 Carrots, 72.0 Melons, 198.8
-  Strawberries, 2.6 Tomatoes, 49.0 Eggs, 159.4 Milk, 138.4 Wool, and
-  233.8 Fertilizer.
-- Average leftovers: 3.0 Wheat and zero for every other tracked product.
-- A five-seed regression against Day-0 livestock v1 finished 10W--0L with a
-  5,332.2 average lead and zero errors.
+- Average money: 98,123.7 versus 97,155.2, a lead of 968.5.
+- Average harvests: 366.1.
+- Average sales: 187.2 Wheat, 39.8 Carrots, 72.0 Melons, 197.9
+  Strawberries, 2.5 Tomatoes, 41.4 Eggs, 158.8 Milk, 143.8 Wool, and
+  233.3 Fertilizer.
+- Average leftovers: 3.1 Wheat and zero for every other tracked product.
+- Five-seed regressions won 10W--0L against Locked SW livestock v1 (+5,996.0)
+  and Day-0 livestock v1 (+6,227.4), both with zero errors.
 
 ## Top-player replay study
 
@@ -197,6 +201,43 @@ Accepted Cow stage:
   won 10--0 against Day-0 livestock v1 with a 5,332.2 average lead.
 - Frozen as `baselines/staged_cow_v1.py`.
 
+Rejected Goose stage:
+
+- A third Goose at `(7, 4)` was tested only when both of the first two shops
+  demanded Eggs. Hand 5 owned it beside the existing `(6, 4)` Goose, and all
+  nonqualifying seeds remained unchanged.
+- The twenty-seed gate produced 4W--2L--34T, a 52.5% match score, and only a
+  25.1 average-money lead. Seed 11 lost by 698 in both positions, meaning one
+  of only three qualifying seeds regressed.
+- Do not retry this third-Goose stage without a materially better capacity or
+  market-value trigger. Additional Egg output alone did not reliably offset
+  displaced crop and Wool work.
+
+Accepted early-NE livestock relocation:
+
+- Strong early demand is identified from the first two shops: at least one
+  Yarn Store selects four Sheep, while two Milk-demand shops select four Cows.
+  The animals use `(6, 4)`, `(7, 4)`, `(6, 3)`, and `(7, 3)`.
+- Hand 6 owns the compact NE setup and service route. It builds all four
+  pastures on day 8, then batches pickup and placement on day 9. Conditional
+  NE Geese and the independent four-animal SW branch are suppressed only when
+  this branch is active; nonqualifying seeds retain the predecessor behavior.
+- The twenty-seed mirrored gate against Staged Cow v1 produced 10W--0L--30T,
+  a 62.5% match score, zero errors, and a 968.5 average-money lead. The thirty
+  exact ties confirm that nonqualifying seeds stayed isolated.
+- Five-seed regressions won 10--0 against both Locked SW livestock v1
+  (+5,996.0) and Day-0 livestock v1 (+6,227.4). Frozen as
+  `baselines/early_ne_livestock_v1.py`.
+
+Next P1 action:
+
+- Test a second staged Cow at `(0, 4)` only under at least three visible
+  Milk-demand shops, after the accepted `(1, 4)` Cow is established and the
+  existing crop clears. Hand 1 should own both staged Cows along the same route.
+- Reserve `(0, 4)` only after the three-shop condition is met. Preserve exact
+  frozen-baseline behavior on nonqualifying seeds, and do not change land,
+  Sheep, Goose, crop-target, or hiring schedules in this experiment.
+
 Do not copy a full replay build order at once. Earlier experiments show that
 animal profit disappears when setup interrupts Melon liquidation, land buying,
 or crop service.
@@ -313,10 +354,18 @@ Prefer a positive average lead, no systematic paired-seed regressions, zero
 errors, and evidence that the gain survives at least one strategically
 different opponent.
 
-## Next action
+## Prior next action (superseded)
 
 Continue **P1 — Staged shop-aware livestock ladder** with one additional
 demand-aware stage. Audit a Sheep or Goose position adjacent to an established
 service circuit, assign its owner before placement, and preserve the accepted
 Cow stage, day-4 Sheep, land timing, and normal crop schedule on nonqualifying
 seeds.
+
+## Next action
+
+Continue P1 with a second staged Cow at `(0, 4)` only when at least three
+Milk-demand shops are visible, after the accepted `(1, 4)` Cow is established
+and its crop clears. Hand 1 must own both staged Cows. Preserve the early-NE
+branch, its no-Goose rule, day-4 Sheep, land timing, and exact
+nonqualifying-seed behavior.

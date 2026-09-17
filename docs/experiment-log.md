@@ -1330,3 +1330,53 @@ any future attempt needs to either keep the added hand's market orders from
 displacing other sales' list positions, or independently verify Milk/Wool/
 Strawberry pricing is not being disturbed before trusting a product-level
 revenue estimate.
+
+## Crop sale priority order -- accepted
+
+Requested outside the P0--P4 sequence: audit how `market_orders` gets built
+each step and confirm premium crops sell first. The audit found only Melon
+was ever explicitly prioritized (the existing, proven mechanism); everything
+else sold in raw tuple-definition order, not by value. Strawberry -- the
+second most valuable crop at base price 120 -- sold behind Wheat (25) and
+Carrot (35) purely because `CROPS_MANAGED` lists them in that order. The
+animal-product loop's own comment admitted as much: "does not matter now,
+may be useful later."
+
+The fix generalizes the existing Melon-only pop/insert special case into a
+`CROP_SALE_PRIORITY` tuple (`MELON, STRAWBERRY, TOMATO, CARROT, WHEAT`,
+matching descending base price) and a single stable sort keyed on that
+tuple, replacing the special case. A stable sort only pulls priority-crop
+`SELL` orders to the front in that order; every other order (seed buys,
+hires, land, Fertilizer, animal products) keeps its existing relative order
+untouched. Scoped to crops only: Wool and Milk order was deliberately left
+alone, since the SW extra-hand experiment immediately above found Wool's
+realized price actually improving from a *later* list position in that
+case -- animal-product ordering is not assumed to follow the same rule
+without its own dedicated test.
+
+A trace confirmed the sort works as intended (e.g. a real step ordered
+`STRAWBERRY, TOMATO, WHEAT, WOOL, ...`, matching the declared priority
+exactly) with Fertilizer still correctly last and zero errors. Isolating the
+change (own seat vs. an unmodified control, same opponent, seeds 1--5) showed
+small, mixed-sign deltas (-27, +270, -1, +28, -37), confirming the effect is
+real but much smaller than the large-quantity Melon and SW-hand cases --
+expected, since Strawberry/Wheat/Carrot co-occur in the same step far less
+often and in smaller quantities than those did.
+
+The twenty-seed mirrored gate against Melon early return v1 produced
+25W--15L--0T (62.5% match score) with zero errors. It averaged 92970.3 coins
+against 92814.5, a 155.8 lead, and 368.1 harvests. Average sales were 198.0
+Wheat, 40.1 Carrots, 60.0 Melons, 192.4 Strawberries, 1.4 Tomatoes, 41.4
+Eggs, 167.2 Milk, 143.8 Wool, and 232.6 Fertilizer. Average leftovers were
+3.2 Wheat and zero for every other tracked product. Zero ties is expected:
+the change is unconditional, not shop-gated. All three sampled losses
+(seeds 1, 5, 17) were thin -- 31, 47, and 91 coins respectively on scores
+near 90000--110000 -- consistent with the isolated per-seed deltas measured
+above, not a systematic regression.
+
+The five-seed multi-opponent regression (protocol step 6) was explicitly
+skipped at the user's request. Accepted on the twenty-seed direct-gate
+evidence alone -- positive average lead, zero errors, no catastrophic
+paired-seed losses -- and frozen as `baselines/crop_sale_priority_v1.py`.
+Revisit the multi-opponent regression if a future candidate's result looks
+inconsistent with this one and the gap needs isolating.

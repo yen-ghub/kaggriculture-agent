@@ -6,7 +6,7 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/melon_early_return_v1.py`
+`baselines/crop_sale_priority_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below.
@@ -45,27 +45,33 @@ Current characteristics:
   shared market. This sells 60 Melon (12 tiles x 5) instead of 72 (12 x 6).
 - Idle hands and the farmer collect Fertilizer; selected premium crops use it
   when the projected return clears the value margin.
+- Market sell orders are sorted by a `CROP_SALE_PRIORITY` tuple (`MELON,
+  STRAWBERRY, TOMATO, CARROT, WHEAT`, descending base price) via a stable
+  sort, generalizing the earlier Melon-only priority special case. Every
+  other order (seed buys, hires, land, Fertilizer, animal products) keeps
+  its existing relative order; Fertilizer is still explicitly forced last.
+  Scoped to crops only -- Wool/Milk order is untouched pending its own test.
 - Endgame liquidation and the NE Wheat overflow buffer are active.
 
-Latest frozen validation against Early NE single-Milk v1:
+Latest frozen validation against Melon early return v1:
 
-- 36 wins, 4 losses, and 0 ties over 20 mirrored seeds.
-- 90.0% match score with zero errors.
-- Average money: 97,749.4 versus 96,327.3, a lead of 1,422.1.
-- Average harvests: 369.1.
-- Average sales: 190.8 Wheat, 38.4 Carrots, 60.0 Melons, 196.6
-  Strawberries, 1.8 Tomatoes, 41.4 Eggs, 169.7 Milk, 143.8 Wool, and
-  234.3 Fertilizer.
-- Average leftovers: 3.4 Wheat and zero for every other tracked product.
-- Zero ties is expected: unlike the shop-conditional branches above, this
-  change is unconditional and affects every seed, not a qualifying subset.
-  Both losses (seeds 10 and 18) were thin (254 and 13 coins); a baseline
-  isolation on seed 10 confirmed the mechanism works as intended (our day-10
-  sale quoted 249.0/226.0 versus the opponent's day-11 quote of only 106.0)
-  but the forfeited yield (60 versus 72 units) outweighs the price edge on
-  that particular seed.
-- Five-seed regressions (seeds 1--5) won 10W--0L against Locked SW livestock v1
-  (+9,181.0) and Day-0 livestock v1 (+8,447.2), both with zero errors.
+- 25 wins, 15 losses, and 0 ties over 20 mirrored seeds.
+- 62.5% match score with zero errors.
+- Average money: 92,970.3 versus 92,814.5, a lead of 155.8.
+- Average harvests: 368.1.
+- Average sales: 198.0 Wheat, 40.1 Carrots, 60.0 Melons, 192.4
+  Strawberries, 1.4 Tomatoes, 41.4 Eggs, 167.2 Milk, 143.8 Wool, and
+  232.6 Fertilizer.
+- Average leftovers: 3.2 Wheat and zero for every other tracked product.
+- Zero ties is expected: the change is unconditional, not shop-gated. All
+  three sampled losses (seeds 1, 5, 17) were thin (31, 47, and 91 coins on
+  scores near 90,000--110,000), consistent with isolated per-seed deltas of
+  -27 to +270 measured directly against an unmodified control -- much
+  smaller than the large-quantity Melon and SW-hand cases, since Strawberry/
+  Wheat/Carrot co-occur in the same step far less often and in smaller
+  quantities than those did.
+- The five-seed multi-opponent regression was explicitly skipped at the
+  user's request. Accepted on the twenty-seed direct-gate evidence alone.
 
 ## Top-player replay study
 
@@ -411,6 +417,37 @@ replanting or their other tiles.
   the delayed hand does with its recovered time. Do not retry watering any of
   the three Melon-owning hands without first addressing this hour-20
   synchronization constraint. See the experiment log for the full trace.
+- A follow-up twelfth-hand experiment (Carrot on the seven unmanaged SW
+  tiles) was also tried and rejected; see P0 above and the experiment log
+  for the full breakdown.
+
+## Crop sale priority order -- accepted (roadmap detour)
+
+Requested outside the P0--P4 sequence: audit `market_orders` construction and
+confirm premium crops sell first. Only Melon had ever been explicitly
+prioritized; everything else sold in raw `CROPS_MANAGED` /
+`ANIMAL_PRODUCT_ORDER` tuple-definition order, not by value -- Strawberry
+(base price 120) sold behind Wheat (25) and Carrot (35) purely by definition
+order.
+
+- Generalized the Melon-only pop/insert special case into a
+  `CROP_SALE_PRIORITY` tuple (`MELON, STRAWBERRY, TOMATO, CARROT, WHEAT`,
+  descending base price) and one stable sort. Every other order (seed buys,
+  hires, land, Fertilizer, animal products) keeps its existing relative
+  order untouched; Fertilizer is still explicitly forced last. Scoped to
+  crops only -- Wool/Milk order was deliberately left alone, since the
+  twelfth-hand experiment immediately above found Wool's realized price
+  actually *improving* from a later list position in that case.
+- Twenty-seed mirrored gate against Melon early return v1: 25W--15L--0T
+  (62.5%), zero errors, 92,970.3 versus 92,814.5 (+155.8). All three sampled
+  losses were thin (31, 47, 91 coins), consistent with isolated per-seed
+  deltas of -27 to +270 measured directly -- much smaller than the
+  large-quantity Melon and SW-hand cases, since these crops co-occur in the
+  same step far less often and in smaller quantities.
+- The five-seed multi-opponent regression was explicitly skipped at the
+  user's request; accepted on the twenty-seed direct-gate evidence alone.
+- Accepted and frozen as `baselines/crop_sale_priority_v1.py`, now the
+  current frozen baseline.
 
 ## Deprioritized directions
 
@@ -455,8 +492,9 @@ trace, then a five-seed mirrored screen against Early NE livestock v1.
 
 ## Next action
 
-A roadmap detour (Melon same-day sale, see below) is now the frozen baseline;
-resume from there rather than Early NE single-Milk v1.
+Two roadmap detours (Melon same-day sale, then Crop sale priority order; see
+below) are now the frozen baseline; resume from there rather than Early NE
+single-Milk v1.
 
 Continue **P4 -- strategy-family branching**. The NE single-Milk Cow routing
 change closed one gap in the early-NE trigger; audit the remaining seed
@@ -466,4 +504,4 @@ is already correct there or whether another existing plan (Sheep, Goose,
 mixed) deserves a similarly targeted trigger. Change one decision-policy
 variable at a time, preserve the accepted timing/ownership/suppression rules,
 and gate any new branch the same way: a targeted trace, a twenty-seed direct
-gate against Melon early return v1, and a five-seed multi-opponent regression.
+gate against Crop sale priority v1, and a five-seed multi-opponent regression.

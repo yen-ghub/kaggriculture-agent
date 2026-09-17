@@ -238,6 +238,16 @@ Next P1 action:
   frozen-baseline behavior on nonqualifying seeds, and do not change land,
   Sheep, Goose, crop-target, or hiring schedules in this experiment.
 
+Outcome:
+
+- Rejected. The twenty-seed direct evaluation produced 0W--6L--34T (42.5%).
+  It changed only seeds 8, 13, and 17, and lost both player positions on all
+  three by 942, 1,860, and 1,045 coins respectively. The resulting average
+  deficit was 192.4 coins across the full mirrored suite.
+- A third Milk-demand shop does not repay the second Cow's purchase, feed, and
+  Hand 1 service load at `(0, 4)`. Do not retry this tile/threshold combination
+  as another isolated Cow stage.
+
 Do not copy a full replay build order at once. Earlier experiments show that
 animal profit disappears when setup interrupts Melon liquidation, land buying,
 or crop service.
@@ -364,8 +374,8 @@ seeds.
 
 ## Next action
 
-Continue P1 with a second staged Cow at `(0, 4)` only when at least three
-Milk-demand shops are visible, after the accepted `(1, 4)` Cow is established
-and its crop clears. Hand 1 must own both staged Cows. Preserve the early-NE
-branch, its no-Goose rule, day-4 Sheep, land timing, and exact
-nonqualifying-seed behavior.
+Move to **P4 -- strategy-family branching**. Design one branch-selection test
+using the early shop prefix to choose among the existing Cow-heavy, Sheep-heavy,
+Goose, and crop-default plans. Change the decision policy only; retain the
+accepted timing, hand ownership, and service routes. Start with a targeted
+trace, then a five-seed mirrored screen against Early NE livestock v1.

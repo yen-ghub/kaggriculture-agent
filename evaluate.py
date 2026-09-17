@@ -30,7 +30,7 @@ from baselines.staged_cow_v1 import agent as staged_cow_v1_agent
 from baselines.early_ne_livestock_v1 import agent as early_ne_livestock_v1_agent
 
 # Define variables
-SEEDS = list(range(1,6))
+SEEDS = list(range(1,21))
 # SEEDS = [5, 8, 9]
 OPPONENTS = {
     # "second_quadrant_v1": second_quadrant_agent,

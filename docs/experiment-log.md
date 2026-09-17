@@ -136,6 +136,7 @@ All evaluations use both player positions.
 | Two-shop staged Cow v1 | Twelve Melon opening v1 | 20 | 62.5% | 97501.4 | 368.7 | 185.8 wheat, 42.1 carrot, 72.0 melon, 198.8 strawberry, 2.6 tomato, 49.0 egg, 159.4 milk, 138.4 wool, 233.8 fertilizer | Accepted: 10W, 0L, 30T; average opponent 96841.4; average lead 660.0; 3.0 wheat leftover and zero errors. Five-seed regression against Day-0 livestock v1 was 10W--0L with a 5332.2 average lead |
 | Double-Egg third-Goose candidate | Staged Cow v1 | 20 | 52.5% | 95581.0 | 370.0 | 185.8 wheat, 41.4 carrot, 72.0 melon, 198.0 strawberry, 2.6 tomato, 54.4 egg, 162.8 milk, 131.3 wool, 234.2 fertilizer | Rejected: 4W, 2L, 34T; average opponent 95555.9; average lead only 25.1. Seed 11 lost by 698 in both positions; 3.0 wheat leftover and zero errors |
 | Early NE livestock branch | Staged Cow v1 | 20 | 62.5% | 98123.7 | 366.1 | 187.2 wheat, 39.8 carrot, 72.0 melon, 197.9 strawberry, 2.5 tomato, 41.4 egg, 158.8 milk, 143.8 wool, 233.3 fertilizer | Accepted: 10W, 0L, 30T; average opponent 97155.2; +968.5 average lead, zero errors. First-two-shop Yarn selects four Sheep; double Milk selects four Cows. Five-seed regressions won 10W--0L against Locked SW livestock (+5996.0) and Day-0 livestock (+6227.4) |
+| Second staged Cow at `(0, 4)` | Early NE livestock v1 | 20 | 42.5% | -- | -- | -- | Rejected: 0W, 6L, 34T. It activated only on seeds 8, 13, and 17, then lost both positions by 942, 1,860, and 1,045 coins; full-suite average deficit 192.4. Three Milk shops did not justify its purchase, feed, crop displacement, and Hand 1 service load |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -1095,3 +1096,18 @@ Two five-seed regressions both won every mirrored match with zero errors:
 10W--0L against Locked SW livestock v1 (82288.2 versus 76292.2, +5996.0) and
 10W--0L against Day-0 livestock v1 (93401.6 versus 87174.2, +6227.4). The
 branch is accepted and frozen as `baselines/early_ne_livestock_v1.py`.
+
+## Second staged Cow at `(0, 4)` -- rejected
+
+The candidate retained the accepted Cow at `(1, 4)`, then added a second Cow
+at `(0, 4)` only when at least three Milk-demand shops were visible and the
+first Cow had already been placed. Hand 1 owned both Cows, and nonqualifying
+seeds were exact ties with the frozen baseline.
+
+The twenty-seed mirrored gate was nevertheless decisive: 0W--6L--34T for a
+42.5% match score. The branch activated on seeds 8, 13, and 17 and lost both
+player positions by 942, 1,860, and 1,045 coins respectively, yielding a
+192.4 average deficit across the full suite. A third Milk-demand shop does not
+repay the second Cow's purchase, feed, displaced crop value, and recurring
+Hand 1 service workload. `main.py` is restored to Early NE livestock v1; do
+not retry this tile/threshold combination as another isolated Cow stage.

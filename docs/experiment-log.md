@@ -1220,3 +1220,58 @@ Five-seed regressions (seeds 1--5) against Locked SW livestock v1 and Day-0
 livestock v1 both finished 10W--0L--0T (100%) with zero errors: 86527.4 versus
 77346.4 (+9181.0) and 94263.2 versus 85816.0 (+8447.2) respectively. Accepted
 and frozen as `baselines/melon_early_return_v1.py`.
+
+## Hand-4 watered Melon block -- rejected
+
+A follow-up to Melon same-day sale: of the three hands owning opening Melon
+tiles, the lightest-loaded one (`MELON_WATERED_HAND_INDEX`, four Melon tiles
+plus a single other tile) still watered before harvesting each Melon tile,
+recovering the extra yield unit the other two hands forfeit for speed.
+
+A first direct comparison against `early_ne_single_milk_v1` -- an older
+baseline that predates the Melon same-day feature entirely -- showed a
+misleadingly large gain, since it measured the whole feature plus this
+addition against an opponent with neither. Isolating the addition correctly
+(comparing our own seat against what the unmodified strategy would score in
+the same seat against the same opponent) told a different story once
+evaluated against the true predecessor, `melon_early_return_v1`.
+
+Two variants were traced and both lost, by a precisely constant margin on
+every seed checked (1--5), not the seed-to-seed variance a genuine market
+effect would show:
+
+- Full watering on all four tiles recovers +4 yield (24 vs 20) but always
+  misses its own same-day cutoff by exactly one action (confirmed by trace:
+  needs 7 moves + 1 PLACE from its last tile to the shed, with only 7 hours
+  left after finishing harvest, and it cannot be hired any earlier -- it is
+  already the fourth of six hires submitted the instant day 10 begins, and a
+  HIRE order cannot act until the following step by game rule). Its batch
+  sells a day late instead. Net: -194 coins/seed against the correct
+  predecessor, constant across seeds 1--5.
+- Watering only 3 of 4 tiles (fast-harvesting the last) saves exactly the one
+  action needed and lands the same-day sale (63 units, all on day 10). This
+  scored worse still: -319 to -322 coins/seed.
+
+Isolating the true mechanism (own seat vs. an unmodified control in the same
+seat) showed the opponent gaining an identical +334 coins/seed in both
+variants, regardless of what Hand 4 did with its recovered time. Comparing
+raw per-step market orders at the divergence point (day 10, hour 20) found
+the cause: in the frozen baseline, two of the three Melon-owning hands
+finish simultaneously at hour 20 and merge into one `SELL MELON 40` order,
+matching the (unmodified) opponent's own simultaneous 40-unit order at the
+same index. Delaying Hand 4 past hour 20 -- in either variant -- breaks that
+synchronization: our hour-20 order shrinks to 20 while the opponent's stays
+at 40. Per the documented lockstep rule, a same-index order pairs against
+the smaller of the two, then the larger order's remainder sells alone; the
+opponent's simultaneous 40-unit sale therefore lands in a lighter combined
+glut than a mirrored 40-vs-40 pairing would give it, a benefit entirely
+independent of Hand 4's own yield or timing.
+
+This means any change that desynchronizes a Melon-owning hand from that
+hour-20 pairing loses value to the opponent regardless of what is gained
+elsewhere, unless the hand can be kept synchronized with its original
+partner or another hand is delayed to rejoin it -- both of which defeat the
+purpose of the change. `main.py` is reverted to exactly match
+`baselines/melon_early_return_v1.py`; do not retry watering any of the three
+Melon-owning hands without first addressing the hour-20 synchronization
+constraint.

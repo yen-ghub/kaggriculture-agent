@@ -301,6 +301,25 @@ near the start of only one player's list can therefore push that player's
 sale to a later index. The opponent may then sell first, change the shared
 inventory, and reduce the price received by the delayed seller.
 
+Confirmed directly against the environment source: lockstep pairing at a
+shared index continues one unit at a time only while both players still have
+units remaining in their order at that index. Once the smaller order is
+exhausted, the larger order's remaining units continue alone, still within
+the same index, using whatever inventory state resulted from the earlier
+paired units. A same-index sale of a much larger quantity than the opponent's
+therefore only gets the shared, more favorable pre-commit pricing for the
+portion matching the opponent's own quantity; the rest is no worse off than
+selling alone at that point in the sequence. Conversely, a player whose
+same-index order is markedly *smaller* than the opponent's effectively
+shrinks the combined quantity absorbed by the shared market that step,
+leaving the opponent's larger order to finish with less accumulated glut than
+a matched (same-size) pairing would have caused. This was confirmed during a
+Melon same-day-sale follow-up: delaying one of three Melon-selling hands past
+the hour when two of them previously sold together broke a `40`-vs-`40`
+same-index pairing into a `20`-vs-`40` pairing, and the opponent's matching
+40-unit order gained a fixed, seed-independent amount from the lighter
+shared glut, independent of what the delayed hand did with its own sale.
+
 This was confirmed during the two-hand experiment. Placing both `HIRE` orders
 before sales reduced the candidate's match score against Wheat v1 from the
 neutral expectation to `0%`. Moving the second `HIRE` after all sales restored

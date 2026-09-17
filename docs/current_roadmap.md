@@ -388,9 +388,19 @@ replanting or their other tiles.
   (+9,181.0) and Day-0 livestock v1 (+8,447.2), both zero-error.
 - Accepted and frozen as `baselines/melon_early_return_v1.py`, now the current
   frozen baseline.
-- Not yet explored: recovering the full 72-unit yield while still returning
-  same-day (e.g. only the lightest-loaded hand(s) skip the watering bonus).
-  Deferred at the user's choice; revisit only if a future candidate needs it.
+- Recovering more of the forfeited yield was tried and rejected. Watering the
+  lightest-loaded hand's Melon tiles (full four, or three of four to still
+  make the same-day cutoff) both lost consistently (-194 and -319 to -322
+  coins/seed) against the true predecessor. The mechanism: two of the three
+  Melon-owning hands finish simultaneously at hour 20 in the frozen baseline,
+  merging into one `SELL MELON 40` order that matches the opponent's own
+  simultaneous 40-unit sale at the same market-list index. Delaying either
+  hand past hour 20 shrinks our side of that pairing to 20, letting the
+  opponent's matching 40-unit sale land in a lighter glut than a mirrored
+  pairing would give it -- a fixed gift to the opponent independent of what
+  the delayed hand does with its recovered time. Do not retry watering any of
+  the three Melon-owning hands without first addressing this hour-20
+  synchronization constraint. See the experiment log for the full trace.
 
 ## Deprioritized directions
 

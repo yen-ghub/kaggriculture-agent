@@ -169,6 +169,16 @@ Outcome:
 - Do not pursue permanent full-SW Wheat coverage again without a materially
   different labour model. The conditional-hire and six-tile variants are
   lower-priority P3 workload experiments, not the immediate next step.
+- A Carrot variant of the same permanent twelfth hand (same tiles, same SW-
+  unlock hire timing, Carrot instead of Wheat) was retried and also rejected:
+  a large, consistent loss across five seeds (roughly -6750 average),
+  dwarfing the hire cost alone. Carrot's own revenue was actually fine (a net
+  gain on the traced seed); the bulk of the loss came from knock-on effects
+  on unrelated Milk, Wool, and Strawberry pricing via the shared market's
+  order-list-position sensitivity (see the experiment log for the full
+  breakdown). Any future twelfth-hand attempt on these tiles needs to verify
+  it is not disturbing other products' market-list positions, not just check
+  its own crop's economics.
 
 ### P1 — Staged shop-aware livestock ladder
 

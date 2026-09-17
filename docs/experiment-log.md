@@ -1275,3 +1275,58 @@ purpose of the change. `main.py` is reverted to exactly match
 `baselines/melon_early_return_v1.py`; do not retry watering any of the three
 Melon-owning hands without first addressing the hour-20 synchronization
 constraint.
+
+## Twelfth hand for the seven unmanaged SW tiles, Carrot variant -- rejected
+
+A retry of the P0 permanent-twelfth-hand candidate, which lost every mirrored
+match using Wheat on the seven already-purchased but unmanaged SW tiles
+(`(3,8)`, `(4,8)`, `(0,9)`, `(1,9)`, `(2,9)`, `(3,9)`, `(4,9)`) because the
+144-coin/day recurring hire cost outweighed Wheat's low value per action.
+This variant kept the same permanent hire (from SW unlock onward, matching
+P0's original timing) but planted Carrot instead: a shorter cycle, a higher
+base price, and a gentler glut curve. `THIRD_QUADRANT_HAND_COUNT` moved 11 to
+12, `HAND_HIRE_COSTS` gained the next Fibonacci value (144) for the twelfth
+hire, and a seed-target floor was added so the hand's Carrot supply would not
+depend on whatever the adaptive crop-selection logic elsewhere happened to be
+buying that day.
+
+Mechanically the hand worked as designed: hired on schedule (full 12-hand
+staffing confirmed reached by hour 2 every day, same as the control's
+11-hand staffing -- ruling out hiring-queue congestion as a side effect),
+worked all seven tiles, and roughly tripled match-wide Carrot output (143
+sold versus 48 for the unmodified strategy on seed 1).
+
+Isolating the true effect (own seat vs. an unmodified control in the same
+seat, same opponent) showed a large, consistent loss across every seed
+checked (1--5): -9485, -10217, -2721, -7537, and -3780 coins, averaging
+roughly -6750. This is far larger than the twelfth hire's own recurring cost
+(~144/day, roughly -2700 to -2900 across an 18--19 day SW window) or the
+extra Carrot seed cost (~760 on seed 1) could explain on their own, and
+Carrot itself was actually a net revenue *gain* on seed 1 (higher average
+price than the control despite triple the volume).
+
+A full revenue breakdown by product (seed 1) found the real damage
+elsewhere, at unchanged sale *quantities*: Milk's average realized price
+nearly halved (194.9 to 113.3 across the same 222 units, roughly -18,100),
+Strawberry's dropped twelve percent (219.7 to 191.9 across roughly the same
+volume), while Wool's nearly tripled (66.9 to 179.2 across the same 119
+units, a partial offset). Checking the actual per-step market-order list
+positions confirmed Strawberry's sale was consistently pushed one index later
+than the control's, and Wool's two to three indices later -- both consistent
+with the documented lockstep-pairing mechanic (see Melon same-day sale and
+the `mechanics.md` refinement above). Milk's list position was nearly
+identical to the control's in all but one of twenty-six checked instances,
+so its price collapse is not fully explained by index position alone; the
+exact secondary channel was not pinned down before rejecting the candidate,
+since the aggregate result was already decisive.
+
+The broader lesson: introducing any new recurring hand or crop changes the
+shape and timing of the whole day's market-order list, and the resulting
+knock-on effects on completely unrelated products' realized prices can
+dwarf the direct cost/value tradeoff of the new work itself. `main.py` is
+reverted to exactly match `baselines/melon_early_return_v1.py`. Do not retry
+a twelfth hand on these seven tiles with any single-crop substitution alone;
+any future attempt needs to either keep the added hand's market orders from
+displacing other sales' list positions, or independently verify Milk/Wool/
+Strawberry pricing is not being disturbed before trusting a product-level
+revenue estimate.

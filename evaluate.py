@@ -29,6 +29,7 @@ from baselines.twelve_melon_opening_v1 import agent as twelve_melon_opening_v1_a
 from baselines.staged_cow_v1 import agent as staged_cow_v1_agent
 from baselines.early_ne_livestock_v1 import agent as early_ne_livestock_v1_agent
 from baselines.early_ne_single_milk_v1 import agent as early_ne_single_milk_v1_agent
+from baselines.melon_early_return_v1 import agent as melon_early_return_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -61,7 +62,8 @@ OPPONENTS = {
     # "twelve_melon_opening_v1": twelve_melon_opening_v1_agent,
     # "staged_cow_v1": staged_cow_v1_agent,
     # "early_ne_livestock_v1": early_ne_livestock_v1_agent,
-    "early_ne_single_milk_v1": early_ne_single_milk_v1_agent,
+    # "early_ne_single_milk_v1": early_ne_single_milk_v1_agent,
+    "melon_early_return_v1": melon_early_return_v1_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

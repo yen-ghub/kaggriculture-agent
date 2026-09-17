@@ -552,6 +552,14 @@ A newly planted crop must be watered on its planting day. Existing crops must
 also be watered regularly; consecutive missed watering can turn them into
 weeds.
 
+Confirmed threshold: at each day boundary, a tile's `consecutive_unwatered`
+counter increments if it was not watered that day, or resets to zero if it
+was. The tile converts to `WEED` once that counter reaches 2 -- i.e. missing
+watering on two consecutive days destroys the plant. A single missed day is
+not fatal by itself. This is separate from a one-time crop's own lifespan
+decay (see `max_lifespan_step` above), which destroys an unharvested crop that
+overstays its harvest window regardless of watering.
+
 Weeds are removed with:
 
 ```python

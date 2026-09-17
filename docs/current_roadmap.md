@@ -6,7 +6,7 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/early_ne_single_milk_v1.py`
+`baselines/melon_early_return_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below.
@@ -37,27 +37,35 @@ Current characteristics:
   locked after establishment, active only when the early NE branch is not
   selected.
 - One Melon wave, with twelve opening Melon plants in the current day-0 livestock
-  design.
+  design. On melon harvest day (day 10), Hands 1, 2, and 3 (the tile owners)
+  harvest each Melon tile immediately once mature -- forfeiting the usual
+  same-day watering bonus -- then return and sell before touching replanting
+  or their other tiles, so the sale lands a full day ahead of the automatic
+  overnight deposit and gets ahead of the opponent's own Melon sale in the
+  shared market. This sells 60 Melon (12 tiles x 5) instead of 72 (12 x 6).
 - Idle hands and the farmer collect Fertilizer; selected premium crops use it
   when the projected return clears the value margin.
 - Endgame liquidation and the NE Wheat overflow buffer are active.
 
-Latest frozen validation against Early NE livestock v1:
+Latest frozen validation against Early NE single-Milk v1:
 
-- 8 wins, 0 losses, and 32 ties over 20 mirrored seeds.
-- 60.0% match score with zero errors.
-- Average money: 96,721.0 versus 95,603.4, a lead of 1,117.6.
-- Average harvests: 367.3.
-- Average sales: 184.7 Wheat, 38.0 Carrots, 72.0 Melons, 196.9
-  Strawberries, 2.6 Tomatoes, 41.4 Eggs, 169.3 Milk, 142.0 Wool, and
-  235.5 Fertilizer.
-- Average leftovers: 3.1 Wheat and zero for every other tracked product.
-- The 32 ties are the 16 nonqualifying seeds tying exactly in both positions;
-  the 8 wins are the 4 qualifying seeds (1, 4, 8, 20) winning both positions.
+- 36 wins, 4 losses, and 0 ties over 20 mirrored seeds.
+- 90.0% match score with zero errors.
+- Average money: 97,749.4 versus 96,327.3, a lead of 1,422.1.
+- Average harvests: 369.1.
+- Average sales: 190.8 Wheat, 38.4 Carrots, 60.0 Melons, 196.6
+  Strawberries, 1.8 Tomatoes, 41.4 Eggs, 169.7 Milk, 143.8 Wool, and
+  234.3 Fertilizer.
+- Average leftovers: 3.4 Wheat and zero for every other tracked product.
+- Zero ties is expected: unlike the shop-conditional branches above, this
+  change is unconditional and affects every seed, not a qualifying subset.
+  Both losses (seeds 10 and 18) were thin (254 and 13 coins); a baseline
+  isolation on seed 10 confirmed the mechanism works as intended (our day-10
+  sale quoted 249.0/226.0 versus the opponent's day-11 quote of only 106.0)
+  but the forfeited yield (60 versus 72 units) outweighs the price edge on
+  that particular seed.
 - Five-seed regressions (seeds 1--5) won 10W--0L against Locked SW livestock v1
-  (+7,871.8) and Day-0 livestock v1 (+7,159.0), both with zero errors. A third
-  regression against Early NE livestock v1 on the same seed range produced
-  4W--0L--6T (+2,753.2), consistent with the twenty-seed qualifying pattern.
+  (+9,181.0) and Day-0 livestock v1 (+8,447.2), both with zero errors.
 
 ## Top-player replay study
 
@@ -357,6 +365,43 @@ First accepted branch-selection change:
   found in the twenty-seed gate.
 - Accepted and frozen as `baselines/early_ne_single_milk_v1.py`.
 
+## Melon same-day sale -- accepted (roadmap detour)
+
+Requested outside the P0--P4 sequence, not a continuation of P4. The opening
+twelve-Melon wave previously sold in full on day 11, via the automatic
+overnight deposit, a full day after harvest day (day 10). The accepted change
+has Hands 1, 2, and 3 (the tile owners) harvest each Melon tile immediately
+once mature on day 10 -- skipping the usual same-day watering bonus, which
+would otherwise double the action cost per tile and blow the day's 24-action
+budget across all twelve tiles -- then return and sell before touching
+replanting or their other tiles.
+
+- Sells 60 Melon (12 x 5) same-day instead of 72 (12 x 6) a day later.
+- Twenty-seed mirrored gate against Early NE single-Milk v1: 36W--4L--0T
+  (90.0%), zero errors, 97,749.4 versus 96,327.3 (+1,422.1). Zero ties is
+  expected since the change is unconditional, not shop-gated.
+- A seed-10 isolation confirmed the mechanism: our day-10 sale quoted
+  249.0/226.0 across its two batches versus the opponent's day-11 quote of
+  106.0 for a larger single dump -- but the forfeited yield outweighs that
+  price edge on the two losing seeds (10, 18; both thin, 254 and 13 coins).
+- Five-seed regressions (seeds 1--5) won 10W--0L against Locked SW livestock v1
+  (+9,181.0) and Day-0 livestock v1 (+8,447.2), both zero-error.
+- Accepted and frozen as `baselines/melon_early_return_v1.py`, now the current
+  frozen baseline.
+- Recovering more of the forfeited yield was tried and rejected. Watering the
+  lightest-loaded hand's Melon tiles (full four, or three of four to still
+  make the same-day cutoff) both lost consistently (-194 and -319 to -322
+  coins/seed) against the true predecessor. The mechanism: two of the three
+  Melon-owning hands finish simultaneously at hour 20 in the frozen baseline,
+  merging into one `SELL MELON 40` order that matches the opponent's own
+  simultaneous 40-unit sale at the same market-list index. Delaying either
+  hand past hour 20 shrinks our side of that pairing to 20, letting the
+  opponent's matching 40-unit sale land in a lighter glut than a mirrored
+  pairing would give it -- a fixed gift to the opponent independent of what
+  the delayed hand does with its recovered time. Do not retry watering any of
+  the three Melon-owning hands without first addressing this hour-20
+  synchronization constraint. See the experiment log for the full trace.
+
 ## Deprioritized directions
 
 - Fourth-quadrant expansion: none of the five replay agents used it, while all
@@ -400,6 +445,9 @@ trace, then a five-seed mirrored screen against Early NE livestock v1.
 
 ## Next action
 
+A roadmap detour (Melon same-day sale, see below) is now the frozen baseline;
+resume from there rather than Early NE single-Milk v1.
+
 Continue **P4 -- strategy-family branching**. The NE single-Milk Cow routing
 change closed one gap in the early-NE trigger; audit the remaining seed
 prefixes where the compact NE block still defers to crops (no Yarn, no Milk,
@@ -408,5 +456,4 @@ is already correct there or whether another existing plan (Sheep, Goose,
 mixed) deserves a similarly targeted trigger. Change one decision-policy
 variable at a time, preserve the accepted timing/ownership/suppression rules,
 and gate any new branch the same way: a targeted trace, a twenty-seed direct
-gate against Early NE single-Milk v1, and a five-seed multi-opponent
-regression.
+gate against Melon early return v1, and a five-seed multi-opponent regression.

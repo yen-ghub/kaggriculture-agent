@@ -6,7 +6,7 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/early_ne_livestock_v1.py`
+`baselines/early_ne_single_milk_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below.
@@ -20,35 +20,44 @@ Current characteristics:
 - Two Cows and two Sheep established on day 0.
 - One additional Sheep starts on day 4 and another on day 11.
 - Two expansion Cows start with the NE expansion.
-- When either of the first two shops is Yarn or both demand Milk, the normal
-  NE Goose branch is replaced by four early NE livestock: Sheep for Yarn or
-  Cows for double Milk. Hand 6 prebuilds their pastures on day 8 and establishes
-  them in a batch on day 9; the SW four-animal branch remains inactive.
+- The early NE branch replaces the normal NE Goose branch with four compact
+  livestock at `(6, 4)`, `(7, 4)`, `(6, 3)`, and `(7, 3)` whenever the first
+  two shops signal any of: a Yarn Store (four Sheep), both shops demanding
+  Milk (four Cows), or at least one Milk-demand shop with no Yarn and no Egg
+  demand (four Cows). Hand 6 prebuilds their pastures on day 8 and establishes
+  them in a batch on day 9; the SW four-animal branch remains inactive whenever
+  this branch is selected.
 - When at least two Milk-demand shops are visible, one staged Cow may be added
   at `(1, 4)` after the NE Cows are established and the existing crop clears.
   Hand 1 owns its setup and service as part of the NW Sheep circuit.
-- Conditional NE Geese start on day 8. Hand 5 owns the Goose at `(6, 4)` and
-  the farmer owns the Goose at `(6, 3)`.
+- Conditional NE Geese start on day 8 only when the early NE branch is not
+  selected. Hand 5 owns the Goose at `(6, 4)` and the farmer owns the Goose
+  at `(6, 3)`.
 - Conditional four-animal SW plans may be mixed, all-Cow, or all-Sheep and are
-  locked after establishment.
+  locked after establishment, active only when the early NE branch is not
+  selected.
 - One Melon wave, with twelve opening Melon plants in the current day-0 livestock
   design.
 - Idle hands and the farmer collect Fertilizer; selected premium crops use it
   when the projected return clears the value margin.
 - Endgame liquidation and the NE Wheat overflow buffer are active.
 
-Latest frozen validation against Staged Cow v1:
+Latest frozen validation against Early NE livestock v1:
 
-- 10 wins, 0 losses, and 30 ties over 20 mirrored seeds.
-- 62.5% match score with zero errors.
-- Average money: 98,123.7 versus 97,155.2, a lead of 968.5.
-- Average harvests: 366.1.
-- Average sales: 187.2 Wheat, 39.8 Carrots, 72.0 Melons, 197.9
-  Strawberries, 2.5 Tomatoes, 41.4 Eggs, 158.8 Milk, 143.8 Wool, and
-  233.3 Fertilizer.
+- 8 wins, 0 losses, and 32 ties over 20 mirrored seeds.
+- 60.0% match score with zero errors.
+- Average money: 96,721.0 versus 95,603.4, a lead of 1,117.6.
+- Average harvests: 367.3.
+- Average sales: 184.7 Wheat, 38.0 Carrots, 72.0 Melons, 196.9
+  Strawberries, 2.6 Tomatoes, 41.4 Eggs, 169.3 Milk, 142.0 Wool, and
+  235.5 Fertilizer.
 - Average leftovers: 3.1 Wheat and zero for every other tracked product.
-- Five-seed regressions won 10W--0L against Locked SW livestock v1 (+5,996.0)
-  and Day-0 livestock v1 (+6,227.4), both with zero errors.
+- The 32 ties are the 16 nonqualifying seeds tying exactly in both positions;
+  the 8 wins are the 4 qualifying seeds (1, 4, 8, 20) winning both positions.
+- Five-seed regressions (seeds 1--5) won 10W--0L against Locked SW livestock v1
+  (+7,871.8) and Day-0 livestock v1 (+7,159.0), both with zero errors. A third
+  regression against Early NE livestock v1 on the same seed range produced
+  4W--0L--6T (+2,753.2), consistent with the twenty-seed qualifying pattern.
 
 ## Top-player replay study
 
@@ -331,6 +340,23 @@ opponent crop/animal counts, cash runway, and remaining production cycles. Once
 a capital-intensive branch establishes its structures, lock the decision unless
 replacement is impossible.
 
+First accepted branch-selection change:
+
+- A branch scan across seeds 1--20 found the compact early-NE block sitting
+  idle in crops on four seeds (1, 4, 8, 20) whose first two shops carried a
+  Milk-demand signal but neither Yarn nor Egg demand -- a prefix the existing
+  Yarn/double-Milk trigger did not cover, leaving those animals deferred to
+  the weaker day-12 SW decision.
+- The fix routes that prefix to the existing `EARLY_NE_ALL_COW_PLAN` with no
+  change to tiles, timing, hand ownership, or the SW/Goose suppression rule.
+- The twenty-seed mirrored gate against Early NE livestock v1 produced
+  8W--0L--32T (60.0%) with zero errors and a 1,117.6 average lead; the 32 ties
+  confirm isolation on nonqualifying seeds. Three five-seed regressions on
+  seeds 1--5 were all zero-error, including a third pass against Early NE
+  livestock v1 itself that reproduced the exact qualifying/nonqualifying split
+  found in the twenty-seed gate.
+- Accepted and frozen as `baselines/early_ne_single_milk_v1.py`.
+
 ## Deprioritized directions
 
 - Fourth-quadrant expansion: none of the five replay agents used it, while all
@@ -366,16 +392,21 @@ different opponent.
 
 ## Prior next action (superseded)
 
-Continue **P1 — Staged shop-aware livestock ladder** with one additional
-demand-aware stage. Audit a Sheep or Goose position adjacent to an established
-service circuit, assign its owner before placement, and preserve the accepted
-Cow stage, day-4 Sheep, land timing, and normal crop schedule on nonqualifying
-seeds.
-
-## Next action
-
 Move to **P4 -- strategy-family branching**. Design one branch-selection test
 using the early shop prefix to choose among the existing Cow-heavy, Sheep-heavy,
 Goose, and crop-default plans. Change the decision policy only; retain the
 accepted timing, hand ownership, and service routes. Start with a targeted
 trace, then a five-seed mirrored screen against Early NE livestock v1.
+
+## Next action
+
+Continue **P4 -- strategy-family branching**. The NE single-Milk Cow routing
+change closed one gap in the early-NE trigger; audit the remaining seed
+prefixes where the compact NE block still defers to crops (no Yarn, no Milk,
+no Egg signal in the first two shops) and decide whether a crop-heavy default
+is already correct there or whether another existing plan (Sheep, Goose,
+mixed) deserves a similarly targeted trigger. Change one decision-policy
+variable at a time, preserve the accepted timing/ownership/suppression rules,
+and gate any new branch the same way: a targeted trace, a twenty-seed direct
+gate against Early NE single-Milk v1, and a five-seed multi-opponent
+regression.

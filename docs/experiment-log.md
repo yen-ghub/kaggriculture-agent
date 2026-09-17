@@ -1111,3 +1111,48 @@ player positions by 942, 1,860, and 1,045 coins respectively, yielding a
 repay the second Cow's purchase, feed, displaced crop value, and recurring
 Hand 1 service workload. `main.py` is restored to Early NE livestock v1; do
 not retry this tile/threshold combination as another isolated Cow stage.
+
+## NE single-Milk Cow routing -- accepted (first P4 branch-selection change)
+
+A branch scan across seeds 1--20 against frozen Early NE livestock v1 found
+that the compact NE block at `(6, 4)`, `(7, 4)`, `(6, 3)`, and `(7, 3)` was
+left in normal crop production on four seeds (1, 4, 8, 20), deferring all
+extra livestock to the weaker day-12 SW decision. Every one of those openings
+carried at least one Milk-demand shop in its first two shops but no Yarn and
+no Egg signal, a prefix the existing trigger did not cover.
+
+The candidate extends the existing early-NE selection condition with one new
+disjunct: the established `EARLY_NE_ALL_COW_PLAN` also activates when the
+two-shop prefix has at least one Milk-demand shop and neither Yarn nor Egg
+demand. Tiles, pasture day 8, batched placement day 9, Hand 6 ownership, and
+cash reserve are unchanged; the no-Yarn/no-Egg guard keeps the accepted Sheep,
+double-Milk, and Goose triggers exactly as they were.
+
+A seed-8 trace confirmed clean mechanics: pastures built day 8 hours 5--11,
+all four Cows placed day 9 hours 7--19, matching the accepted timing exactly.
+The three nonqualifying control seeds traced (2, 5, 14) were exact ties.
+
+The twenty-seed mirrored gate against Early NE livestock v1 produced
+8W--0L--32T (60.0% match score) with zero errors. It averaged 96721.0 coins
+against 95603.4, a 1117.6 lead, and 367.3 harvests. Average sales were 184.7
+Wheat, 38.0 Carrots, 72.0 Melons, 196.9 Strawberries, 2.6 Tomatoes, 41.4 Eggs,
+169.3 Milk, 142.0 Wool, and 235.5 Fertilizer, with 3.1 Wheat left over and zero
+leftovers for every other tracked product. The 32 ties are the 16 nonqualifying
+seeds tying exactly in both positions, confirming isolation; the 8 wins are the
+4 qualifying seeds (1, 4, 8, 20) winning both positions. Milk sales rose from
+158.8 to 169.3 while Wool held essentially flat (143.8 to 142.0), showing the
+added Cows were not funded by displacing the Sheep branch.
+
+Three five-seed regressions (seeds 1--5) all passed. Against Locked SW
+livestock v1: 10W--0L--0T (100%), 82489.4 versus 74617.6, a 7871.8 lead.
+Against Day-0 livestock v1: 10W--0L--0T (100%), 96503.2 versus 89344.2, a
+7159.0 lead. Against Early NE livestock v1 itself on this smaller seed range:
+4W--0L--6T (70.0%), 100915.2 versus 98162.0, a 2753.2 lead -- exactly 2
+qualifying seeds (1, 4) winning both positions and 3 nonqualifying seeds (2,
+3, 5) tying both positions, consistent with the twenty-seed gate. All three
+regressions were zero-error.
+
+The gain is larger per changed seed (+5590 average across the 4 qualifying
+seeds) than the predecessor branch's own acceptance evidence (+3874 per
+changed seed), with no paired-seed regression and no position asymmetry. The
+branch is accepted and frozen as `baselines/early_ne_single_milk_v1.py`.

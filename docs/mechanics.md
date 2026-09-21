@@ -208,6 +208,28 @@ backpack into the shed.
 
 The current agent uses `(4, 4)` as its shed-access tile.
 
+### Drop (observed in opponent replay, not used by our own agent)
+
+```python
+["DROP"]
+```
+
+Not currently emitted by `main.py` -- observed in a real opponent replay
+(`docs/opponent_replay_trace.md`, days 4 and 5). Behaves inconsistently by
+carried item type at a shed-access tile:
+
+- Carrying only Wheat: the Wheat is deposited into the shed (shed count
+  increases by the carried amount), same effective result as `PLACE`.
+- Carrying Fertilizer (alone or mixed with another product): the Fertilizer
+  is destroyed -- the unit's inventory empties but the shed's Fertilizer
+  count does not increase. A `SELL FERTILIZER` order submitted the same
+  step then has nothing to sell.
+
+Confirmed directly from replay data (before/after inventory and shed
+counts at a shed-access tile, three independent instances). Treat this as a
+genuine game mechanic, not certainly a bug -- but Fertilizer specifically
+needs `PLACE FERTILIZER` to actually reach the shed; `DROP` loses it.
+
 ## Market actions
 
 Market orders are lists inside the `market` action list.
@@ -254,6 +276,14 @@ daily sequence:
 The sequence resets each day. Therefore, the first two hands cost one coin
 each, for a combined daily cost of two coins.
 
+Because the roster is cleared and re-hired every night, an extra hand is a
+**recurring daily cost, not a one-off**, and the marginal cost is the cost of
+its own slot in the sequence -- not the cheap early slots. Running twelve hands
+costs `1+1+2+3+5+8+13+21+34+55+89+144 = 376` per day, of which the twelfth
+slot alone is 144/day (~2,700 across a season). A "hire one extra hand just for
+setup" plan is therefore genuinely cheap (one or two days), while a permanent
+extra hand must repay 144 every single day.
+
 Local traces confirmed that submitting two `HIRE` orders produces two hands
 and sets `hires_today` to `2`. Hands disappear at the next day boundary and
 must be hired again. Any carried inventory is deposited into the shed during
@@ -263,6 +293,28 @@ Each active hand requires a corresponding entry in the returned `hands`
 action list. When multiple hands use the same target-selection logic and work
 area, they can move onto the same positions and submit duplicate actions.
 Assigning non-overlapping work zones prevents this wasted work.
+
+## Observation/action pairing in `env.steps` and replay files
+
+`env.steps[i][player]["observation"]` is the state that resulted from
+`env.steps[i][player]["action"]` -- that is, `action` at index `i` was chosen
+using `observation` at index `i - 1`, and its effect is what `observation` at
+index `i` shows. It is not an action about to be taken from the observation
+shown at the same index.
+
+Confirmed directly from a real match replay (`replays/110311259.json`,
+local only) by checking farmer movement across consecutive hours: at hour
+`h`, the farmer's recorded position already reflects the direction submitted
+in `action[h]` (e.g. `action[h] == ["EAST"]` moves the position shown at
+`observation[h]` one tile east of `observation[h-1]`'s position), not the
+position the farmer was at when that action was chosen. The same pairing
+was independently confirmed against a locally-run `main.py` trace via
+`kaggle_environments`.
+
+This matters for any tool or analysis that walks `env.steps` (a replay file,
+a local `env.run()` trace, or the evaluation script's diagnostics) and wants
+to say "the unit was at position P when it took action A" -- P is the
+*previous* step's observation, not the current one's.
 
 ## Action processing order
 
@@ -602,6 +654,50 @@ The current project has tested Wheat, Carrot, Melon, and Strawberry.
 These harvest rules are strategy settings chosen from observed crop behavior.
 They are not a rule that every crop must be harvested at one fixed age.
 
+### Confirmed: one-time crops reach their configured `harvest_yield` one day
+### after their configured `harvest_day`
+
+Verified with isolated single-tile traces (one farmer, one tile, watered every
+day, no other hands or opponent activity to confound the result) for Wheat,
+Carrot, and Melon: a one-time crop's `yield_units` does not jump straight to
+`harvest_yield` at `harvest_day`. It grows on a fixed per-crop curve and only
+reaches the table's yield value the day *after* the table's harvest-day
+value -- i.e. harvesting at the currently configured `harvest_day` delivers
+exactly one unit less than `CROP_CONFIGS` assumes, for every one-time crop:
+
+| Crop | Age at harvest via current `harvest_day` | Actual `yield_units` delivered | Assumed `harvest_yield` | Age `yield_units` actually reaches the assumed value |
+|---|---:|---:|---:|---:|
+| `WHEAT` | 4 | 3 | 4 | 5 |
+| `CARROT` | 3 | 2 | 3 | 4 |
+| `MELON` | 10 | 5 | 6 | 11 |
+
+Observed Wheat growth curve (age -> `yield_units`, watered every day):
+`1, 1, 2, 3, 4` for ages 1-5. Carrot: `1, 1, 2, 3` for ages 1-4. Melon holds
+at `1` through age 6, then ramps `2, 3, 4, 5, 6` for ages 7-11. In all three
+cases `yield_units` plateaus at the assumed `harvest_yield` once reached (it
+does not keep growing), and an unharvested tile still decays once it passes
+its `max_lifespan_step`, separately from this yield curve.
+
+This means `crop_profit_per_day()` currently overstates every one-time
+crop's profitability (it divides `harvest_yield` by `harvest_day`, but the
+agent's own `crop_is_harvestable()` gate lets hands harvest at `harvest_day`,
+one day before that yield is actually available), and every one-time-crop
+harvest across a full game is one unit short of what the formula assumes.
+Not yet investigated: whether Strawberry's periodic `yield_units > 0` harvest
+timing (ages 10, 12, 14, 16) has an equivalent one-day discrepancy, and
+whether fertilizer changes the growth curve's shape rather than just its
+final value.
+
+Despite being a confirmed, verified mechanic, three attempts to act on it
+were all tried and rejected -- see `docs/experiment-log.md`. Waiting the
+extra day for the full assumed yield is not free: for Wheat and Carrot it
+narrows the profit-per-day gap between them enough to destabilize which one
+`choose_crop_for_planting()` treats as the default staple, and for Melon it
+delays the harvest day past the point where the existing early-return-trip
+mechanism (`MELON_HARVEST_DAY`) can still beat the opponent to market with
+the first sale, losing more to a lower realized price than the extra unit
+is worth. This mechanic is real but is not, by itself, an actionable fix.
+
 For a one-time crop, the latest planting day is calculated as:
 
 ```python
@@ -706,3 +802,76 @@ liquidation must take priority over watering or harvesting additional crops.
 
 The evaluation script records final carried and shed quantities to detect
 failed liquidation.
+
+## Confirmed: neglected livestock are unplaced overnight
+
+Verified while root-causing a "tiles get destroyed" bug reported during an
+early-Cow-expansion experiment (see `docs/experiment-log.md`). An animal
+tile has `fed_today`/`cared_today` booleans that reset to `False` at the
+start of each day, same as a crop tile's `watered_today`. If an animal goes
+the entire day with `fed_today == False` (i.e. it is never fed even once
+that day), the game engine appears to unplace it overnight: the tile keeps
+its `PASTURE`/`COOP` `kind`, but `animal` reverts to `None`. This applies to
+every animal on the farm simultaneously if none of them got fed that day --
+not a per-animal independent check tied to some other condition.
+
+Confirmed with a real trace (docs/experiment-log.md's "Early NW Cow
+expansion" iteration 3/6): on a day where an agent variant's Wheat-feed
+purchase failed for the entire day (see below), every tracked animal --
+2 original Cows, 3 Sheep, 2 newly added Cows, 7 in total -- showed
+`fed_today=False, cared_today=False` at hour 23, and several of them (not
+all -- the exact selection was not further isolated) showed `animal: None`
+at hour 0 the next day.
+
+This means the actual failure mode in that experiment was not a bug in the
+shared `active_animal_plan`/`choose_setup_action` tracking logic (as
+originally suspected) -- it was starving Wheat feed for an entire day by
+overspending on new Cow purchases the same day, given `BUY_ANIMAL` runs
+before the Wheat-feed-reserve calculation in section "3.6" and both draw
+from the same day's `money_available`. Adding more animals at once (a large
+combined purchase cost) can crowd out that same day's Wheat purchase for
+*every* animal already on the farm, not just the new ones, triggering this
+neglect mechanic across the board.
+
+## Confirmed: the servicing unit determines when produce reaches the market
+
+An animal's product is sold from the shed, so whoever services the animal sets
+the hour its output becomes sellable. Adding one extra animal to the *farmer's*
+daily round pushed its Cow-milk collection and shed deposit from hour ~15 to
+hour ~21 on every single day of the game -- the same days, the same quantities,
+six to seven hours later.
+
+That is not a rounding detail. Prices move with shared market inventory during
+the day, so on a glutted product the later fill is materially worse:
+
+```text
+MILK sale prices, same days, same quantities, identical volume (126 each):
+  farmer carrying an extra animal:  129, 108,  99, 103, 68, 57, 47, 36, 26, 15,  5, 1 ...
+  farmer round left untouched:      154, 120, 108, 112, 89, 66, 55, 45, 34, 24, 13, 3 ...
+```
+
+Cost: -2,554 on Milk+Wool on one seed, at equal or greater volume. Moving the
+extra animal to a hand restored the baseline hours and made Milk revenue match
+exactly.
+
+Rule of thumb: treat the farmer's animal round as a latency-critical path.
+Prefer giving a new animal to a hand, and when measuring any change that could
+shift service order, compare sale *hours*, not just totals.
+
+## Confirmed: hand inventories are banked free at every day boundary
+
+`_drop_inventories_to_shed` empties every hand inventory into the shed at each
+day boundary (overflow beyond `shedCapacity`, default 100, is discarded), and
+`_inv_add` imposes no per-hand carry limit. Carrying produce costs nothing and
+risks nothing as long as the day's accumulation stays under the shed cap.
+
+Walking to the shed to deposit therefore buys only one thing: selling a day
+earlier. That is worth doing for a steeply glutted product such as Milk, and
+not worth doing for a flat one such as Egg. Holding Eggs until the overnight
+drop -- placing them only when the round already ends at the shed -- cost zero
+Eggs sold and freed enough actions to be worth +1,588 across two seeds.
+
+Corollary for multi-animal hands: fetch feed in one batch sized to the number
+of unfed animals the hand owns. A hardcoded single-unit `PICKUP` forces one
+shed round-trip per animal; a hand with two Geese made 88 shed arrivals against
+a four-Sheep hand's 22.

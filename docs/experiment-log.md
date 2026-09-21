@@ -137,6 +137,8 @@ All evaluations use both player positions.
 | Double-Egg third-Goose candidate | Staged Cow v1 | 20 | 52.5% | 95581.0 | 370.0 | 185.8 wheat, 41.4 carrot, 72.0 melon, 198.0 strawberry, 2.6 tomato, 54.4 egg, 162.8 milk, 131.3 wool, 234.2 fertilizer | Rejected: 4W, 2L, 34T; average opponent 95555.9; average lead only 25.1. Seed 11 lost by 698 in both positions; 3.0 wheat leftover and zero errors |
 | Early NE livestock branch | Staged Cow v1 | 20 | 62.5% | 98123.7 | 366.1 | 187.2 wheat, 39.8 carrot, 72.0 melon, 197.9 strawberry, 2.5 tomato, 41.4 egg, 158.8 milk, 143.8 wool, 233.3 fertilizer | Accepted: 10W, 0L, 30T; average opponent 97155.2; +968.5 average lead, zero errors. First-two-shop Yarn selects four Sheep; double Milk selects four Cows. Five-seed regressions won 10W--0L against Locked SW livestock (+5996.0) and Day-0 livestock (+6227.4) |
 | Second staged Cow at `(0, 4)` | Early NE livestock v1 | 20 | 42.5% | -- | -- | -- | Rejected: 0W, 6L, 34T. It activated only on seeds 8, 13, and 17, then lost both positions by 942, 1,860, and 1,045 coins; full-suite average deficit 192.4. Three Milk shops did not justify its purchase, feed, crop displacement, and Hand 1 service load |
+| Widened early-NE block (6 tiles) | Crop sale priority v1 | 5 | 20.0% | 90626.6 | -- | -- | Rejected: 0W, 4L, 1T; average opponent 95363.0; average deficit 4736.4 on the four activating seeds (seed 2 exactly tied, branch not triggered). Extending `EARLY_NE_LIVESTOCK_TILES` from 4 to 6 tiles (adding `(8,4)`/`(8,3)`) bought 2 more Cows on top of the existing 4-cow block, reusing the same hand and days with zero errors, but lost by a consistent 3,589--6,763 coins on every seed that activated it |
+| Early NW Strawberry conversion | Crop sale priority v1 | 20 | 90.0% | 94896.2 | 369.0 | 182.1 wheat, 41.0 carrot, 60.0 melon, 200.3 strawberry, 1.6 tomato, 41.2 egg, 167.2 milk, 145.4 wool, 232.8 fertilizer | Accepted: 36W, 4L, 0T; average opponent 93034.9; +1861.3 average lead; zero errors; 3.2 wheat leftover, zero elsewhere. Five-seed regressions won 10W--0L against both Locked SW livestock v1 (+11272.0) and Day-0 livestock v1 (+10271.4) |
 
 Seed buffer v1 completed a 70-match, seven-opponent development suite with a 100.0% macro match score, zero errors, and zero final crop leftovers.
 
@@ -1380,3 +1382,884 @@ evidence alone -- positive average lead, zero errors, no catastrophic
 paired-seed losses -- and frozen as `baselines/crop_sale_priority_v1.py`.
 Revisit the multi-opponent regression if a future candidate's result looks
 inconsistent with this one and the gap needs isolating.
+
+## Replay-informed opening study
+
+A real ranked-match replay (`replays/110311259.json`, not tracked in git; our
+agent "Yendrew Y" vs "Alua Аkhmetkali", final money 90253 vs 140537) was
+analysed for opening/build-order differences. The money gap widened almost
+linearly from day 10 onward (-6692 at day 10 to -50284 at day 29), indicating
+a sustained per-day production deficit rather than a one-time opening
+mistake. Ground-truth farm state at days 15--19 showed our agent running 9
+Cows + 4 Sheep (13 animals) against the opponent's 9 Cows + 5 Sheep + 3 Geese
+(17 animals), matching the earlier top-player replay study's finding of
+~17--19 peak animals. The triggering shop prefix (two Smoothie Shops, then
+Pizza Shop, Brunch Spot, three Bakeries, Pet Cafe -- no Yarn Store, no
+explicit multi-Milk shop) activated our early-NE all-Cow branch.
+
+Code inspection found that the early-NE compact block, the adaptive Goose
+branch, and the SW four-animal branch are mutually exclusive by
+construction, not merely by policy: `ADAPTIVE_GOOSE_TILES` (`(6,4)`,
+`(6,3)`) are literally two of the early-NE block's four tiles, a hard tile
+conflict, and the SW/early-NE branches share one `active_sw_livestock_hand_index`
+variable and one `choose_sw_livestock_hand_action` function, assuming at
+most one of the two is ever active. Running multiple livestock branches
+simultaneously (to match the replay's 17-animal composition) would require
+restructuring that shared hand-index dispatch across several functions --
+too broad for a single-variable test, and not attempted here.
+
+Widened early-NE block candidate: extended `EARLY_NE_LIVESTOCK_TILES` from
+the 4-tile 2x2 block to a 6-tile 2x3 block by adding `(8,4)` and `(8,3)`,
+adjacent to the existing tiles. Every consumer of that tuple (pasture
+construction, batch pickup/placement, feed/care, purchase-quantity
+targeting, reserved-tile tracking) is already generic over its length, so
+this was a genuine two-line change: same hand (index 5 / "Hand 6"), same
+days (pasture build day 8, placement day 9), no new hand-index logic. A
+seed-1 trace confirmed it bought 6 Cows instead of 4 (10 total with the
+always-on 4 base Cows), completed placement with zero errors, and left NE
+(day 7) and SW (day 11) unlock timing unchanged.
+
+Rejected on the five-seed mirrored gate against Crop sale priority v1: 0W,
+4L, 1T (seed 2 exactly tied -- the branch never triggered on that seed). The
+four activating seeds lost by a consistent 3589, 6763, 6740, and 6590 coins
+(average deficit 4736.4), not scattered thin losses. The most likely
+mechanism, consistent with prior rejections in this log: the 2 extra tiles
+were taken entirely from Hand 7's NE crop zone (9 tiles down to 7, while
+Hands 4 and 6 stayed at 6 each), and Milk's market has a much tighter glut
+threshold (`T=122`) than Wheat's (`T=400`), so 2 more Cows' Milk output from
+an already-10-Cow herd likely pushed further into a shared, price-sensitive
+market than the extra tiles and feed cost could repay. Do not retry a wider
+early-NE block without either freeing tiles from a less-loaded hand or
+addressing Milk oversupply directly.
+
+The mutual-exclusion architecture discovered here is a standing constraint
+for any future livestock-scale experiment: a candidate that wants to add
+Geese or SW animals on top of an active early-NE branch must first resolve
+the tile conflict (Goose tiles) and the shared hand-index dispatch (SW
+branch) as its own dedicated, tightly-coupled package -- it cannot be
+treated as a simple threshold or suppression-flag change.
+
+## Opponent-replay-informed staged packages
+
+Follow-up to the replay study above: `docs/opponent_replay_trace.md` records
+a full day-by-day reconstruction of the winning opponent's real actions
+(days 0-6), intended to be translated into `main.py` as a series of small,
+independently-gated dynamic-rule packages rather than a literal hardcoded
+replay (the opponent's days 2+ come from a single seed and may not
+generalize; only our own agent's days 0-1 were verified deterministic
+across seeds).
+
+### Rejected: a 5th day-0 hand does not add capacity
+
+Before implementing anything, traced our own agent's NW tile utilization
+across days 0-4 (seed 1) to check whether the replay's "5 hands, 12 Melon,
+7 Wheat" day-0 template would help. Findings:
+
+- All 21 real NW crop tiles (25 minus 2 Cow, 2 Sheep) are already divided
+  across the existing 4 hands and fill in completely by day 4 using only
+  those 4 hands (`D00 empty=9`, `D01 empty=9`, `D02 empty=3`, `D03 empty=1`,
+  `D04 empty=0`).
+- The fill rate is gated by cash, not hand-time: day 0 ends at 11 coins and
+  day 1 at 4, with no idle cash sitting unused.
+- A 5th hand could therefore only redistribute the same 21 tiles across 5
+  hands instead of 4, adding a recurring hire cost with no new capacity to
+  spend it on -- the same failure mode as prior rejected hand/animal
+  additions in this log. Not implemented; no evaluation run was spent on
+  it. The opponent's apparent day-0 affordability edge (5 hands + 7 Wheat
+  while ending at a comparable 16 coins) likely reflects a more
+  cash-efficient spending sequence, not simply more workers -- an open
+  question, not yet a scoped candidate.
+- Also checked why our filler crop is Carrot rather than Wheat during
+  days 2-5 (`D02 CARROT=6`, `D05 CARROT=7, WHEAT=0`, `D08 WHEAT=5`): the
+  existing `crop_profit_per_day()` formula favors Carrot (28.3/day) over
+  Wheat (22.5/day) at base prices despite Wheat's seed cost being half
+  Carrot's ($10 vs $20) -- worth revisiting as its own candidate later,
+  since seed cost (not just profit-per-day) may matter more while cash is
+  the binding constraint.
+
+### Accepted: early NW Strawberry conversion
+
+The opponent's day-5 pattern was harvesting a mature Wheat tile and
+replanting Strawberry there instead of Wheat again. Our agent's early
+filler crop is Carrot, not Wheat (see above), so the adapted version
+recycles whichever staple is actually growing.
+
+Added `early_nw_strawberry_phase_active`, mirroring the existing
+`early_ne_strawberry_phase_active` mechanism: active once NE is unlocked
+and before day 10 (the normal farm-wide Strawberry start), targeting 6
+Strawberry plants counted on NW's own tiles specifically (not the
+farm-wide total the NE mechanism uses, so the two waves cannot starve each
+other through a shared counter). Wired into the same per-hand crop-override
+site as the NE mechanism (`hand_index < NW_HAND_COUNT`) and the same
+seed-purchase target calculation (combined NE + NW target).
+
+A seed-1 trace confirmed NW hands begin planting Strawberry at day 7 hour
+19, reaching the combined 12-plant target (6 NE + 6 NW) by day 8, Carrot
+phased out cleanly, and SW still unlocking on schedule at day 11 -- cash
+was not disrupted. Zero errors.
+
+The twenty-seed mirrored gate against Crop sale priority v1 produced
+36W--4L--0T (90.0%), zero errors, 94896.2 versus 93034.9 (+1861.3), and
+369.0 average harvests. Every tracked product finished with zero leftovers
+except 3.2 Wheat, matching the frozen predecessor's own typical residual.
+Five-seed regressions won 10W--0L against both Locked SW livestock v1
+(+11272.0) and Day-0 livestock v1 (+10271.4), both zero-error.
+
+Accepted and frozen as `baselines/early_nw_strawberry_v1.py`, now the
+current frozen baseline. This is "Package 1" of the opponent-replay-informed
+staged effort; see `docs/current_roadmap.md` for the remaining candidates
+(day-0 cash-efficiency, Wheat-vs-Carrot staple preference, wider NE pasture
+staging).
+
+### Rejected: Wheat-vs-Carrot early staple preference
+
+Package 2 candidate. The replayed opponent used Wheat exclusively as its
+staple filler through the entire pre-NE opening, never Carrot, despite
+Wheat's lower assumed profit-per-day (22.5 vs Carrot's 28.3/day at base
+prices). The working hypothesis was that Wheat's half-price seed cost
+($10 vs $20) might let cash-constrained NW tiles fill faster during the
+opening, even if each tile earns less once planted.
+
+Implemented as a scoped override: a new `early_wheat_preference_phase_active`
+flag (true while NE is not yet unlocked) forced `choose_crop_for_planting()`
+to pick Wheat directly during the opening, skipping the profit-per-day
+comparison, and reverting to the normal dynamic comparison (Carrot) once NE
+unlocks -- mirroring Package 1's scoped-override pattern.
+
+Before spending evaluation quota, traced both the old (Carrot-default) and
+new (Wheat-preference) agents against a fully idle/passive opponent (no
+opponent actions, so the shared market cannot be moved by anything but our
+own agent) across 3 seeds, isolating our own staple choice from any
+opponent-driven price effects. Findings:
+
+- Staple tile fill rate was nearly identical between the two (7-8 tiles by
+  day 3 either way, converging further by day 6-8). Our seed-purchase logic
+  buys up to a *fixed per-turn seed count target* (3, or 8 once NE is
+  unlocked), not "as many seeds as cash allows" -- so a cheaper seed does
+  not let more tiles fill per cycle once there is enough cash to clear the
+  fixed target, which is true for most of the opening. The core premise
+  (cheaper seed cost -> faster fill) does not hold under this architecture.
+- With fill rate roughly unchanged, forcing the lower-profit-per-day crop
+  for the same tiles produced a consistent net loss: final reward was lower
+  for the Wheat-preference version on 3 of 3 seeds (142524 to 140661,
+  158324 to 142329, 134649 to 130323 -- roughly 1900 to 16000 coins worse).
+- Rejected without an evaluate.py run; the controlled trace already showed
+  a consistent regression with no plausible offsetting mechanism.
+
+While investigating why the replay showed the opponent harvesting Wheat at
+age 3 (one day earlier than our `harvest_day: 4`), a separate and more
+significant mechanics issue was confirmed: one-time crops do not reach
+their configured `harvest_yield` until one day *after* their configured
+`harvest_day` (see `docs/mechanics.md`'s "Confirmed: one-time crops reach
+their configured `harvest_yield` one day after their configured
+`harvest_day`" section). Verified with isolated single-tile traces for
+Wheat, Carrot, and Melon alike. This means `crop_profit_per_day()`
+overstates every one-time crop's profitability, and every one-time-crop
+harvest all game is one unit short of what the formula assumes -- a
+crop-agnostic, farm-wide finding, not specific to the Wheat-vs-Carrot
+question. This is now a higher-priority candidate than the original
+staple-preference idea; see `docs/current_roadmap.md`'s Next action.
+
+### Rejected (three variants): acting on the one-time-crop harvest-timing finding
+
+Followed up on the harvest-timing mechanic above with three single-seed
+trials, each caught and rejected before spending a full evaluate.py run:
+
+1. **Wheat + Carrot `harvest_day` +1 (the "full" fix)**: bumped both
+   (Wheat 4->5, Carrot 3->4) together, since they compete directly in
+   `choose_crop_for_planting()`'s `eligible_staples` comparison and fixing
+   only one first (tried and immediately reverted) just shifts that
+   comparison and silently switches the whole farm's staple, rather than
+   testing either fix on its own merits -- confirmed by computing
+   `crop_profit_per_day()` with real seed-1 prices: Carrot alone dropped
+   from 28.3 to 21.25/day, falling below Wheat's still-unfixed 22.5/day.
+   With both fixed, the two crops' profit-per-day landed within a few
+   percent of each other and flipped which one "won" nearly every day as
+   market prices moved (e.g. seed 1: Carrot ahead days 0-2, Wheat days 3-4,
+   Carrot day 5, Wheat days 6-10). Average harvests dropped from the
+   baseline's 369 to 284.5, and lost both mirrored positions on seed 1
+   (81326.5 vs 95583.5, a bigger deficit than a clean baseline-vs-baseline
+   reference run on the same seed, which ties at 128482).
+2. **Wheat + Carrot `harvest_yield` -1 only (`harvest_day` unchanged)**:
+   the more conservative version -- correct the formula's inputs to the
+   real delivered yield (Wheat 4->3, Carrot 3->2) without changing when the
+   agent actually harvests, avoiding any change to cycle length. Still
+   flipped the dominant staple to Wheat on seed 1's price trajectory (220
+   Wheat sold vs 9 Carrot) and still lost both positions (87129 vs 91539),
+   a smaller deficit than variant 1 but still a clear loss.
+3. **Melon `harvest_day` +1 only (10->11)**: Melon has its own separate
+   decision layer and never competes with the staples for the same slot,
+   so this does not carry the flip-flop risk of variants 1-2. Traced 3
+   seeds mirrored (6 matches): lost all 6, but by a much smaller and more
+   consistent margin (102322.2 vs 104530.0, roughly a 2% deficit) than
+   either Wheat/Carrot variant. The extra Melon unit did not make up for
+   losing the first-mover market-timing advantage the existing
+   `MELON_HARVEST_DAY` early-return-trip mechanism depends on -- delaying
+   the harvest by a day lets the opponent's unmodified schedule sell first
+   and depress the price before our (larger, now-later) sale lands.
+
+All three reverted; `main.py` matches the frozen baseline. The underlying
+mechanic (`docs/mechanics.md`) is confirmed and real, but none of the
+direct ways to act on it improved results -- the codebase's existing
+harvest timing turns out to be implicitly load-bearing for reasons (staple
+selection stability, first-mover market timing) that the yield-per-tile
+view alone does not capture. Not recommended to revisit without a new
+angle (e.g. a Melon-specific market-timing-aware variant that keeps the
+early sale but somehow still captures the extra unit, if that is even
+possible) rather than a direct `CROP_CONFIGS` edit.
+
+### Early NW Cow expansion: three rejected iterations, a fourth pending real evaluation
+
+The opponent replay showed a 3rd Cow (`(4,2)`) and 4th Cow (`(2,4)`) both
+established before day 4, well ahead of our own NE-gated expansion (day 6+).
+Our own baseline stays at 2 Cows until day 6-8. Investigated whether our
+Carrot-based cash flow (Wheat having already been rejected) could support
+the same early expansion. Three iterations, each single/few-seed traced
+before spending an evaluate.py run:
+
+1. **Reused an existing Carrot tile** (`(0,2)`, after confirming `(4,2)`
+   itself is one of our Melon-opening-wave tiles and would not free up
+   until Melon's ~day-10 harvest): worked mechanically -- 3 Cows by day 4
+   across all 3 seeds traced -- but gave a mixed result, 1W-2L against the
+   frozen baseline (+5360, -10446, -9873), net negative on average. Cash
+   crashes to near zero for a couple of days right after the $400 purchase,
+   and the converted tile permanently gives up its Carrot income for the
+   rest of the game.
+2. **Two tiles reserved unconditionally from day 0** (matching the
+   opponent's own approach of never planting either tile, rather than
+   repurposing an existing crop tile): this introduced a real bug, not
+   just a worse trade-off. Making both tiles part of `active_animal_plan`
+   from day 0 pushed the day-0 `animal_target_counts["COW"]` straight to 4,
+   and since `BUY_ANIMAL` runs before crop seed purchases each turn, the
+   attempted 1600-coin animal purchase outbid the Melon wave for day-0 cash
+   entirely -- Melon stayed at 0 tiles for the rest of the game on every
+   seed traced, a catastrophic, permanent loss (Melon can only ever be
+   planted on day 0). Separately, `(2,4)` -- the opponent's actual 4th-Cow
+   tile -- collides with our own `DAY4_ADDITIONAL_SHEEP_TILES`, so it
+   silently became a Sheep instead of a Cow via dict-update overwrite order.
+3. **Fixed both issues** (target only joins `active_animal_plan` from day 1
+   (first tile) / day 4 (second tile) to protect day-0 cash and avoid an
+   all-or-nothing 800-coin purchase; moved the second tile to `(4,1)`, a
+   genuinely free tile, to avoid the Sheep collision): Melon was restored
+   to 12 tiles and the collision was gone, but a new, more serious bug
+   appeared -- Sheep and Cow tiles actually got destroyed (reverted to
+   `None`) partway through the game on every seed traced, something that
+   never happens in the unmodified baseline (verified side by side at the
+   hour level: baseline's animal tiles are stable at every day boundary,
+   this version's are not). Final scores were also a clean 0W-3L, worse
+   than iteration 1. The root cause was not isolated -- it appears once
+   `active_animal_plan` carries more entries than the codebase's existing
+   dynamic-livestock mechanisms (staged Cow, early NE livestock, adaptive
+   Goose, SW livestock, all of which share shed-access/hand-index/farmer
+   routing logic) were built and tested against, consistent with the
+   "shared hand-index dispatch" fragility already flagged in
+   `docs/current_roadmap.md` as needing its own restructuring work before
+   further livestock experiments.
+
+All three reverted at the time. Rather than doing the hand-index/tile-
+dispatch restructuring itself, a 4th iteration sidestepped it entirely:
+
+4. **Fully decoupled construction, only handed to the shared system once
+   already placed.** Added `choose_early_nw_cow_action()` -- a self-
+   contained routine (its own BUILD_PASTURE/DIG/PICKUP/PLACE sequence and
+   its own staggered `BUY_ANIMAL` market order, day-gated the same way as
+   iteration 3) that runs at higher priority than `choose_animal_action()`
+   and handles one tile at a time. Neither tile ever enters
+   `active_animal_plan` while still under construction -- only once
+   `animal_is_placed()` is already true for it, at which point
+   `choose_setup_action`'s construction branch is naturally skipped anyway
+   (its own `not in animal_positions` filter excludes anything already
+   placed), so the buggy shared code path from iteration 3 is never
+   exercised. Traced 3 seeds: no destruction, no Melon loss, both Cows
+   placed cleanly and cash stayed sane the whole game (still reserved from
+   crop planting unconditionally from day 0, as in iteration 3). Final
+   scores: 113761 vs 114217, 80834 vs 85540, 76755 vs 79899 -- a small,
+   fairly consistent deficit (average -2769), the closest to neutral of any
+   iteration so far, though still 0W-3L on this small sample.
+
+   One known, unresolved quirk: Cow inventory is a shared, unearmarked pool
+   (shed count / farmer-carried count, not tagged to a destination tile),
+   and this routine's higher priority means it can pick up a Cow the shared
+   purchase loop actually bought for `INITIAL_COW_TILES`, delaying those
+   rather than only ever adding to them -- observed as both early tiles
+   getting placed suspiciously fast (by day 1) in the trace. Tried swapping
+   the priority (shared logic claims the Cow first, this routine only runs
+   as a fallback when `choose_animal_action()` returns None) to fix it --
+   that caused a catastrophic collapse instead (final scores of 89, 226,
+   and 1157 against opponents scoring 85540-127058), not root-caused, so
+   the fix was reverted rather than pursued further. The original ordering
+   (this routine first) is kept and is NOT to be swapped again without
+   understanding why the swap failed so badly.
+
+Before running the five-seed screen, a review of iteration 4's own trace
+caught that it had reproduced the "shared Cow inventory" quirk in a much
+worse form than described above: `(4,4)`/`(4,3)` (`INITIAL_COW_TILES`) sat
+completely unplaced through day 7 on every seed traced, while `(4,2)`/
+`(4,1)` filled by day 1 -- `choose_early_nw_cow_action()`'s higher priority
+meant it claimed every Cow the shared purchase loop bought, regardless of
+which tile it was intended for, not just occasionally as first assumed.
+
+5. **Self-gated on `INITIAL_COW_TILES` being placed first**, in both
+   `choose_early_nw_cow_action()` and its dedicated purchase loop, without
+   changing the call order itself (still tried and rejected once above).
+   This fixed the misallocation -- `(4,4)`/`(4,3)` now fill by day 1 on
+   every seed, matching the baseline -- but made two things worse:
+   - The destructive-tile bug from iteration 3 reappeared, just
+     seed-dependent instead of guaranteed: seed 1 showed Sheep drop to 0 at
+     day 8 and Cows drop to 0 at day 9, both recovering a day or two later.
+     Seeds 2 and 3 stayed stable. Confirms the underlying shared-system
+     fragility was never actually avoided, just triggered less often by
+     iteration 4's particular (buggy) construction order.
+   - Final scores got worse, not better: 50743 vs 89777 (seed 1, the one
+     that also hit the destructive bug), 64762 vs 74948, 83529 vs 91603 --
+     larger deficits than iteration 4's own (mis-prioritized) numbers.
+
+Reverted; `main.py` matches the frozen baseline.
+
+### Root cause found: this was never a hand-index dispatch problem
+
+The "destructive-tile" bug from iterations 3 and 5 (Sheep/Cow tiles
+reverting to unplaced) was re-diagnosed properly rather than left as an
+open question. Reproduced iteration 3 again as a throwaway diagnostic and
+instrumented it hour-by-hour. Actual sequence on the seed that failed:
+
+- Confirmed (`docs/mechanics.md`, "Confirmed: neglected livestock are
+  unplaced overnight") that an animal left with `fed_today == False` for an
+  entire day gets unplaced overnight -- the tile keeps its `PASTURE` kind,
+  `animal` reverts to `None`.
+- On the failing day, every tracked animal on the farm -- both original
+  Cows, all 3 Sheep, and both new early Cows, 7 in total -- showed
+  `fed_today=False, cared_today=False` at hour 23. Not a selective failure;
+  nothing got fed that entire day.
+- The reason: Wheat shed stock was 0 for all 24 hours of that day. The
+  purchase order for Cows (`BUY_ANIMAL`, "3.5") runs before the Wheat feed
+  reserve purchase (`BUY_PRODUCT WHEAT`, "3.6") each turn, both drawing
+  from the same `money_available`. Buying two new Cows at once (a combined
+  800-coin outlay) left nothing for that day's Wheat purchase, so *every*
+  animal already on the farm went unfed too, not just the new ones.
+
+This means the "shared hand-index dispatch" fragility blamed above (and
+in `docs/current_roadmap.md`) was the wrong diagnosis for this specific
+bug -- `active_animal_plan`/`choose_setup_action` were never actually
+corrupted. The real issue is a cash-sequencing gap: nothing currently
+reserves cash for that day's Wheat feed need before a new animal purchase
+can spend it. This is a narrower, more precisely scoped problem than a
+general "hand-index restructuring," and is plausibly fixable (e.g. compute
+the Wheat feed reserve before section "3.5" and treat it as a cash floor
+for new animal purchases, the same pattern `EARLY_NE_LIVESTOCK_CASH_RESERVE`
+already uses for a different reserve) -- not yet attempted, since it means
+changing purchase-ordering logic shared by every existing livestock
+mechanism, not just a new one, and deserves its own careful test against
+the baseline before being trusted.
+
+Five iterations of the early-Cow-expansion idea itself have each failed in
+a different way (mixed trade-off, day-0 Melon crowd-out, this Wheat-feed
+starvation twice, and silent Cow misallocation). None of that is reason to
+believe the idea is fundamentally bad -- it is reason to believe it keeps
+tripping the same underlying cash-sequencing gap. Fixing that gap first
+(see `docs/current_roadmap.md`) is the prerequisite for retrying it, not a
+broader hand-index/tile-dispatch rewrite.
+
+### Accepted: Wheat-feed cash-reserve fix
+
+Implemented the fix proposed above: `wheat_to_buy`/`wheat_purchase_cost`
+(previously computed inside section "3.6", after animal purchases) are now
+computed once, before section "3.5", and `wheat_purchase_cost` is added to
+the cash-reserve check every new animal purchase must clear. Section "3.6"
+itself reuses the same precomputed values rather than recomputing them, so
+its own purchase is guaranteed not to have had its cash spent out from
+under it by "3.5" in the same turn.
+
+Five-seed mirrored screen against Early NW Strawberry v1 with no livestock
+experiment layered on top (isolating the reorder itself): 5W-5L, 50.0%
+match score, 95510.5 vs 95323.4 (+187.1 average), zero errors -- neutral,
+as expected for a pure correctness fix with no strategic change attached.
+
+Confirmed this actually fixes the target bug by re-adding early NW Cow
+expansion (iteration 5's design: decoupled construction, self-gated on
+`INITIAL_COW_TILES` being placed first) on top of this fix and re-tracing
+the same 3 seeds that previously showed the destructive-tile pattern:
+zero drops across all three, Cows/Sheep progress strictly monotonically
+the whole game (2->6->10 Cows, 2->3->4 Sheep), `(4,4)`/`(4,3)` correctly
+fill by day 1 every time. The five-seed mirrored screen of this combined
+version was clean but decisively negative for the livestock experiment
+itself: 0W-10L, 0.0% match score, 69499.7 vs 75727.1 (-6227.4 average),
+zero errors. Early NW Cow expansion is now rejected on its economics, not
+on a lingering bug -- six iterations total, the last one finally correct
+and still a net loss. Not worth retrying without a fundamentally different
+angle on the underlying trade-off (converting 2 tiles' crop income plus
+ongoing feed cost, for 2 extra Cows' Milk).
+
+Twenty-seed direct gate (reorder fix alone, no livestock experiment):
+19W-21L, 47.5% match score, 95239.0 vs 95182.6 (+56.4 average), zero
+errors -- a clean statistical tie, confirming the five-seed result was not
+hiding a regression at scale. Five-seed regression against both standard
+baselines: 10W-0L against `locked_sw_livestock_v1` (85586.8 vs 75230.6) and
+10W-0L against `day0_livestock_v1` (96242.0 vs 84929.2), zero errors both
+-- matching Early NW Strawberry v1's own acceptance numbers against these
+same two baselines.
+
+Accepted and frozen as `baselines/wheat_feed_cash_reserve_v1.py`, now the
+current frozen baseline. This is a correctness fix (protects against a
+confirmed engine mechanic, `docs/mechanics.md`'s "Confirmed: neglected
+livestock are unplaced overnight"), not a strategic change, so a neutral
+result against the direct predecessor is the expected and desired outcome
+-- it was accepted on the strength of the regression numbers and the bug
+it demonstrably prevents, not on beating Early NW Strawberry v1 outright.
+
+### Rejected: single-tile 3rd Cow at (4,2), day-2-gated
+
+With the Wheat-feed cash-reserve fix now in place, retried the opponent's
+3rd-Cow pattern once more -- but scoped to exactly what the user asked for:
+one tile only (`(4,2)`, the opponent's own position), reserved unconditionally
+from day 0 like `DAY4_ADDITIONAL_SHEEP_TILES` (never planted as a crop), with
+its target joining `active_animal_plan` starting day 2 to match the
+opponent's own timing. Deliberately used the existing shared
+`choose_setup_action`/`choose_animal_action` construction path instead of the
+six-iteration saga's bespoke `choose_early_nw_cow_action()` routine -- with
+only one tile changing hands at a time and the cash-reserve fix already in
+place, none of the failure modes that motivated the decoupled routine
+(Cow-inventory misallocation, Wheat-feed starvation) apply here.
+
+Implementation caught one new bug before evaluation: `COW_TILES` (which now
+includes the new tile so `base_animal_setup_complete` waits for it) is
+subtracted from `FIRST_QUADRANT_CROP_TILES` to keep hands off animal tiles,
+which means the tile is *not* on any hand's route -- but the farmer's own
+separate crop-fallback scan (section "4.2", around line 2611, added for
+opportunistic farmer-side planting) walks every position in `TILES_MANAGED`
+directly and has no idea the tile is reserved before its phase activates.
+First trace showed the tile getting planted with Carrot/Wheat on day 2 by
+the farmer itself, never converted to pasture. Fixed by adding an explicit
+`pos not in THIRD_COW_TILES` guard to that scan's plant/weed branches,
+mirroring the reservation already applied inside `choose_hand_action` for
+the Sheep tiles (which stay on a hand's route and so never needed this
+second guard). Re-traced 3 seeds after the fix: tile stays empty through
+days 0-4 on every seed, Melon holds at 12 tiles (no crowd-out), Cow count
+rises strictly 2 -> 3 with no drops -- the construction bug is gone.
+
+One deviation from the opponent's trace: the Cow is not actually affordable
+by day 2 under our own Carrot-based economy (unlike the opponent's Wheat
+economy) -- cash-gated by the existing purchase-reserve check, it lands on
+day 5 on all 3 traced seeds instead. This is normal behavior for every
+existing staggered-tile mechanism in the codebase (purchase happens as soon
+as affordable at or after the target start day, never forced early), not a
+new bug, and was not worth forcing given the five-seed screen below.
+
+Five-seed mirrored screen against `wheat_feed_cash_reserve_v1` (current
+frozen baseline): 3W-7L, 30.0% match score, 98451.2 vs 101184.0 (-2732.8
+average), zero errors. A clean, decisive loss -- smaller in magnitude than
+the six-iteration saga's two-tile version (-6227.4 average) but still
+negative, confirming the loss is not merely an artifact of committing two
+tiles at once. Reverted; `main.py` matches the frozen baseline again.
+
+This makes seven iterations total of the "early NW Cow" family, spanning a
+single reused crop tile, two never-planted tiles at once, and now one
+never-planted tile alone, all net negative once evaluated properly. The
+underlying trade-off -- one tile's ongoing crop income plus Wheat feed cost,
+for one extra Cow's Milk, arriving days later than the opponent's own timing
+under our different economy -- does not clear the bar at any scale tried so
+far. Further iteration on tile count or timing for this specific idea is not
+recommended without a fundamentally different angle (e.g. a tile that
+produces materially less crop income to begin with, or a cash source that
+does not compete with Melon/Carrot spending).
+
+### Rejected: early Wheat staple preference + single-tile 3rd Cow, combined
+
+At the user's request, retried two previously-rejected ideas together rather
+than in isolation, on the hypothesis that they might interact favorably even
+though each lost on its own: "Rejected: Wheat-vs-Carrot early staple
+preference" above (forcing Wheat instead of the profit-per-day comparison
+during the pre-NE opening) and the single-tile 3rd Cow at `(4,2)` just above.
+The specific hypothesis: Wheat's seed is half the price of Carrot's ($10 vs
+$20), and although the earlier test showed this doesn't fill *more* tiles
+(seed purchases are capped by a fixed per-turn target, not cash), it should
+still leave more spare cash per cycle at the *same* fill rate -- possibly
+enough to move the 3rd Cow's cash-gated purchase from day 5 (the Carrot
+economy's result) closer to the opponent's own day 2.
+
+Implemented both together: reused `THIRD_COW_TILES` unchanged from the prior
+single-tile experiment, and added a new `early_wheat_preference_phase_active`
+flag (true while NE is not yet unlocked) that makes `choose_crop_for_planting`
+return `"WHEAT"` directly during the opening whenever eligible, skipping the
+profit-per-day comparison entirely -- the same override shape as the earlier
+rejected attempt, reverting to the normal dynamic comparison once NE unlocks.
+
+Traced 3 seeds first: the hypothesis held up mechanically -- the 3rd Cow now
+lands on day 4 instead of day 5, one day earlier, with no destruction and
+Melon still holding at 12 tiles. But final scores were already a clear loss
+on all 3 seeds against the direct predecessor used for the trace, larger in
+magnitude than the Cow-alone experiment's own losses. Five-seed mirrored
+screen against `wheat_feed_cash_reserve_v1` (current frozen baseline): 0W-10L,
+0.0% match score, 85316.2 vs 89862.4 (-4546.2 average), zero errors -- worse
+than both components' standalone results (Wheat preference alone was never
+run through evaluate.py, judged decisively regressive from a 3-seed trace
+alone; the Cow alone was -2732.8 average). The one-day earlier Cow placement
+did not come close to offsetting Wheat's lower whole-game profit-per-day
+against Carrot -- confirming the original Wheat-preference rejection's
+finding that the lost revenue from the lower-profit staple dominates any
+cash-timing benefit elsewhere, and that pairing it with another marginal
+idea does not change the sign of either.
+
+Reverted; `main.py` matches the frozen baseline again. Do not retry pairing
+Wheat-as-opening-staple with other early-cash-timing ideas -- the whole-game
+revenue cost has now been confirmed too large to offset via a second
+mechanism twice (alone, and paired with the 3rd Cow).
+
+### Wider NE pasture staging: part (a) has no headroom, part (b) rejected
+
+Picked up the "Next action" item from `docs/current_roadmap.md`. Before
+writing any code, measured the *current frozen baseline's own* construction
+timing for the two existing NE tile groups (not the opponent's), to check
+whether part (a) -- pre-building pasture ahead of affording the animal --
+had any gap to actually close:
+
+- `EXPANSION_COW_TILES` (`(5,4)`, `(5,3)`): pasture built and animal placed
+  on the *same day* (day 7) on all 3 seeds traced. Zero lag.
+- `EARLY_NE_LIVESTOCK_TILES` (`(6,4)`, `(7,4)`, `(6,3)`, `(7,3)`): only
+  activated on 1 of 3 seeds (shop-demand-gated), and even then the gap was
+  just 1 day (pasture day 8, animal day 9).
+
+Unlike the opponent -- who stages tiles days or weeks ahead of affording the
+animal (the NW 3rd Cow, staged day 1, animal day 2; 5 of 7 NE pastures still
+empty by day 6) -- our own cash rhythm means these tiles already enter
+`active_animal_plan` around the time we can basically afford them. Part (a)
+was rejected on this measurement alone, without writing any pre-staging code
+-- there was nothing to save.
+
+That left part (b), genuinely adding `(5,2)`/`(6,2)` as two more NE pasture
+Cow tiles, as the only substantive piece. Implemented as the minimal change:
+appended both positions to the existing `EXPANSION_COW_TILES` tuple and
+bumped `EXPANSION_COW_COUNT` from 2 to 4, reusing the exact same tested
+construction/purchase path unchanged rather than writing a new tile group
+(`EXPANSION_COW_COUNT` was already designed as a slice bound specifically to
+support this). One side effect caught before evaluating: `(5,2)` is also one
+of `OVERFLOW_BUFFER_WHEAT_TILES`'s five days-7-9 Carrot-overflow tiles;
+reserving it for a Cow removes it from every hand's crop route, so that
+mechanism drops to four tiles for its window. Left as-is (documented in
+`main.py`) rather than swapping in a substitute tile, since the point of the
+test is exactly these opponent-matched positions.
+
+Traced 3 seeds: no drops, no crowd-out -- all 4 expansion tiles build and
+place together on day 7 across every seed (cash for all four, ~1600 coins,
+was already available in one shot), confirming the part (a) finding again
+even at double the tile count. Five-seed mirrored screen against
+`wheat_feed_cash_reserve_v1`: 2W-8L, 20.0% match score, 89056.8 vs 92264.8
+(-3208.0 average), zero errors -- another clean, decisive loss.
+
+This is the 8th iteration of the broader "add more livestock tiles" idea
+(7 earlier attempts at an early NW Cow, all in different shapes; now one NE
+attempt), and the 8th to lose. `main.py` reverted to the frozen baseline;
+`evaluate.py` reset to its standard resting state. Recommend treating "more
+animal tiles, more Milk/Wool income" as a settled dead end for this economy
+rather than retrying it a ninth time in a different location -- the
+opponent's replay shows this pattern working for *their* economy, but every
+attempt to port it into ours (NW early, NW day-2-timed, NE wider) has landed
+net negative once actually evaluated.
+
+### Rejected: NE Goose relocation to let it coexist with the compact NE block
+
+At the user's request: `ADAPTIVE_GOOSE_TILES` (`(6,4)`, `(6,3)`) physically
+overlaps two of `EARLY_NE_LIVESTOCK_TILES`'s four positions
+(`(6,4)`,`(7,4)`,`(6,3)`,`(7,3)`), which is why `adaptive_goose_selected`
+hard-excluded `early_ne_livestock_selected` -- not a deliberate economic
+choice, just two mechanisms fighting over the same two tiles. Relocated
+`ADAPTIVE_GOOSE_TILES` to `(5,2)`/`(6,2)` (the same pair identified as
+genuinely free of any other group in the "Wider NE pasture staging"
+rejection above) and removed the `and not early_ne_livestock_selected`
+clause from `adaptive_goose_selected`, so both branches can now be selected
+in the same game whenever their independent shop signals (Egg demand for
+Geese, Yarn/Milk demand for the compact block) both fire in the first two
+shops.
+
+**Found and fixed a real latent bug while validating this**, unrelated to
+whether the experiment itself would pay off. A 20-seed correctness sweep hit
+two `KeyError` crashes (seeds 6 and 10, both games where the coexistence
+scenario actually triggered). Root cause: the farmer's "service the animal
+at the current position" block (`choose_animal_action`, around where
+`current_animal.get("kind") == ANIMAL_STRUCTURES[active_animal_plan[pos_current]]`
+is evaluated) indexed `active_animal_plan[pos_current]` before confirming
+`pos_current` is actually a key in it. This was always latently unsafe, but
+never reachable before: `EARLY_NE_LIVESTOCK_TILES` pre-builds its pasture a
+day ahead of its own target activating (`EARLY_NE_LIVESTOCK_PASTURE_START_DAY
+= 8` vs `EARLY_NE_LIVESTOCK_START_DAY = 9`), so for one day a tile can hold a
+real `PASTURE` dict while still absent from `active_animal_plan` -- exactly
+the kind of tile only reachable by a farmer with an unrelated reason to walk
+through that exact spot. Before this change no such reason existed (Geese
+occupied the same tiles the compact block would use, so the two were always
+mutually exclusive and the farmer never had cause to cross the other one's
+under-construction tiles); giving the farmer a legitimate new route to
+`(6,2)` for the relocated Goose made this reachable for the first time.
+Fixed by reordering the condition so `pos_current in farmer_animal_positions`
+(which already implies a valid `active_animal_plan` key, since it derives
+from `animal_positions`, itself filtered to that) is checked before any
+indexing. Confirmed every other direct `active_animal_plan[...]` indexing
+site in the file already guards membership first or draws from an
+already-filtered list -- this was an isolated instance, not a pattern.
+
+With the crash fixed, a 20-seed correctness sweep showed no further errors
+and no destructive-tile drops; 2 of 20 seeds (6 and 10) genuinely exercised
+both branches together, the other 18 either ran Geese alone at the new
+tiles (9 seeds) or didn't select Geese at all (9 seeds, exact ties with the
+baseline since nothing else changed for those games).
+
+Economically, this was a clean rejection at the 20-seed gate: 1W-23L-16T,
+22.5% match score, 91764.9 vs 92969.6 (-1204.7 average), zero errors. The
+16 ties are exactly the seeds where Geese were never selected (proving the
+relocation is a no-op when unused, as intended). Every seed where Geese
+*were* selected showed a loss, including both seeds that actually reached
+the coexistence scenario this change was built for (seed 6: 72157 vs 73760;
+seed 10: 80879 vs 85311) -- the relocated tiles are farther from the shed
+than the original `(6,4)`/`(6,3)` (row `y=2` vs `y=3-4`), and that extra
+daily FEED/CARE travel cost outweighs the two Geese's Egg income even when
+the coexistence they were relocated to enable actually fires.
+
+`main.py` reverted to the frozen baseline (the bug fix reverted along with
+the relocation, since after reverting `ADAPTIVE_GOOSE_TILES` the unsafe
+code path is unreachable again -- see `docs/current_roadmap.md`'s "Known
+codebase constraint" note for how to reapply the fix if this ordering is
+ever revisited). `evaluate.py` reset to its standard resting state. If this
+idea is retried, the travel-distance cost points at trying a closer free
+tile pair instead of `(5,2)`/`(6,2)` -- e.g. `(8,3)`/`(9,3)` or
+`(8,4)`/`(9,4)`, both outside `COW_TILES`, `EARLY_NE_LIVESTOCK_TILES`, and
+`OVERFLOW_BUFFER_WHEAT_TILES`, and closer to the shed's row.
+
+### Rejected (four more variants): NE Goose relocation, made conditional and reassigned
+
+Picked back up per the diagnosis above (relocation only loses because of
+travel distance/hand ownership, not because coexistence itself lacks
+value). Four iterations, all ultimately reverted:
+
+1. **Made the relocation conditional.** Instead of always moving
+   `ADAPTIVE_GOOSE_TILES` to `(5,2)`/`(6,2)`, added
+   `ADAPTIVE_GOOSE_TILES_DEFAULT` (`(6,4)`/`(6,3)`, unchanged) and
+   `ADAPTIVE_GOOSE_TILES_NE_COEXIST` (`(5,2)`/`(6,2)`), selected per-turn by
+   `early_ne_livestock_selected` -- Geese only ever move when the compact NE
+   block is actually selected this game, the one case the old tiles would
+   physically collide with it. Verified this is a true no-op otherwise: a
+   seed where Geese are selected but the compact block is not (seed 2)
+   produced an *exact* match to the frozen baseline (`68023.0 vs 67172.0`
+   both runs) -- confirming the conditional collapses to the pre-relocation
+   baseline exactly when unused, as designed.
+2. **Root-caused the travel cost concretely.** Traced hand 4's full day-9
+   route on seed 2 hour by hour: it starts at the shed `(5,4)`, travels
+   north to `(5,2)` (2 hours), does FEED/CARE/COLLECT_FERTILIZER (3 hours),
+   then travels back through `(6,2)`/`(6,3)`/`(6,4)` to finally start its
+   own 6-tile default crop patrol at hour 11. Under the *old* tiles, `(6,4)`
+   was tile zero of that same patrol, so Goose care cost nothing; under the
+   new tiles it costs a genuine ~5-hour detour every single day, confirming
+   the earlier hypothesis with a concrete number rather than just a
+   plausible story.
+3. **Tried hand 6 alone instead of hand 4** (neither hand has a natural
+   claim on the new tiles, but hand 6 avoids double-booking
+   `EARLY_NE_LIVESTOCK_HAND_INDEX`, which is hand 5). Real improvement on
+   both traced coexistence seeds' margins (single-direction, non-mirrored):
+   seed 6 from -1603 to -774, seed 10 from -3977 to -1169. Better, but
+   neither seed flipped to a win.
+4. **Tried splitting the pair one-tile-each between hands 4 and 5** (hand
+   5's own default crop-tile allocation, `SECOND_QUADRANT_CROP_TILES[6:12]`,
+   is the one that actually reaches `(5,2)`, by the same "whoever owns the
+   tile" logic that put hand 4 on the original tiles). This backfired badly:
+   both coexistence seeds showed a specific, reproducible Sheep-count drop
+   on days 15 and 17 (6->5->4), and the resulting margins collapsed to
+   seed 6 -21160 and seed 10 -20683 (single-direction) -- confirmed via
+   `docs/mechanics.md`'s "neglected livestock are unplaced overnight"
+   mechanic: hand 5 is also `EARLY_NE_LIVESTOCK_HAND_INDEX`, its own
+   dedicated service hand for the compact block's up to 4 animals once
+   coexistence is active (its crop route is wiped to `[]` in that state),
+   and adding even one Goose tile on top periodically made it miss a feed.
+5. **Tried hand 5 alone** (both coexistence tiles, no hand 4 involvement,
+   farmer picks up the second tile exactly as in the DEFAULT case) to
+   isolate whether the failure was hand 5's own workload or specifically
+   the two-hand coordination. Same two drop days (15 and 17), same
+   magnitude of loss (seed 6 -19308, seed 10 -19451, single-direction) --
+   hand 5's *own* added workload (one Goose tile on top of its 4-animal
+   compact-block service duty) is the bottleneck regardless of who takes
+   the other tile. This isolates the finding cleanly: hand 5 cannot
+   reliably absorb even one more animal once the compact NE block is
+   active, independent of how the second Goose tile is staffed.
+
+All four reverted; `main.py` matches the frozen baseline again. Net
+conclusion across the whole Goose-relocation line of work: hands with a
+natural, cost-free route to the coexistence tiles (hand 4's own patrol for
+the old tiles, hand 5's own patrol for the new ones under the DEFAULT tile
+split) either have no spare capacity once repurposed for something else
+(hand 5, once claimed by the compact NE block) or lose that natural-route
+advantage the moment they're pulled elsewhere for other duty; hands with
+genuine spare capacity (hand 6) have no natural route and pay a travel tax
+instead. No combination tried gets both a spare hand and a short route at
+once. Not recommended to keep iterating on hand assignment for this specific
+tile pair without a structural change (e.g. redefining which physical tiles
+belong to which hand's default patrol, rather than reassigning Goose
+ownership among the existing fixed patrols).
+
+## Rejected: NW Geese at (3,2)/(4,1)/(4,0), day 11
+
+Three Goose coops in the NW corner, built the day after the Melon harvest,
+mirroring the day-10 coop build seen in replay 111057791. Reverted; `main.py`
+is back to NE Geese only.
+
+Two real bugs were found and fixed along the way (both worth remembering):
+
+1. **Reservation off-by-one.** `NW_GOOSE_REPLANT_CUTOFF_DAY` was set to
+   `NW_GOOSE_START_DAY` (11), but the tiles go empty when their Melon is
+   harvested on day 10 -- which is also `STRAWBERRY_START_DAY`. The first
+   Strawberry wave claimed (3,2) in that one-day window. Because
+   `sheep_group_is_active` requires *every* tile in the group to be free, one
+   occupied tile held the whole group closed until the Strawberry expired on
+   day 26, while the day-11 guard simultaneously forbade crops on (4,1) and
+   (4,0). Net 32 dead tile-days -- worse than either feature alone. The
+   reservation must engage no later than the day the tiles first go empty.
+
+2. **Single-unit Wheat pickup.** `choose_goose_hand_action` fetched one Wheat
+   per shed trip. That is fine for a hand whose crop route already passes its
+   coop, but it strands any hand serving several coops: the keeper spent 251
+   of 403 actions walking and fed only one Goose a day. The rest starved, were
+   unplaced overnight, then liquidated and re-bought every morning (visible as
+   daily `BUY_ANIMAL GOOSE x1` / `SELL GOOSE x1` from day 13 to 29).
+
+Three hand allocations were measured on seed 1, and all land near zero:
+
+| allocation | EGG | STRAW | net production |
+|---|---:|---:|---|
+| hands 1-3 own one coop each | 96 | 183 (-29) | ~5,300 Egg vs ~6,500 Strawberry = -1,200 |
+| dedicated keeper hand | 47 | 215 (+3) | ~2,600 +670 -2,736 hire = +530 |
+| hands 1-3 + one-off setup hire | 96 | 183 (-29) | +52 vs no hire at all |
+
+Hands 1-3 are efficient keepers because their crop routes already pass the
+tiles, but the Goose work comes out of their watering budget (traced: WATER
+280 -> 119 for those hands from day 11, Strawberry harvests 188 -> 155). A
+dedicated keeper protects the watering but has no route and walks all day. The
+one-off setup hire is correct and cheap but buys nothing, because setup was
+never the bottleneck -- daily care is.
+
+**Hiring economics, confirmed from the environment:** `_end_of_day` clears
+`farm["hands"]` and resets `hires_today`, so the whole roster is re-hired every
+day. An extra slot is a DAILY cost, not a one-time one -- the twelfth slot is
+144/day (~2,700 over the season), not 144 total.
+
+**The finding that matters more than any of the above.** On seed 1 both agents
+sell identical volumes -- MILK 222, WOOL 120 -- for wildly different money:
+
+    MOD   MILK 12,984   WOOL  8,546
+    BASE  MILK 43,572   WOOL 22,892
+
+-44,934 on identical volume, nine times larger than anything the Geese win or
+lose, and 84% of that seed's score gap. Market inventory is shared between both
+players, so our own play shifts the adaptive opponent's sale timing, which
+moves the price we get. This is the noise source behind the +16k/-62k seed
+swings seen across every experiment in this family; small-sample screens cannot
+resolve a few-thousand-coin change through it.
+
+## Rejected: alternate-day watering (v1, with idle top-up)
+
+Confirmed environment mechanic: `_daily_refresh_plants` destroys a plant only
+once `consecutive_unwatered` reaches 2, so a tile watered yesterday can safely
+skip today. Skipping is free only when watering would not have produced
+anything -- ongoing crops (Tomato, Strawberry) accrue yield on a fixed schedule
+regardless of watering, while one-shot crops convert each watering inside their
+yield window (`window_start = (max_yield_day + 1) // 2`) into a unit. A new
+plant starts the counter at 1, so its planting day is never skippable, and the
+fertilizer bonus is only granted on watered days.
+
+20-seed mirrored evaluation vs `wheat_feed_cash_reserve_v1`: **16-24, 40.0%**,
+average 84,228.6 vs 84,661.4 (-433, 0.5%).
+
+Cause: the "idle hands top up skippable tiles anyway" fallback cancelled the
+benefit. Seed 1 hand actions: WATER 1253 -> 1236 (only 17 saved) while movement
+rose 2738 -> 2794. The rule reordered watering and added travel without ever
+banking the action it was designed to save.
+
+`water_slack_v2` removes the fallback and does bank it -- seed 1: WATER 786
+(-467), movement 2289 (-449), HARVEST 323 vs 324, weeds 35 vs 36, so the
+mechanic itself is safe and costs nothing. But the freed actions go straight to
+PASS (969 -> 1831): the baseline has no unmet hand work to absorb them. The
+rule is an **enabler, not a win** -- bank it for pairing with a feature that is
+genuinely action-hungry, and do not expect it to score on its own.
+
+Method note: a 5-seed screen put v1 at mean -15,805, versus the true -433 from
+20 mirrored seeds. Nearly all of that was shared-market price noise (see the NW
+Geese entry above). Small-sample screens cannot resolve changes of this size in
+this environment.
+
+## Gate passed, not frozen: NE Goose / early-NE livestock coexistence
+
+**Status:** live in `main.py`; twenty-seed gate passed; the five-seed
+regressions against `locked_sw_livestock_v1` and `day0_livestock_v1` that both
+accepted precedents ran were deliberately skipped, so this is NOT frozen as a
+baseline and `wheat_feed_cash_reserve_v1` remains the reference. Run those
+regressions before promoting it.
+
+The compact NE block and the adaptive Goose branch were previously mutually
+exclusive because `(6,4)`/`(6,3)` belong to both layouts -- the hard tile
+conflict recorded in `docs/current_roadmap.md` (P1). Resolved by shifting the
+livestock block one column east when both branches qualify, so the Geese keep
+their own tiles and six animals run where four did.
+
+Trigger: first two shops demand Eggs AND signal Yarn or double Milk. The
+`first_two_shops_milk_only` prefix already excludes Egg demand, so no
+previously-qualifying seed changes branch.
+
+Twenty-seed mirrored gate vs `wheat_feed_cash_reserve_v1`: **5W-1L-34T, 55.0%**,
+96,037.4 vs 95,839.1 (**+198.3**), zero errors. The single loss is seed 16
+position 0 at **-76 on 114,115** (0.07%), whose mirrored position won -- market
+order-resolution noise, not a regression. The 34 ties confirm non-qualifying
+seeds stayed byte-identical.
+
+Two traced seeds, start to finish:
+
+    seed  6:  -2,947  ->  +2,165
+    seed 10:  -1,829  ->  +1,801
+
+### What actually produced the gain
+
+The tile relocation was necessary but nowhere near sufficient; it scored -2,947
+/ -1,829 on its own. The gains came from four service fixes, in order of size:
+
+1. **Keep the farmer off every Goose.** `farmer_animal_positions` excluded only
+   `GOOSE_HAND_TILE`, so the farmer personally owned `(6,3)`. Adding it to the
+   farmer's round pushed its Cow-milk collection and shed deposit from hour ~15
+   to hour ~21 *every day*. Milk sat in deep glut (inventory 10,076 vs I0
+   ~10,000, price decaying 129 -> 1), so six hours of extra accumulated supply
+   cost 15-25% of the price at every sale: -2,554 on Milk+Wool at identical
+   volume on seed 6. Giving both Geese to hands made Milk revenue match the
+   baseline exactly.
+2. **Hold Eggs until the overnight drop.** The hand walked to the shed after
+   every bird. Egg prices are flat next to Milk/Wool and the engine empties
+   hand inventories into the shed each night, so banking Eggs by hand buys
+   nothing. Worth +1,588 across seeds 6/10; Eggs sold unchanged at 73.
+3. **Give hand 4 a contiguous column-9 run.** `(9,4)`/`(9,3)` look wrong on
+   screen -- a long detour from her western column -- but her Goose at `(6,4)`
+   sits beside shed access `(5,4)`, so those trips fold into shed errands she
+   makes anyway. Handing them to hand 6 cost -3,382; leaving them unworked cost
+   -2,741; giving her both back, as one run `(9,2)->(9,3)->(9,4)`, was worth
+   ~+3,200.
+4. **Batch the Wheat pickup.** `["PICKUP","WHEAT",1]` was hardcoded from when a
+   hand could only own one Goose. A hand with two made **88 shed arrivals
+   against the four-Sheep hand's 22**, for half the animals. This is the same
+   defect recorded in the NW Geese entry above -- reintroduced by routing a
+   second tile through the single-Goose function without revisiting batching.
+
+### Hand allocations measured (seeds 6/10 sum, before the service fixes)
+
+| allocation | sum |
+|---|---:|
+| hand 4 -> (6,4), hand 6 -> (6,3) | -994 |
+| farmer -> (6,3), hand 4 -> (6,4) | -4,776 |
+| hand 6 -> (6,3), hand 7 -> (6,4) | -4,968 |
+| hand 4 -> (6,4), hand 7 -> (6,3) | -5,216 |
+| hand 4 -> both | -8,009 |
+| hand 4 = livestock, hand 5 = crops + both Geese | -10,062 |
+| hand 5 -> all six animals | -33,584 (Wool collapses 208 -> 128) |
+
+Final NE crop ownership: hand 4 = `(6,2) (7,2) (8,2) (9,2) (9,3) (9,4)`;
+hand 6 = `(6,1) (7,1) (8,1) (9,1)`; hand 7 = `(5,0) (5,1) (5,2) (6,0) (7,0)
+(8,0) (9,0)`; hand 5 serves the four animals and owns no crops.
+
+### Method note
+
+A five-seed screen is useless here: seeds 1-5 never carry the qualifying
+prefix. Worse, comparing two agents against a *third* opponent gives each its
+own market and hides the timing penalty entirely -- that comparison scored the
+tile relocation +3,787 on seed 6 where the head-to-head gave -2,947. Shared-
+market head-to-head is the only valid measurement for anything that changes
+*when* produce reaches the shed.

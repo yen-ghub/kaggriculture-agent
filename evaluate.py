@@ -31,10 +31,14 @@ from baselines.early_ne_livestock_v1 import agent as early_ne_livestock_v1_agent
 from baselines.early_ne_single_milk_v1 import agent as early_ne_single_milk_v1_agent
 from baselines.melon_early_return_v1 import agent as melon_early_return_v1_agent
 from baselines.crop_sale_priority_v1 import agent as crop_sale_priority_v1_agent
+from baselines.early_nw_strawberry_v1 import agent as early_nw_strawberry_v1_agent
+from baselines.wheat_feed_cash_reserve_v1 import agent as wheat_feed_cash_reserve_v1_agent
+from baselines.water_slack_v1 import agent as water_slack_v1_agent
+from baselines.water_slack_v2 import agent as water_slack_v2_agent
 
 # Define variables
 SEEDS = list(range(1,21))
-# SEEDS = [5, 8, 9]
+# SEEDS = [1, 2, 3, 4, 5]
 OPPONENTS = {
     # "second_quadrant_v1": second_quadrant_agent,
     # "third_quadrant_v1": third_quadrant_agent,
@@ -65,7 +69,17 @@ OPPONENTS = {
     # "early_ne_livestock_v1": early_ne_livestock_v1_agent,
     # "early_ne_single_milk_v1": early_ne_single_milk_v1_agent,
     # "melon_early_return_v1": melon_early_return_v1_agent,
-    "crop_sale_priority_v1": crop_sale_priority_v1_agent,
+    # "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
+    # "crop_sale_priority_v1": crop_sale_priority_v1_agent,
+    "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
+    # Frozen baseline + the alternate-day watering rule only. Identical to the
+    # current main.py, so leave it commented out unless main.py moves on.
+    # "water_slack_v1": water_slack_v1_agent,
+    # As v1 but skippable tiles are dropped from the route entirely instead of
+    # being topped up when idle. Frees ~1,300 hand actions on seed 1 with no
+    # loss of harvests or extra weeds -- but they all become PASS, so expect
+    # neutral, not a win, until paired with an action-hungry feature.
+    # "water_slack_v2": water_slack_v2_agent,
 }
 
 PRODUCTS_TRACKED = CROPS_MANAGED + (

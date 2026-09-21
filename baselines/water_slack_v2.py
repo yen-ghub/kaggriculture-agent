@@ -90,6 +90,17 @@ CROP_CONFIGS = {
     },
 }
  
+# Age at which a one-shot crop starts converting a WATER action into a yield
+# unit, taken from the environment's window_start = (max_yield_day + 1) // 2.
+# Before that age, watering a one-shot crop only keeps it alive; ongoing crops
+# (Tomato, Strawberry) never convert watering into yield at all, since they
+# accrue units on a fixed schedule during the nightly refresh.
+CROP_WATER_YIELD_START_AGE = {
+    "WHEAT": 2,
+    "CARROT": 2,
+    "MELON": 6,
+}
+
 STAPLE_CROPS    = ("CARROT", "WHEAT")
 CROPS_MANAGED   = ("WHEAT", "CARROT", "MELON", "STRAWBERRY", "TOMATO") # Affects market sale order
 # Sell the highest base-price crops first: 250/120/60/35/25 respectively.
@@ -265,58 +276,6 @@ ADAPTIVE_GOOSE_TILES = (
     (6, 3),
 )
 GOOSE_HAND_INDEX = 4
-# Owner of the second Goose while the compact NE block runs alongside the
-# Goose branch. Hand 4 keeps (6,4) but must not take (6,3) as well: it is the
-# most saturated hand on the farm (1.7% idle on seed 6) and its crop route
-# spans the whole quadrant, so a second Goose collapsed its Wheat output
-# (233 -> 135 sold on seed 10). Hand 6 has 10.2% idle and its route starts at
-# (6,2), one tile from (6,3).
-# Hand 4 keeps (6,4): its own crop route already contains the adjacent shed
-# access tile (5,4), so that Goose costs it almost no travel -- carrying BOTH
-# was what collapsed its Wheat output, not carrying one. The second Goose at
-# (6,3) goes to hand 7, the only NE hand with slack on both qualifying seeds
-# (17.1% and 18.5% idle), two rows from its route tile (6,1).
-# Roles swap in the coexistence branch. Hand 4 becomes the pure livestock hand
-# for the four NE animals; hand 5 keeps the NE crop route it would otherwise
-# have given up and takes both Geese. Every previous split put a Goose on a
-# hand that also owned crops, so the cost always surfaced as lost Wheat; this
-# concentrates all six animals' service into two hands instead of spreading
-# Goose detours across three crop routes.
-# With the animal block relocated to (7,4)/(8,4)/(7,3)/(8,3), the crop hand's
-# default slice still reaches (9,4)/(9,3) -- a long detour past the pastures
-# from its otherwise western column. Trade those two to hand 6 for the
-# adjacent (8,2)/(9,2), which sit on hand 6's own row.
-# Explicit NE crop-tile owners while the Geese coexist, overriding the default
-# route slices. Hand 4 takes the eastern end of row 2 plus (9,3), so her Goose
-# at (6,4) and her crops sit in one block; (5,2) goes to hand 7, whose own
-# (5,1) is directly above it.
-NE_COEXIST_CROP_TILE_OWNERS = {
-    (6, 2): 4,
-    (7, 2): 4,
-    (8, 2): 4,
-    (9, 2): 4,
-    (9, 3): 4,
-    (9, 4): 4,
-    (5, 2): 7,
-}
-# Left unworked on purpose while the Geese coexist, to measure what these two
-# far tiles are actually worth. They sit behind the relocated animal block:
-# on hand 4 they scattered her route, and handing them to hand 6 only moved
-# the saturation (hand 6 PASS 10.2% -> 3.5%, sum -994 -> -4376 on seeds 6/10).
-# The farmer must skip them too, or its crop fallback scan simply claims any
-# tile no hand owns and the test measures nothing.
-# Nothing is deliberately left idle: leaving (9,4)/(9,3) unworked cost ~2741
-# across seeds 6/10, so both went back to hand 4.
-NE_COEXIST_UNMANAGED_TILES = ()
-
-# Which hand serves the four NE animals while the Geese coexist. The other of
-# hands 4/5 keeps the NE crop slice.
-NE_COEXIST_LIVESTOCK_HAND_INDEX = 5
-# Goose tile ownership in the coexistence branch: hand index -> its tiles.
-NE_COEXIST_GOOSE_OWNERSHIP = {
-    4: (ADAPTIVE_GOOSE_TILES[0],),
-    6: (ADAPTIVE_GOOSE_TILES[1],),
-}
 GOOSE_HAND_TILE = ADAPTIVE_GOOSE_TILES[0]
 # Compatibility alias for local trace scripts created before this split.
 ADAPTIVE_ANIMAL_TILES = ADAPTIVE_GOOSE_TILES
@@ -331,22 +290,6 @@ EARLY_NE_LIVESTOCK_TILES = (
     (6, 3),
     (7, 3),
 )
-# When the first two shops demand Eggs AND also signal Yarn or Milk, both the
-# Goose branch and the compact NE block qualify. They used to suppress each
-# other because (6,4)/(6,3) are shared by both layouts -- a hard tile conflict,
-# not a policy choice (see docs/current_roadmap.md, P1). Shifting the livestock
-# block one column east frees the Geese's own tiles so the two can run at once.
-EARLY_NE_GOOSE_COEXIST_LIVESTOCK_TILES = (
-    (7, 4),
-    (8, 4),
-    (7, 3),
-    (8, 3),
-)
-# Tiles unique to each layout. (7,4)/(7,3) are shared, so only these can tell
-# us which block was actually built once setup has started.
-EARLY_NE_DEFAULT_ONLY_TILES = ((6, 4), (6, 3))
-EARLY_NE_COEXIST_ONLY_TILES = ((8, 4), (8, 3))
-
 EARLY_NE_LIVESTOCK_HAND_INDEX = 5
 # Weakest shop prefix that still routes the NE block to the existing all-Cow
 # plan.  Applied only when the prefix carries no Yarn and no Egg signal, so the
@@ -355,6 +298,14 @@ EARLY_NE_SINGLE_MILK_SHOP_THRESHOLD = 1
 EARLY_NE_LIVESTOCK_PASTURE_START_DAY = 8
 EARLY_NE_LIVESTOCK_START_DAY = 9
 EARLY_NE_LIVESTOCK_CASH_RESERVE = 500
+EARLY_NE_ALL_SHEEP_PLAN = {
+    position: "SHEEP"
+    for position in EARLY_NE_LIVESTOCK_TILES
+}
+EARLY_NE_ALL_COW_PLAN = {
+    position: "COW"
+    for position in EARLY_NE_LIVESTOCK_TILES
+}
 
 SW_LIVESTOCK_PLAN = {
     (4, 5): "COW",
@@ -597,68 +548,10 @@ def agent(obs):
         and not first_two_shops_demand_eggs
     )
 
-    # The Goose branch is decided first: the compact NE block's tile layout
-    # depends on whether the Geese are also running, so this can no longer be
-    # resolved after the NE block the way it used to be.
-    existing_adaptive_geese = []
-    adaptive_goose_setup_started = False
-
-    for position in ADAPTIVE_GOOSE_TILES:
-        x, y = position
-        tile = farm["tiles"][y][x]
-
-        if (
-            isinstance(tile, dict)
-            and tile.get("kind") in ANIMAL_STRUCTURES.values()
-        ):
-            adaptive_goose_setup_started = True
-
-            if tile.get("animal") == "GOOSE":
-                existing_adaptive_geese.append("GOOSE")
-            elif tile.get("kind") == "COOP":
-                # Keep the Goose branch after setup even if a Goose escapes.
-                existing_adaptive_geese.append("GOOSE")
-
-    adaptive_goose_selected = (
-        bool(existing_adaptive_geese)
-        or first_two_shops_demand_eggs
-    )
-
-    # Latch onto whichever block is already on the ground; only the tiles
-    # unique to each layout can distinguish them.
-    def ne_block_pasture_exists(positions):
-        for x, y in positions:
-            tile = farm["tiles"][y][x]
-            if isinstance(tile, dict) and tile.get("kind") == "PASTURE":
-                return True
-        return False
-
-    if ne_block_pasture_exists(EARLY_NE_DEFAULT_ONLY_TILES):
-        active_early_ne_livestock_tiles = EARLY_NE_LIVESTOCK_TILES
-    elif ne_block_pasture_exists(EARLY_NE_COEXIST_ONLY_TILES):
-        active_early_ne_livestock_tiles = (
-            EARLY_NE_GOOSE_COEXIST_LIVESTOCK_TILES
-        )
-    elif adaptive_goose_selected:
-        active_early_ne_livestock_tiles = (
-            EARLY_NE_GOOSE_COEXIST_LIVESTOCK_TILES
-        )
-    else:
-        active_early_ne_livestock_tiles = EARLY_NE_LIVESTOCK_TILES
-
-    early_ne_all_sheep_plan = {
-        position: "SHEEP"
-        for position in active_early_ne_livestock_tiles
-    }
-    early_ne_all_cow_plan = {
-        position: "COW"
-        for position in active_early_ne_livestock_tiles
-    }
-
     existing_early_ne_animals_by_position = {}
     early_ne_livestock_setup_started = False
 
-    for position in active_early_ne_livestock_tiles:
+    for position in EARLY_NE_LIVESTOCK_TILES:
         x, y = position
         tile = farm["tiles"][y][x]
 
@@ -689,17 +582,17 @@ def agent(obs):
             existing_early_ne_animals_by_position.values()
         )
         if existing_early_ne_animal_types == {"SHEEP"}:
-            active_early_ne_livestock_plan = early_ne_all_sheep_plan
+            active_early_ne_livestock_plan = EARLY_NE_ALL_SHEEP_PLAN
         elif existing_early_ne_animal_types == {"COW"}:
-            active_early_ne_livestock_plan = early_ne_all_cow_plan
+            active_early_ne_livestock_plan = EARLY_NE_ALL_COW_PLAN
         elif first_two_shops_include_yarn:
-            active_early_ne_livestock_plan = early_ne_all_sheep_plan
+            active_early_ne_livestock_plan = EARLY_NE_ALL_SHEEP_PLAN
         else:
-            active_early_ne_livestock_plan = early_ne_all_cow_plan
+            active_early_ne_livestock_plan = EARLY_NE_ALL_COW_PLAN
     elif first_two_shops_include_yarn:
-        active_early_ne_livestock_plan = early_ne_all_sheep_plan
+        active_early_ne_livestock_plan = EARLY_NE_ALL_SHEEP_PLAN
     else:
-        active_early_ne_livestock_plan = early_ne_all_cow_plan
+        active_early_ne_livestock_plan = EARLY_NE_ALL_COW_PLAN
 
     first_four_shops = unlocked_shops[:4]
 
@@ -719,6 +612,33 @@ def agent(obs):
     sw_all_sheep_condition = (
         first_shop_yarn_sheep_condition
         or wool_demand_shop_count >= SW_ALL_SHEEP_SHOP_THRESHOLD
+    )
+
+    existing_adaptive_geese = []
+    adaptive_goose_setup_started = False
+
+    for position in ADAPTIVE_GOOSE_TILES:
+        x, y = position
+        tile = farm["tiles"][y][x]
+
+        if (
+            isinstance(tile, dict)
+            and tile.get("kind") in ANIMAL_STRUCTURES.values()
+        ):
+            adaptive_goose_setup_started = True
+
+            if tile.get("animal") == "GOOSE":
+                existing_adaptive_geese.append("GOOSE")
+            elif tile.get("kind") == "COOP":
+                # Keep the Goose branch after setup even if a Goose escapes.
+                existing_adaptive_geese.append("GOOSE")
+
+    adaptive_goose_selected = (
+        bool(existing_adaptive_geese)
+        or (
+            first_two_shops_demand_eggs
+            and not early_ne_livestock_selected
+        )
     )
 
     existing_adaptive_mammals = []
@@ -1060,28 +980,6 @@ def agent(obs):
             or expansion_cow_setup_complete
         )
     )
-    # With the compact NE block running alongside the Geese, the farmer must
-    # keep its baseline animal round. Handing it the second Goose at (6,3)
-    # pushed its Cow-milk collection and shed deposit from hour ~15 to hour
-    # ~21 every day; on Milk's glutted price curve that six-hour slip cost
-    # more (-2554 on Milk+Wool, seed 6) than the Eggs earned. Give both Goose
-    # tiles to the Goose hand instead and leave the farmer untouched.
-    early_ne_goose_coexist_active = (
-        adaptive_goose_phase_active
-        and early_ne_livestock_tiles_reserved
-    )
-    if early_ne_goose_coexist_active:
-        goose_hand_tile_by_index = dict(NE_COEXIST_GOOSE_OWNERSHIP)
-    else:
-        goose_hand_tile_by_index = {GOOSE_HAND_INDEX: (GOOSE_HAND_TILE,)}
-
-    # Every tile a hand owns is a tile the farmer must leave alone.
-    goose_hand_tiles = tuple(
-        tile
-        for hand_tiles in goose_hand_tile_by_index.values()
-        for tile in hand_tiles
-    )
-
     adaptive_mammal_tiles_reserved = (
         THIRD_QUADRANT_NAME in farm["unlocked_quadrants"]
         and adaptive_mammal_type is not None
@@ -1097,9 +995,7 @@ def agent(obs):
     if adaptive_goose_tiles_reserved:
         reserved_adaptive_animal_tiles.update(ADAPTIVE_GOOSE_TILES)
     if early_ne_livestock_tiles_reserved:
-        reserved_adaptive_animal_tiles.update(
-            active_early_ne_livestock_tiles
-        )
+        reserved_adaptive_animal_tiles.update(EARLY_NE_LIVESTOCK_TILES)
     if sw_livestock_tiles_reserved:
         reserved_adaptive_animal_tiles.update(SW_LIVESTOCK_TILES)
     elif adaptive_mammal_tiles_reserved:
@@ -1136,11 +1032,7 @@ def agent(obs):
     if sw_livestock_phase_active:
         active_sw_livestock_hand_index = SW_LIVESTOCK_HAND_INDEX
     elif early_ne_livestock_construction_phase_active:
-        active_sw_livestock_hand_index = (
-            NE_COEXIST_LIVESTOCK_HAND_INDEX
-            if early_ne_goose_coexist_active
-            else EARLY_NE_LIVESTOCK_HAND_INDEX
-        )
+        active_sw_livestock_hand_index = EARLY_NE_LIVESTOCK_HAND_INDEX
     else:
         active_sw_livestock_hand_index = ADAPTIVE_MAMMAL_HAND_INDEX
     
@@ -1161,21 +1053,10 @@ def agent(obs):
         ]
         first_ne_route_size = 5 if adaptive_goose_phase_active else 6
 
-        if early_ne_goose_coexist_active:
-            ne_livestock_index = NE_COEXIST_LIVESTOCK_HAND_INDEX
-            ne_crop_index = (
-                GOOSE_HAND_INDEX
-                if NE_COEXIST_LIVESTOCK_HAND_INDEX != GOOSE_HAND_INDEX
-                else EARLY_NE_LIVESTOCK_HAND_INDEX
-            )
-        else:
-            ne_livestock_index = EARLY_NE_LIVESTOCK_HAND_INDEX
-            ne_crop_index = GOOSE_HAND_INDEX
-
-        current_hand_work_tiles_each[ne_crop_index] = (
+        current_hand_work_tiles_each[4] = (
             remaining_ne_crop_tiles[:first_ne_route_size]
         )
-        current_hand_work_tiles_each[ne_livestock_index] = []
+        current_hand_work_tiles_each[5] = []
         current_hand_work_tiles_each[6] = (
             remaining_ne_crop_tiles[
                 first_ne_route_size:first_ne_route_size + 6
@@ -1184,23 +1065,6 @@ def agent(obs):
         current_hand_work_tiles_each[7] = (
             remaining_ne_crop_tiles[first_ne_route_size + 6:]
         )
-
-        if early_ne_goose_coexist_active:
-            reassigned_tiles = (
-                set(NE_COEXIST_CROP_TILE_OWNERS)
-                | set(NE_COEXIST_UNMANAGED_TILES)
-            )
-
-            for hand_tiles in current_hand_work_tiles_each:
-                for position in reassigned_tiles:
-                    if position in hand_tiles:
-                        hand_tiles.remove(position)
-
-            for position, owner_index in NE_COEXIST_CROP_TILE_OWNERS.items():
-                owner_tiles = current_hand_work_tiles_each[owner_index]
-
-                if position not in owner_tiles:
-                    owner_tiles.append(position)
 
     if sw_livestock_phase_active:
         remaining_sw_crop_tiles = [
@@ -1426,6 +1290,39 @@ def agent(obs):
         crop_age = obs["day"] - tile["planted_day"]
 
         return crop_age >= crop_config["harvest_day"]
+
+    ## 2.6b A plant is only destroyed once consecutive_unwatered reaches 2, so a
+    ## tile that was watered yesterday has one day of slack to spend elsewhere.
+    ## Skipping is only free when today's watering would not have produced
+    ## anything, which frees the hands' action budget for harvesting and weeding.
+    def watering_can_be_skipped_today(tile):
+        if (not isinstance(tile, dict)
+                or tile.get("kind") != "PLANT"):
+            return False
+
+        crop = tile.get("crop")
+
+        if crop not in CROP_CONFIGS:
+            return False
+
+        # Only a tile whose counter is back at 0 can afford to miss a day. A
+        # freshly planted tile starts the counter at 1, so it never qualifies.
+        if tile.get("consecutive_unwatered", 0) != 0:
+            return False
+
+        # The fertilizer bonus is only granted on days the tile was watered.
+        if tile.get("fertilized_until_day", -1) >= obs["day"]:
+            return False
+
+        if CROP_CONFIGS[crop]["ongoing"]:
+            return True
+
+        yield_start_age = CROP_WATER_YIELD_START_AGE.get(crop)
+
+        if yield_start_age is None:
+            return False
+
+        return (obs["day"] - tile["planted_day"]) < yield_start_age
     
     ## 2.6
     def crop_profit_per_day(crop):
@@ -1547,6 +1444,7 @@ def agent(obs):
         
         hand_harvest_targets = []
         hand_water_targets = []
+        hand_optional_water_targets = []
         hand_plant_targets = []
         hand_weed_targets = []
         
@@ -1653,10 +1551,18 @@ def agent(obs):
             
             ready_to_harvest = crop_is_harvestable(tile)
             
-            if tile["watered_today"] and ready_to_harvest:
+            watering_is_optional = watering_can_be_skipped_today(tile)
+
+            if ready_to_harvest and (tile["watered_today"] or watering_is_optional):
                 hand_harvest_targets.append(position)
             elif not tile["watered_today"]:
-                hand_water_targets.append(position)
+                # A tile with a day of slack is still worth watering when the
+                # hand has nothing better to do, so keep it as a fallback rather
+                # than dropping it from the route entirely.
+                if watering_is_optional:
+                    hand_optional_water_targets.append(position)
+                else:
+                    hand_water_targets.append(position)
 
         # Second, check if already on actionable tile before travelling elsewhere
         # If actionable, then enact
@@ -2125,138 +2031,11 @@ def agent(obs):
 
     # Hand 5 owns the nearest NE Goose tile, so let it establish and service
     # that Goose without pulling the farmer away from the main livestock loop.
-    def choose_goose_hand_action(hand_position, hand_inventory, hand_index):
+    def choose_goose_hand_action(hand_position, hand_inventory):
         if not adaptive_goose_phase_active:
             return None
 
-        hand_targets = goose_hand_tile_by_index.get(hand_index, ())
-
-        if not hand_targets:
-            return None
-
-        # Carry one Wheat per Goose still waiting to be fed. Fetching a single
-        # unit per trip forced a separate shed round-trip for every bird: a
-        # hand with two Geese made 88 shed arrivals against the four-Sheep
-        # hand's 22, for half the animals.
-        wheat_pickup_count = max(
-            1,
-            sum(
-                1
-                for target in hand_targets
-                if (
-                    target in animal_positions
-                    and not animal_tiles[target].get("fed_today", False)
-                )
-            ),
-        )
-
-        # Unbuilt coops first, so a half-finished pair never stalls behind an
-        # already-serviced Goose.
-        ordered_targets = (
-            [
-                target
-                for target in hand_targets
-                if target not in animal_positions
-            ]
-            + [
-                target
-                for target in hand_targets
-                if target in animal_positions
-            ]
-        )
-
-        for target in ordered_targets:
-            goose_action = choose_goose_tile_action(
-                hand_position,
-                hand_inventory,
-                target,
-                wheat_pickup_count,
-            )
-
-            if goose_action is not None:
-                return goose_action
-
-        # Every owned Goose is serviced, so bank the whole round's produce in
-        # one trip instead of walking back after each bird.
-        def goose_deposit_action():
-            carried_products = [
-                product
-                for product in ANIMAL_PRODUCT_ORDER
-                if hand_inventory.get(product, 0) > 0
-            ]
-
-            if not carried_products:
-                return None
-
-            hand_is_at_shed = hand_position in SHED_ACCESS_TILES
-
-            # Egg prices are flat next to Milk's and Wool's, and the engine
-            # empties every hand inventory into the shed at each day boundary.
-            # So never spend a walk banking Eggs: place them when the round
-            # already finishes at the shed, and otherwise let the overnight
-            # drop do it for free. A hand accrues at most 2 Eggs per Goose per
-            # day, far under the shed cap, so nothing overflows.
-            if (
-                early_ne_goose_coexist_active
-                and not hand_is_at_shed
-                and all(
-                    product == "EGG"
-                    for product in carried_products
-                )
-            ):
-                return None
-
-            if not hand_is_at_shed:
-                return move_to(
-                    hand_position,
-                    nearest_position(hand_position, SHED_ACCESS_TILES),
-                )
-
-            product = carried_products[0]
-            return ["PLACE", product, hand_inventory[product]]
-
-        def goose_fertilizer_action():
-            for target in ordered_targets:
-                if target not in animal_positions:
-                    continue
-
-                target_tile = animal_tiles[target]
-
-                if (
-                    isinstance(target_tile, dict)
-                    and target_tile.get("fertilizer_available", False)
-                ):
-                    if hand_position == target:
-                        return ["COLLECT_FERTILIZER"]
-
-                    return move_to(hand_position, target)
-
-            return None
-
-        # Collecting Fertilizer before banking folds both errands into one shed
-        # trip. Applied only while the Geese coexist with the NE block, so
-        # every non-qualifying seed keeps the frozen baseline's
-        # deposit-then-fertilizer order exactly.
-        round_closing_steps = (
-            (goose_fertilizer_action, goose_deposit_action)
-            if early_ne_goose_coexist_active
-            else (goose_deposit_action, goose_fertilizer_action)
-        )
-
-        for closing_step in round_closing_steps:
-            closing_action = closing_step()
-
-            if closing_action is not None:
-                return closing_action
-
-        return None
-
-    def choose_goose_tile_action(
-            hand_position,
-            hand_inventory,
-            target,
-            wheat_pickup_count=1,
-    ):
+        target = GOOSE_HAND_TILE
         target_tile = animal_tiles[target]
         goose_is_present = target in animal_positions
         wheat_carried = hand_inventory.get("WHEAT", 0)
@@ -2286,11 +2065,7 @@ def agent(obs):
                     return move_to(hand_position, shed_target)
 
                 if shed_counts["WHEAT"] > 0:
-                    return [
-                        "PICKUP",
-                        "WHEAT",
-                        min(shed_counts["WHEAT"], wheat_pickup_count),
-                    ]
+                    return ["PICKUP", "WHEAT", 1]
 
             goose_needs_attention = (
                 not target_tile.get("fed_today", False)
@@ -2299,6 +2074,27 @@ def agent(obs):
                     >= ANIMAL_HARVEST_THRESHOLD
             )
             if goose_needs_attention:
+                return move_to(hand_position, target)
+
+            carried_products = [
+                product
+                for product in ANIMAL_PRODUCT_ORDER
+                if hand_inventory.get(product, 0) > 0
+            ]
+            if carried_products:
+                if hand_position not in SHED_ACCESS_TILES:
+                    shed_target = nearest_position(
+                        hand_position,
+                        SHED_ACCESS_TILES,
+                    )
+                    return move_to(hand_position, shed_target)
+
+                product = carried_products[0]
+                return ["PLACE", product, hand_inventory[product]]
+
+            if target_tile.get("fertilizer_available", False):
+                if hand_position == target:
+                    return ["COLLECT_FERTILIZER"]
                 return move_to(hand_position, target)
 
             return None
@@ -2506,7 +2302,7 @@ def agent(obs):
         if (
             active_animal_plan[position] != "SHEEP"
             and position not in active_sw_service_plan
-            and position not in goose_hand_tiles
+            and position != GOOSE_HAND_TILE
             and position not in STAGED_COW_TILES
         )
     ]
@@ -2785,7 +2581,10 @@ def agent(obs):
                 )
                 and tile_current["kind"] == "PLANT"
                 and tile_current["crop"] in CROPS_MANAGED
-                and tile_current["watered_today"] == True
+                and (
+                    tile_current["watered_today"] == True
+                    or watering_can_be_skipped_today(tile_current)
+                )
                 and crop_is_harvestable(tile_current)):
 
             tile_current_harvestable = True
@@ -2796,12 +2595,6 @@ def agent(obs):
             if (
                 sw_hand_livestock_phase_active
                 and pos in active_sw_service_plan
-            ):
-                continue
-
-            if (
-                early_ne_goose_coexist_active
-                and pos in NE_COEXIST_UNMANAGED_TILES
             ):
                 continue
 
@@ -2819,7 +2612,8 @@ def agent(obs):
                 # Check if there is any tile to water, else, find a plant ready to harvest.
                 # Check who is the tile assigned to a hand
                 hand_is_responsible = pos in active_hand_work_tiles       # Binary flag
-                if not tile["watered_today"]:
+                if (not tile["watered_today"]
+                        and not watering_can_be_skipped_today(tile)):
                     # Only water plants that can be harvested.
                     if (not hand_is_responsible 
                             and (obs["day"] < FINAL_DAY or ready_to_harvest)):
@@ -2880,7 +2674,10 @@ def agent(obs):
                 farmer_action = ["DIG"]
             # If a plant exist, either harvest or water
             elif tile_target.get("kind") == "PLANT":
-                if not tile_target["watered_today"]:
+                # A skippable tile reaches here as a harvest target, so it must
+                # not be diverted back into a watering action.
+                if (not tile_target["watered_today"]
+                        and not watering_can_be_skipped_today(tile_target)):
                     farmer_action = ["WATER"]
                 else:
                     farmer_action = ["HARVEST"]    
@@ -3064,10 +2861,10 @@ def agent(obs):
 
         # Action logic block: FEED, CARE or HARVEST
         if (isinstance(current_animal, dict)
-                and pos_current in farmer_animal_positions
                 and current_animal.get("kind")
                     == ANIMAL_STRUCTURES[active_animal_plan[pos_current]]
                 and current_animal.get("animal") == active_animal_plan.get(pos_current)
+                and pos_current in farmer_animal_positions
                 and animal_needs_attention(pos_current)):
             if not current_animal.get("fed_today", False):
                 if wheat_in_farmer_inventory > 0:
@@ -3090,7 +2887,7 @@ def agent(obs):
             if (
                 position in active_animal_tiles
                 and position not in animal_positions
-                and position not in goose_hand_tiles
+                and position != GOOSE_HAND_TILE
             )
         ]
 
@@ -3272,12 +3069,11 @@ def agent(obs):
 
         if (
             hand_action is None
-            and hand_index in goose_hand_tile_by_index
+            and hand_index == GOOSE_HAND_INDEX
         ):
             hand_action = choose_goose_hand_action(
                 tuple(hand_position),
                 hand_inventory,
-                hand_index,
             )
 
         if (

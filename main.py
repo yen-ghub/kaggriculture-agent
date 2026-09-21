@@ -332,7 +332,21 @@ EARLY_NE_LIVESTOCK_TILES = (
     (7, 3),
 )
 # When the first two shops demand Eggs AND also signal Yarn or Milk, both the
-# Goose branch and the compact NE block qualify. They used to suppress each
+# Goose branch and the compact NE block qualify.
+#
+# In practice this is SHEEP-ONLY, and unreachable for Cows. Cow coexistence
+# would need eggs AND first_two_shops_both_demand_milk AND no yarn; but
+# `both_demand_milk` requires BOTH of the two shops to be Milk shops, and
+# EGG_DEMAND_SHOPS (BAKERY, BRUNCH_SPOT) is disjoint from MILK_DEMAND_SHOPS
+# (ICE_CREAM_SHOP, PIZZA_SHOP, SMOOTHIE_SHOP), so an all-Milk prefix can never
+# also demand Eggs. The third NE trigger, first_two_shops_milk_only, excludes
+# Egg demand explicitly. So early_ne_all_cow_plan is never built under
+# coexistence, and every measurement behind this feature is the Sheep case.
+#
+# That matters if the trigger is ever widened. Wool held at 208 in every
+# allocation tested, which is why the animal side never regressed; Milk is the
+# deeply glutted product where a six-hour deposit delay cost -2554. Admitting
+# Cows here needs fresh measurement, not an extension of these results. They used to suppress each
 # other because (6,4)/(6,3) are shared by both layouts -- a hard tile conflict,
 # not a policy choice (see docs/current_roadmap.md, P1). Shifting the livestock
 # block one column east frees the Geese's own tiles so the two can run at once.

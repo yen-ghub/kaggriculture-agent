@@ -2199,6 +2199,20 @@ Trigger: first two shops demand Eggs AND signal Yarn or double Milk. The
 `first_two_shops_milk_only` prefix already excludes Egg demand, so no
 previously-qualifying seed changes branch.
 
+**Scope: Sheep only, and Cows are unreachable rather than untested.** Cow
+coexistence would require Eggs AND `first_two_shops_both_demand_milk` AND no
+Yarn. `both_demand_milk` requires *both* of the two shops to be Milk shops, and
+the demand sets are disjoint -- `EGG_DEMAND_SHOPS` is {BAKERY, BRUNCH_SPOT},
+`MILK_DEMAND_SHOPS` is {ICE_CREAM_SHOP, PIZZA_SHOP, SMOOTHIE_SHOP} -- so an
+all-Milk prefix can never also demand Eggs. `early_ne_all_cow_plan` is
+therefore never constructed under coexistence, and every number below is the
+Sheep case. Both traced seeds (6, 10) were Yarn prefixes producing four Sheep.
+
+This is load-bearing if the trigger is ever widened. Wool held at 208 in every
+allocation tested, which is why the animal side never regressed anywhere; Milk
+is the glutted product where a six-hour deposit delay cost -2,554. Admitting
+Cows would need the whole analysis redone, not extended.
+
 Twenty-seed mirrored gate vs `wheat_feed_cash_reserve_v1`: **5W-1L-34T, 55.0%**,
 96,037.4 vs 95,839.1 (**+198.3**), zero errors. The single loss is seed 16
 position 0 at **-76 on 114,115** (0.07%), whose mirrored position won -- market

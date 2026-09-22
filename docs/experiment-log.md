@@ -2277,3 +2277,112 @@ own market and hides the timing penalty entirely -- that comparison scored the
 tile relocation +3,787 on seed 6 where the head-to-head gave -2,947. Shared-
 market head-to-head is the only valid measurement for anything that changes
 *when* produce reaches the shed.
+
+## Accepted: immediate Milk deposit
+
+Requested incremental change, not a queued P0--P4 track. `main.py` before the
+change carried harvested Milk in the farmer's backpack until his animal round
+finished, then deposited and sold in the same action at whichever hour the
+round ended -- hour 15 on every production day in the reference trace.
+
+### Mechanism
+
+Milk's intraday price climbs to a midday peak and collapses in the hour the
+day's supply lands. Seed 1, day 10, price by hour:
+
+| h00 | h06 | h12 | h13 | h14 | h15 | h18 | h23 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 187 | 191 | 193 | 194 | 194 | 175 | 177 | 179 |
+
+The h15 fall is the sale itself: neither agent had sold Milk earlier that day.
+Every production day shows the same shape, and the size of the fall tracks the
+volume dumped -- 12 units cost about 19 on day 10, while the 24-unit h23 dump
+on day 17 cost about 59.
+
+The farmer's route already crosses shed access. On day 10 he harvests at
+`(4,4)` -- itself a shed-access tile -- at h04, harvests again at `(4,3)` at
+h08, and reaches `(5,4)`, the other shed access, at h12. An opportunistic drop
+therefore costs one action and adds no travel.
+
+### Change
+
+Two edits, Milk only:
+
+1. Evaluated before the "service the animal at the current position" block:
+   when carrying Milk, on a non-final day, standing on a shed-access tile,
+   return `["PLACE","MILK",n]`.
+2. Suppress the `SELL` that previously fired inline with the farmer's animal-
+   product `PLACE`, for Milk on non-final days. Section 3.4's shed seller then
+   moves it on the next turn.
+
+Wool and Egg keep the fused place-and-sell. So does Milk on the final day:
+there is no next turn after hour 23, so the endgame is untouched.
+
+### Trace, seed 1 against `locked_sw_livestock_v1`
+
+| day | before | after |
+|---|---|---|
+| 8 | 12 units at 169 | 6 at h06 (196) + 6 at h15 (169) |
+| 10 | 6 at h15 (175) | 3 at h06 (187) + 3 at h15 (175) |
+| 15 | 12 at h15 (181) | 6 at h13 (190) + 6 at h17 (185) |
+
+Cost is one extra action per deposit. On day 10 the farmer's Fertilizer
+collections went from 4 to 3 and the day ends on two `PASS` rather than one.
+The Fertilizer totals in the later suites (220.8 to 236.0 sold, 0.0 leftover)
+show no general collapse -- but the predecessor's side was not measured, so
+that is absence of evidence, not evidence of absence.
+
+One-seed money on the same matchup: ours 80,812 to 80,625 (-187); opponent
+69,348 to 69,043 (-305); margin +11,464 to +11,582 (+118). Our own money
+fell. The gain was the opponent losing more.
+
+### Gate
+
+Twenty seeds, mirrored, against `baselines/ne_goose_coexist_v1.py`, which is
+byte-identical to `main.py` before this change. **34W--6L--0T (85.0%), zero
+errors, 95,400.5 versus 94,892.9 (+507.6).**
+
+Zero ties is expected rather than remarkable: the Milk round runs on every
+seed, unlike the shop-gated coexistence trigger whose gate produced 34 ties in
+40. The six losses are seeds 8 (-38), 11 (-32) and 17 (-84), each appearing in
+both mirrored positions with identical scores -- the environment carries no
+first-mover asymmetry, so these 40 games are 20 independent seeds.
+
+### Regression
+
+Five seeds, candidate side only:
+
+| opponent | result | ours | opponent | margin |
+|---|---|---:|---:|---:|
+| `day0_livestock_v1` | 10W--0L | 95,741.2 | 84,800.2 | +10,941.0 |
+| `early_nw_strawberry_v1` | 10W--0L | 95,553.3 | 94,885.0 | +668.3 |
+| `wheat_feed_cash_reserve_v1` | 10W--0L | 99,402.6 | 98,904.2 | +498.4 |
+
+Zero errors throughout, and Milk leftover 0.0 with Fertilizer leftover 0.0 in
+every suite -- nothing is stranded in the shed by splitting the deposit from
+the sale.
+
+### Open item
+
+The predecessor's side of that regression was not run. It therefore shows that
+no opponent regressed; it does not size the gain. The distinction matters
+here: a change to *when* produce reaches a shared market can win by taking the
+better price ahead of a copy that is about to dump into the same hour, rather
+than by creating value. The seed-1 numbers above are the evidence -- our own
+money fell. A +0.53% average gate margin is small enough to be entirely that
+effect.
+
+### What this leaves on the table
+
+Two levers the trace exposed, neither addressed by this change:
+
+- **The hands sell their Milk at hour 23**, the worst hour of the day. On seed
+  1, day 17 they moved 24 units at 122 after the market had already fallen
+  from 181 earlier the same day. That is the largest single Milk event in the
+  match, and it still lands after the crush.
+- **Only the first half of the farmer's daily Milk moves.** The second deposit
+  lands at `(5,4)` at hours 13-14 and still sells into the h15 collapse. The
+  h13-h14 hours are the daily peak, so firing the deposit *before* servicing
+  an animal on the tile is what would capture them, instead of landing at h15.
+
+Accepted and frozen as `baselines/immediate_milk_deposit_v1.py`.

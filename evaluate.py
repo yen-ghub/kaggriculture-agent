@@ -1,5 +1,8 @@
 from kaggle_environments import make
 from main import agent, CROPS_MANAGED
+# For a frozen baseline's side of the same matchups, swap the line above for:
+# from baselines.immediate_milk_deposit_v1 import agent, CROPS_MANAGED
+# from baselines.ne_goose_coexist_v1 import agent, CROPS_MANAGED
 from baselines.full_second_quadrant_v1 import agent as second_quadrant_agent
 from baselines.third_quadrant_v1 import agent as third_quadrant_agent
 from baselines.strawberry_expansion_v1 import agent as strawberry_expansion_agent
@@ -36,10 +39,14 @@ from baselines.wheat_feed_cash_reserve_v1 import agent as wheat_feed_cash_reserv
 from baselines.water_slack_v1 import agent as water_slack_v1_agent
 from baselines.water_slack_v2 import agent as water_slack_v2_agent
 from baselines.ne_goose_coexist_v1 import agent as ne_goose_coexist_v1_agent
+from baselines.immediate_milk_deposit_v1 import agent as immediate_milk_deposit_v1_agent
 
 # Define variables
-SEEDS = list(range(1,21))
-# SEEDS = [1, 2, 3, 4, 5]
+# SEEDS = list(range(1,21))
+# Small multi-opponent regression: the twenty-seed gate already ran against the
+# direct predecessor. Mirrored positions return identical scores on both sides
+# here, so each seed is one independent sample.
+SEEDS = [1, 2, 3, 4, 5]
 OPPONENTS = {
     # "second_quadrant_v1": second_quadrant_agent,
     # "third_quadrant_v1": third_quadrant_agent,
@@ -62,22 +69,29 @@ OPPONENTS = {
     # "fertilize_crops_v1": fertilize_crops_v1_agent,
     # "staggered_additional_sheep_v1": staggered_additional_sheep_v1_agent,
     # "reshuffle_goose_v1": reshuffle_goose_v1_agent,
+    # Regression set: the two livestock opponents both accepted precedents
+    # used, the current frozen reference, and one non-livestock control.
     # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
-    # "day0_livestock_v1": day0_livestock_v1_agent,
+    "day0_livestock_v1": day0_livestock_v1_agent,
     # "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
     # "twelve_melon_opening_v1": twelve_melon_opening_v1_agent,
     # "staged_cow_v1": staged_cow_v1_agent,
     # "early_ne_livestock_v1": early_ne_livestock_v1_agent,
     # "early_ne_single_milk_v1": early_ne_single_milk_v1_agent,
     # "melon_early_return_v1": melon_early_return_v1_agent,
-    # "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
+    "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
     # "crop_sale_priority_v1": crop_sale_priority_v1_agent,
     # Cumulative: everything in main.py since the last frozen reference.
-    # "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
-    # Incremental: main.py at the NE Goose coexistence gate (commit a825256),
-    # so a candidate is measured against that work rather than through it.
-    # Not a promoted baseline -- its five-seed regressions were skipped.
-    "ne_goose_coexist_v1": ne_goose_coexist_v1_agent,
+    "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
+    # Direct predecessor: byte-identical to main.py before the immediate-Milk
+    # deposit change.  Used for the twenty-seed gate; left out of the
+    # multi-opponent regression, where it would just be self-play again.
+    # Still not a promoted baseline -- its own regressions were skipped.
+    # "ne_goose_coexist_v1": ne_goose_coexist_v1_agent,
+    # Current frozen baseline. Identical to main.py until main.py moves on, so
+    # it would be self-play here; swap the top import to score its side of a
+    # regression instead.
+    # "immediate_milk_deposit_v1": immediate_milk_deposit_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

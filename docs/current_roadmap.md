@@ -6,10 +6,13 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/wheat_feed_cash_reserve_v1.py`
+`baselines/immediate_milk_deposit_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below.
+a newer candidate passes the evaluation gates below. This baseline is
+cumulative: it carries everything in the NE Goose coexistence work plus the
+immediate-Milk-deposit change below. `baselines/wheat_feed_cash_reserve_v1.py`
+remains the last single-change reference before that pair.
 
 Current characteristics:
 
@@ -43,6 +46,11 @@ Current characteristics:
   or their other tiles, so the sale lands a full day ahead of the automatic
   overnight deposit and gets ahead of the opponent's own Melon sale in the
   shared market. This sells 60 Melon (12 tiles x 5) instead of 72 (12 x 6).
+- The farmer drops carried Milk into the shed the moment his round is standing
+  on a shed-access tile, and leaves it there rather than selling it on the
+  spot. Section 3.4's shed seller moves it on the following turn, one to
+  several hours earlier than the fused place-and-sell the round used to end
+  on. Wool, Egg, and the final day keep the fused place-and-sell.
 - Idle hands and the farmer collect Fertilizer; selected premium crops use it
   when the projected return clears the value margin.
 - Market sell orders are sorted by a `CROP_SALE_PRIORITY` tuple (`MELON,
@@ -851,6 +859,63 @@ which hand's default patrol, not just reassigning Goose ownership among the
 existing fixed patrols). See `docs/experiment-log.md`'s "Rejected (four more
 variants)" for full per-iteration numbers.
 
+## Immediate Milk deposit -- accepted
+
+Requested as an incremental change outside the P0--P4 sequence, not a
+continuation of any queued track. The farmer used to carry harvested Milk in
+his backpack until his animal round finished, then deposit and sell it in the
+same action at whatever hour that round happened to end. The accepted change
+drops carried Milk into the shed the moment his round is standing on a
+shed-access tile, and suppresses the paired `SELL` so section 3.4's shed
+seller moves it on the following turn.
+
+The mechanism is a measured intraday price curve, not an inference. Milk's
+price climbs to a midday peak and collapses in the hour the day's supply
+lands. On seed 1, day 10 ran 187, 190, 190, 191, 193, 194 across hours 0--14,
+then fell to 175 in the hour the h15 sale landed, recovering only to 179 by
+hour 23. The farmer was selling into his own collapse. His route already
+crosses shed access at `(4,4)` and `(5,4)`, so the earlier drop costs one
+action rather than a detour -- no travel is added.
+
+- Twenty-seed mirrored gate against the direct predecessor
+  (`baselines/ne_goose_coexist_v1.py`, byte-identical to `main.py` before this
+  change): 34W--6L--0T (85.0%), zero errors, 95,400.5 versus 94,892.9
+  (+507.6). Zero ties, because unlike the shop-gated coexistence trigger this
+  round runs on every seed, so every game is decided by the change.
+- The six losses are all thin and arrive in mirrored pairs: seeds 8 (-38),
+  11 (-32) and 17 (-84), on scores near 100,000.
+- Both mirrored positions return identical scores, so the environment carries
+  no first-mover asymmetry and the 40 games are 20 independent seeds.
+- Five-seed regressions, candidate side only: 10W--0L against Day-0 livestock
+  v1 (+10,941.0), Early NW Strawberry v1 (+668.3) and the frozen reference
+  Wheat-feed cash-reserve v1 (+498.4), all zero errors. These establish that
+  no opponent regressed; they do not size the gain, because the predecessor's
+  side of the same matchups was not run.
+- Accepted and frozen as `baselines/immediate_milk_deposit_v1.py`, now the
+  current frozen baseline.
+
+### Open item
+
+Some of the gate win may be positional rather than absolute. Against
+`locked_sw_livestock_v1` on seed 1, our own money fell 187 while the
+opponent's fell 305 -- the gain came from making the opponent lose more, which
+is exactly what a change to *when* produce reaches a shared market can do to a
+copy that is about to dump into the same hour. At a +0.53% average margin that
+effect alone could account for the result. The predecessor side of the
+five-seed regressions is the measurement that would settle it.
+
+Two levers the trace exposed but that this change does not address:
+
+- The **hands** sell their Milk at hour 23, the worst hour of the day. On seed
+  1, day 17 they moved 24 units at 122 after the market had already fallen
+  from 181 earlier the same day. That is the largest single Milk event in the
+  match and it still lands after the crush.
+- Only the **first half** of the farmer's daily Milk moves. The second deposit
+  lands at `(5,4)` at hours 13--14 and still sells into the h15 collapse. If
+  the first-half fix is to be extended, firing the deposit *before* servicing
+  an animal on the tile is what would capture the h13--h14 peak instead of
+  landing at h15.
+
 ## Next action
 
 The opponent-replay-informed package track (`docs/opponent_replay_trace.md`)
@@ -877,6 +942,13 @@ considering next, none yet scoped or traced:
 
 Change one variable at a time (or one tightly coupled branch, per the
 evaluation protocol's definition), gate each the same way as prior work: a
-targeted trace, a five-seed screen against Wheat-feed cash-reserve v1, and
-(if promising) a twenty-seed direct gate plus the standard two-opponent
-regression.
+targeted trace, a five-seed screen against the current frozen baseline, and
+(if promising) a twenty-seed direct gate plus the standard regression against
+the recent frozen baselines. Run the predecessor's side of any regression
+whose result you intend to promote -- the immediate-Milk-deposit entry above
+shows what is left unmeasured when you do not.
+
+Before reaching for any of them, note the two unclaimed levers recorded in
+that entry: the hands' hour-23 Milk sale, and the second half of the farmer's
+own Milk round. Both are strictly larger than anything left in the queued
+candidates below and neither needs a new strategic branch.

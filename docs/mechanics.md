@@ -875,3 +875,30 @@ Corollary for multi-animal hands: fetch feed in one batch sized to the number
 of unfed animals the hand owns. A hardcoded single-unit `PICKUP` forces one
 shed round-trip per animal; a hand with two Geese made 88 shed arrivals against
 a four-Sheep hand's 22.
+
+## Confirmed: the intraday Milk curve peaks at midday and collapses on the day's supply
+
+Milk's price climbs through the morning, peaks around hour 13--14, and falls in
+the hour the day's supply reaches the market. Seed 1, day 10, one round:
+
+| h00 | h06 | h12 | h13 | h14 | h15 | h18 | h23 |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 187 | 191 | 193 | 194 | 194 | 175 | 177 | 179 |
+
+The hour-15 fall is the sale itself: neither agent had sold Milk earlier that
+day. The size of the fall tracks the volume dumped -- 12 units cost about 19,
+while a 24-unit dump at hour 23 cost about 59. This extends "the servicing unit
+determines when produce reaches the market" from a between-days effect to a
+within-day one.
+
+Corollary: the farmer's round already crosses shed access on most production
+days -- on day 10 he harvests at `(4,4)`, itself a shed-access tile, at hour 04
+and reaches `(5,4)` at hour 12 -- so an opportunistic early deposit costs one
+`PLACE` action and no travel. Depositing and selling can be split without
+costing an extra turn, because section 3.4's shed seller moves whatever the
+shed holds on the following turn.
+
+When the split is evaluated matters. Firing the deposit *before* servicing an
+animal that is standing on a shed-access tile is what captures the h13--h14
+peak; on day 15 the second Milk deposit lands at `(5,4)` at h13--h14, so a
+deposit evaluated after servicing still sells into the h15 collapse.

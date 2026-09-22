@@ -35,6 +35,7 @@ from baselines.early_nw_strawberry_v1 import agent as early_nw_strawberry_v1_age
 from baselines.wheat_feed_cash_reserve_v1 import agent as wheat_feed_cash_reserve_v1_agent
 from baselines.water_slack_v1 import agent as water_slack_v1_agent
 from baselines.water_slack_v2 import agent as water_slack_v2_agent
+from baselines.ne_goose_coexist_v1 import agent as ne_goose_coexist_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -71,7 +72,12 @@ OPPONENTS = {
     # "melon_early_return_v1": melon_early_return_v1_agent,
     # "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
     # "crop_sale_priority_v1": crop_sale_priority_v1_agent,
-    "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
+    # Cumulative: everything in main.py since the last frozen reference.
+    # "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
+    # Incremental: main.py at the NE Goose coexistence gate (commit a825256),
+    # so a candidate is measured against that work rather than through it.
+    # Not a promoted baseline -- its five-seed regressions were skipped.
+    "ne_goose_coexist_v1": ne_goose_coexist_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

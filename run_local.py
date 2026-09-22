@@ -9,13 +9,13 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.wheat_feed_cash_reserve_v1 import agent as baseline_agent
+from baselines.ne_goose_coexist_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
         "episodeSteps": 720,
-        "seed": 10,
+        "seed": 1,
     },
     debug=True,
 )

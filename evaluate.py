@@ -95,7 +95,7 @@ OPPONENTS = {
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here; swap the top import to score its side of a
     # regression instead.
-    # "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
+    "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

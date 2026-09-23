@@ -496,6 +496,33 @@ HAND_HIRE_COSTS = (
 )
 MARKET_SLOTS_RESERVED_AFTER_HIRING = 3
 
+# Melon harvest day saturates the NW hands: they clear the opening Melon wave
+# and make an extra return trip to bank it, and the western Wheat planted on
+# day 6 is left unwatered on the last day of its yield window. Harvested a day
+# late it keeps yield 3 instead of 4 (replays/leftover_wheat.json: four tiles).
+# One extra hand is hired for that single day, on a fixed route:
+#   (4,2), (3,2), (2,2), the freed Melon tiles: plant and water Strawberry;
+#   then (1,2), (0,2), (0,1), (0,0): water and harvest Wheat only.
+# Planting the western tiles as well does not fit in one day's actions; their
+# owners replant them on day 11 as usual.
+# Slot nine costs 34 and the roster is re-hired nightly, so it is a one-off.
+MELON_RELIEF_HAND_INDEX = SECOND_QUADRANT_HAND_COUNT
+MELON_RELIEF_ROW_TILES = (
+    (4, 2), (3, 2), (2, 2),
+)
+MELON_RELIEF_HARVEST_ONLY_TILES = (
+    (1, 2), (0, 2), (0, 1), (0, 0),
+)
+MELON_RELIEF_TILES = MELON_RELIEF_ROW_TILES + MELON_RELIEF_HARVEST_ONLY_TILES
+# The route trails the Melon owners through (4,2)-(2,2). Waiting on an
+# uncleared Melon tile is abandoned after this hour so the western half of the
+# route still gets done.
+MELON_RELIEF_WAIT_LAST_HOUR = 12
+# Only hire when the day starts with at least this many harvest-ready Wheat on
+# the route. The Wheat is the hire's only real payoff: Strawberry planted on
+# day 10 still gets four cycles, the same as day 11.
+MELON_RELIEF_MIN_READY_WHEAT = 3
+
 # List tiles for crops (not reserved for animal)
 FIRST_QUADRANT_CROP_TILES = [
     position
@@ -1287,6 +1314,43 @@ def agent(obs):
         ]
 
 
+    # Melon harvest day only (NE unlocked, SW not, so index 8 is unused).
+    # The tiles stay with their usual owners as well: the relief hand works
+    # them on its own fixed route and never takes over the Melon round-trip.
+    melon_relief_ready_wheat = 0
+    for x, y in MELON_RELIEF_TILES:
+        relief_tile = farm["tiles"][y][x]
+        if (
+            isinstance(relief_tile, dict)
+            and relief_tile.get("kind") == "PLANT"
+            and relief_tile.get("crop") == "WHEAT"
+            and obs["day"] - relief_tile["planted_day"]
+                >= CROP_CONFIGS["WHEAT"]["harvest_day"]
+        ):
+            melon_relief_ready_wheat += 1
+
+    # Decided once, when the day's roster is hired: the roster resets every
+    # night, so a hand at this index means the hire already happened today.
+    # Without that latch the count falls as the relief hand harvests, and the
+    # gate would switch off with the route half done.
+    melon_relief_already_hired = (
+        len(farm["hands"]) > MELON_RELIEF_HAND_INDEX
+    )
+    melon_relief_hand_active = (
+        obs["day"] == MELON_HARVEST_DAY
+        and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
+        and THIRD_QUADRANT_NAME not in farm["unlocked_quadrants"]
+        and (
+            melon_relief_already_hired
+            or melon_relief_ready_wheat >= MELON_RELIEF_MIN_READY_WHEAT
+        )
+    )
+
+    if melon_relief_hand_active:
+        current_hand_work_tiles_each[MELON_RELIEF_HAND_INDEX] = list(
+            MELON_RELIEF_TILES
+        )
+
     # Create a list of work tiles of the farm hands
     active_hand_work_tiles = []
     for hand_index in range(
@@ -1304,6 +1368,9 @@ def agent(obs):
         hands_to_hire_today = SECOND_QUADRANT_HAND_COUNT
     else:
         hands_to_hire_today = NW_HAND_COUNT
+
+    if melon_relief_hand_active:
+        hands_to_hire_today = MELON_RELIEF_HAND_INDEX + 1
             
     # Inventory count in the shed and in the backpack (dictionaries, one entry for each crop)
     seed_counts     = {
@@ -1757,6 +1824,76 @@ def agent(obs):
             return ["PASS"]
 
         return move_to(hand_position, target)
+
+    # 2.8b Melon-harvest-day relief hand: a fixed route, not the generic
+    # nearest-tile routine, which would send it to whichever tile is closest
+    # and let it pick up Melon work.
+    def choose_melon_relief_hand_action(hand_position, available_seed_counts):
+        def go(position, action):
+            if hand_position == position:
+                return action
+            return move_to(hand_position, position)
+
+        for position in MELON_RELIEF_TILES:
+            if position in active_animal_tiles:
+                continue
+
+            plant_after_harvest = position in MELON_RELIEF_ROW_TILES
+            tile = tile_at(farm, position)
+
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "MELON"
+            ):
+                # Its owner clears it and banks the Melon a day early. Hold
+                # station rather than walking west past it, but not all day.
+                if obs["hour"] >= MELON_RELIEF_WAIT_LAST_HOUR:
+                    continue
+                return go(position, ["PASS"])
+
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "WHEAT"
+            ):
+                # Water first: day 10 is the last day of the yield window.
+                if not tile["watered_today"]:
+                    return go(position, ["WATER"])
+                if crop_is_harvestable(tile):
+                    return go(position, ["HARVEST"])
+                continue
+
+            if not plant_after_harvest:
+                continue
+
+            # A new plant starts one dry day down, so an unwatered planting
+            # day kills it overnight: water every Strawberry planted today.
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "STRAWBERRY"
+                and tile.get("planted_day") == obs["day"]
+                and not tile["watered_today"]
+            ):
+                return go(position, ["WATER"])
+
+            if isinstance(tile, dict) and tile.get("kind") == "WEED":
+                return go(position, ["DIG"])
+
+            if (
+                tile is None
+                and available_seed_counts.get("STRAWBERRY", 0) > 0
+                and obs["hour"] < LAST_HOUR_TODAY
+            ):
+                if hand_position == position:
+                    available_seed_counts["STRAWBERRY"] -= 1
+                    return ["PLANT", "STRAWBERRY"]
+                return move_to(hand_position, position)
+
+        # Route finished: stay put rather than fall back to the generic
+        # routine, which would plant the harvest-only tiles too.
+        return ["PASS"]
 
     def fertilizer_bonus_units(tile):
         crop = tile["crop"]
@@ -3375,6 +3512,17 @@ def agent(obs):
             hand_action = choose_sw_livestock_hand_action(
                 tuple(hand_position),
                 hand_inventory,
+            )
+
+        hand_is_melon_relief = (
+            melon_relief_hand_active
+            and hand_index == MELON_RELIEF_HAND_INDEX
+        )
+
+        if hand_action is None and hand_is_melon_relief:
+            hand_action = choose_melon_relief_hand_action(
+                tuple(hand_position),
+                available_seed_counts,
             )
 
         # On melon harvest day, clear any mature Melon tile immediately, then

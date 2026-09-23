@@ -2694,3 +2694,54 @@ Fertilizer; it is a sell-side problem and is left for its own experiment.
 
 The price gate moved the gate result from +3,918.7 to +3,945.1 per game, all
 from seed 6.
+
+## Accepted and frozen: off-day Fertilizer on NE's first Strawberry wave
+
+**Status: frozen as `baselines/offday_fertilize_ne_early_v1.py`.** Twenty-seed
+gate against `offday_fertilize_sw_v1`: **36W--4L--0T, 90.0%, average 93,062.2
+vs 91,180.1 (+1,882.1 per game)**. Strawberry sold 253.7 (from 238.9),
+Fertilizer sold 196.4 (from 213.2).
+
+**Caveat -- read before building on this: the win is mostly, perhaps
+entirely, taken from the opponent rather than earned.** See "Whose money
+moved" below.
+
+### What changed
+
+`OFFDAY_FERTILIZE_TILES` now covers NE as well as SW, and on NE the rule only
+applies to Strawberry planted before `STRAWBERRY_START_DAY` -- the day-7 early
+wave, six tiles on every seed checked, whose first off day is day 15. The
+Fertilizer pickup also moved ahead of the Goose and livestock routines, which
+always have a first action at the shed; before that move the two Goose hands
+never collected Fertilizer and NE boosted only 25 of 51 production nights on
+seed 1 (43 of 49 after, with the full NE extension).
+
+### Whose money moved
+
+Seed 1, measured from the SW-only baseline playing itself (125,153 each),
+identical shop sequence in every run:
+
+| variant | ours | own vs mirror | opponent | taken from it |
+|---|---:|---:|---:|---:|
+| NE, both waves | 124,877 | -276 | 122,112 | 3,041 |
+| NE, first wave only (frozen) | 125,159 | +6 | 123,111 | 2,042 |
+
+On seed 1 the SW-only baseline already saturates the shared Strawberry
+market, so each extra unit, early or late, lowers the price for the rest of
+the season: unsold market inventory carries over. The first-wave-only version
+keeps our own money level while still taking ~2,000 from a Strawberry-growing
+opponent, which is why it was chosen over both waves.
+
+That is real ranking value against Strawberry growers, and the ladder scores
+head to head. Against an opponent that does not grow Strawberry it should be
+roughly zero, less the Fertilizer and the hour the Goose hands lose on off
+days.
+
+The twenty-seed own/taken split has **not** been measured yet. It is now one
+command:
+
+    python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_sw_v1
+
+Two games per seed. Seeds whose shop sequence differs from the mirror's are
+flagged and left out of the average; seed 6 re-rolled its town in one trace
+of this change.

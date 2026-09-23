@@ -9,6 +9,7 @@ rather than another throwaway script. Changes no agent behaviour.
     python tools/trace.py crops --seed 10
     python tools/trace.py h2h --seeds 6,10
     python tools/trace.py isolation --seeds 1-20
+    python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_sw_v1
 
 Method rules these views exist to enforce (learned the hard way; see
 docs/experiment-log.md):
@@ -22,6 +23,12 @@ docs/experiment-log.md):
   glutted product.
 * Confirm non-qualifying seeds are byte-identical before trusting a gated
   experiment (`isolation`).
+* A head-to-head win is not income. On a shared market a change can win by
+  lowering the opponent's price while earning us nothing (`mirror`): NE
+  off-day Fertilizer won seed 1 by +2,048 with our own money up just 6.
+* A big single-seed swing may be a re-rolled town, not the strategy: the
+  shop draw depends on both farms' empty tiles (docs/mechanics.md). `mirror`
+  flags seeds whose shop sequence changed.
 """
 
 import argparse
@@ -40,7 +47,9 @@ with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.St
 import main as main_module
 from main import SHED_ACCESS_TILES
 
-DEFAULT_OPPONENT = "immediate_milk_deposit_v1"
+# Keep this pointed at the current frozen baseline (docs/current_roadmap.md).
+# A stale default is how a diagnostic quietly starts measuring the wrong thing.
+DEFAULT_OPPONENT = "offday_fertilize_ne_early_v1"
 MOVES = ("NORTH", "SOUTH", "EAST", "WEST")
 PRODUCTS = (
     "WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON",
@@ -318,6 +327,63 @@ def view_shops(args, opponent):
               % (seed, ",".join(shops), "+".join(flags) or "-"))
 
 
+def view_mirror(args, opponent):
+    """Whose money moved? Splits a head-to-head delta into our own gain and
+    the opponent's loss, both measured from the baseline playing itself.
+
+    Two games per seed: candidate vs baseline, and baseline vs baseline.
+      own    = ours      - mirror    (money the change earned us)
+      taken  = mirror    - theirs    (money it cost the opponent)
+      delta  = own + taken
+    A seed whose shop sequence differs from the mirror's re-rolled the town
+    (docs/mechanics.md); its split is not a like-for-like comparison.
+    """
+    print("mirror vs %s -- own = ours - mirror, taken = mirror - theirs"
+          % args.opponent)
+    totals = {"own": 0, "taken": 0, "seeds": 0}
+    rerolled = []
+
+    for seed in parse_seeds(args.seeds):
+        env = play(seed, opponent)
+        mirror_env = make(
+            "kaggriculture",
+            configuration={"episodeSteps": 720, "seed": seed},
+            debug=False,
+        )
+        with contextlib.redirect_stdout(io.StringIO()):
+            mirror_env.run([opponent, opponent])
+
+        ours = env.steps[-1][0].reward
+        theirs = env.steps[-1][1].reward
+        mirror = mirror_env.steps[-1][0].reward
+        own, taken = ours - mirror, mirror - theirs
+
+        same_town = (
+            env.steps[-1][0].observation["town"]["unlocked_shops"]
+            == mirror_env.steps[-1][0].observation["town"]["unlocked_shops"]
+        )
+        if not same_town:
+            rerolled.append(seed)
+
+        print("  seed %2d  mirror %9.0f  ours %9.0f  theirs %9.0f  "
+              "own %+7.0f  taken %+7.0f  delta %+7.0f%s"
+              % (seed, mirror, ours, theirs, own, taken, own + taken,
+                 "" if same_town else "  TOWN RE-ROLLED"))
+
+        if same_town:
+            totals["own"] += own
+            totals["taken"] += taken
+            totals["seeds"] += 1
+
+    n = totals["seeds"]
+    if n:
+        print("  average over %d like-for-like seeds: own %+.1f  taken %+.1f  "
+              "delta %+.1f" % (n, totals["own"] / n, totals["taken"] / n,
+                               (totals["own"] + totals["taken"]) / n))
+    print("  re-rolled towns (excluded from the average): %s"
+          % (rerolled or "none"))
+
+
 VIEWS = {
     "shops": view_shops,
     "tiles": view_tiles,
@@ -326,6 +392,7 @@ VIEWS = {
     "crops": view_crops,
     "h2h": view_h2h,
     "isolation": view_isolation,
+    "mirror": view_mirror,
 }
 
 
@@ -334,7 +401,7 @@ def build_parser():
     parser.add_argument("view", choices=sorted(VIEWS))
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--seeds", default="1",
-                        help="for h2h/isolation: 6,10 or 1-20")
+                        help="for h2h/isolation/mirror: 6,10 or 1-20")
     parser.add_argument("--opponent", default=DEFAULT_OPPONENT,
                         help="module under baselines/ (default: %s)" % DEFAULT_OPPONENT)
     parser.add_argument("--days", help="for tiles: 9-16 or 9,10,11")

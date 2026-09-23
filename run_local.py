@@ -9,7 +9,7 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.day10_relief_hand_v1 import agent as baseline_agent
+from baselines.offday_fertilize_sw_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",

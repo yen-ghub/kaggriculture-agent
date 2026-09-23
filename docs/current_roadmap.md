@@ -6,34 +6,39 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/offday_fertilize_sw_v1.py`
+`baselines/offday_fertilize_ne_early_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`day10_relief_hand_v1` plus off-day Fertilizer on SW Strawberry: on the off day
-before each production night, a SW Strawberry watered yesterday gets
-FERTILIZE instead of WATER, so that night yields +2 instead of +1 at no extra
-actions. Twenty-seed gate 34W--6L--0T, 85.0%, +3,945.1 per game. See the
-experiment log.
+`offday_fertilize_sw_v1` with off-day Fertilizer extended to NE's first
+Strawberry wave (planted before day 10). Twenty-seed gate 36W--4L--0T, 90.0%,
++1,882.1 per game against the SW-only baseline.
+
+**That win is mostly taken from the opponent, not earned.** On seed 1 our own
+money was level with the baseline mirror (+6) while the opponent lost 2,042:
+the SW-only baseline already saturates the shared Strawberry market. Before
+building more Strawberry volume on top of this, run
+`python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_sw_v1`
+to see the twenty-seed split.
 
 Next, in order:
 
-- **Extend it to NW and NE.** SW is roughly a quarter of the Strawberry
-  acreage, so this is about four times the volume -- and the point where the
-  shared Strawberry market becomes the real question.
+- **The twenty-seed own/taken split** above -- one command, two games per seed.
+- **NW is not worth extending into** on the seed-1 evidence: the market is
+  already saturated, so more units only take the opponent's price. Revisit
+  only if the split shows we still earn from extra Strawberry on most seeds.
 - **The Strawberry sell side on glut seeds.** When the opponent is
   Strawberry-heavy, the daily cap lifts and the whole shed sells at h01: on
   seed 6 a 49-unit order took the price from 144 to 7. That loses money with or
-  without the Fertilizer, and it is what the six remaining losses most likely
-  share (only seed 6 has been traced).
-- **Whose money moved.** Seed 1 was our gain (+7,569 on the mirror, opponent
-  -412); seed 6 was a transfer (us -504, opponent +491). A baseline self-play
-  average over the same twenty seeds would show how much of +3,945 is our own
-  revenue and how much is denying the opponent a Strawberry price -- which
-  matters against opponents who do not grow Strawberry.
+  without the Fertilizer, and it is the likeliest common factor in the four
+  remaining losses (only seed 6 has been traced). Unlike more volume, this
+  lever should add our own money rather than only take the opponent's.
 
-`baselines/day10_relief_hand_v1.py` (commit `2444200`) is its direct
-predecessor: `permanent_ne_geese_v1` plus two safety changes, frozen without a
+`baselines/offday_fertilize_sw_v1.py` is its direct predecessor: off-day
+Fertilizer on SW Strawberry only (34W--6L, 85.0%, +3,945.1 per game against
+`day10_relief_hand_v1`, and on seed 1 a genuine +7,569 of our own money).
+
+`baselines/day10_relief_hand_v1.py` (commit `2444200`) came before that: `permanent_ne_geese_v1` plus two safety changes, frozen without a
 gate:
 
 - **Seed purchases keep tomorrow's hire cost in reserve.** A day 0 that ended

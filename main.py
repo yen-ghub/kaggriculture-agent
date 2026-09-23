@@ -3627,10 +3627,17 @@ def agent(obs):
 
         total_seed_cost = (quantity_to_buy * seed_cost)
         
-        cash_reserve_after_seed_purchase = (
+        # Never let seeds spend the money tomorrow's roster needs. The whole
+        # roster is re-hired every morning, and on day 1 the hands' Fertilizer
+        # is the farm's first income: a day 0 that ends on zero hires nobody,
+        # collects nothing, and never recovers (replays/zero_money.json -- the
+        # Melon top-up bought one seed an hour until the last 80 coins went).
+        next_day_hire_cost = sum(HAND_HIRE_COSTS[:hands_to_hire_today])
+        cash_reserve_after_seed_purchase = max(
             INITIAL_SHEEP_CASH_RESERVE
             if initial_sheep_cash_reserve_active
-            else 0
+            else 0,
+            next_day_hire_cost,
         )
 
         if (

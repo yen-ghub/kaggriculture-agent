@@ -2619,3 +2619,78 @@ below every other run -- because a different shop sequence unlocked from day
 12 (see `docs/mechanics.md`, "which shop unlocks depends on how many tiles are
 empty on BOTH farms"). Before attributing a large single-seed swing to a
 strategy change, compare the shop sequence against the baseline mirror.
+
+## Accepted and frozen: off-day Fertilizer on SW Strawberry
+
+**Status: frozen as `baselines/offday_fertilize_sw_v1.py`.** Twenty-seed gate
+against `day10_relief_hand_v1`: **34W--6L--0T, 85.0%, average 95,428.2 vs
+91,483.1 (+3,945.1 per game)**. Zero errors, zero leftovers. Strawberry sold
+rose to 238.9 from ~196; Fertilizer sold fell to 213.2 from ~260. Every other
+product line is unchanged.
+
+### The mechanic it uses
+
+An ongoing crop's yield is computed on the night of each production day, and
+the Fertilizer bonus needs that day watered:
+
+    fertilized = was_watered and tile["fertilized_until_day"] >= current_day
+    tile["yield_units"] += (2 if fertilized else 1)
+
+FERTILIZE lasts three days (`fertilized_until_day = day + 2`). So applying it
+on the **off day before** a production day boosts that night *and* replaces the
+off day's watering -- a plant watered yesterday survives one dry day. It costs
+no extra actions and one Fertilizer per extra Strawberry.
+
+The obvious version is wrong. Fertilising on "the day before the Strawberry is
+ready" instead of watering is fertilising the production day itself dry, which
+forfeits the bonus and wastes the Fertilizer.
+
+Before this change only 8% of Strawberry production nights were boosted (seed
+1: 15 of 177), while ~260 Fertilizer a season was sold at ~33-50.
+
+### What was built (SW only, from day 15)
+
+- **Rule.** On the off day before a production night, a SW Strawberry watered
+  yesterday (`consecutive_unwatered == 0`) gets FERTILIZE instead of WATER. If
+  tomorrow is already covered, the watering is skipped outright. Production
+  days are always watered; a plant already one dry day down is always watered.
+  Harvesting on the off day goes ahead without watering.
+- **Supply.** Hands spawn on shed access, so each takes its off-day
+  Fertilizer from the shed with its first action of the day.
+- **Market.** Fertilizer picked up this turn, plus what today's and
+  tomorrow's off days still need, is held back from sale. Collection runs at
+  ~8 a day against 12 on a synchronized SW off day, so tomorrow's need must
+  accumulate.
+- **Price gate.** Only when Strawberry's spot price is at least Fertilizer's
+  times `FERTILIZER_USE_VALUE_MARGIN` (1.20), the test the production-day pass
+  already uses.
+
+### Evidence
+
+Seed 1, a strong Strawberry seed (Farmers Market and two Smoothie Shops):
+
+|  | SW nights boosted | Strawberry sold | Fertilizer sold |
+|---|---:|---:|---:|
+| candidate | 53 of 54 (98%) | 244 | 220 |
+| baseline | 4 of 54 (7%) | 194 | 275 |
+
++7,981 with an identical shop sequence. The ledger differs on exactly two
+lines, Strawberry +11,060 and Fertilizer -1,828: each extra Strawberry sold for
+~221 against ~33 for the Fertilizer it cost.
+
+### The losses: Strawberry-glut seeds
+
+Seed 6 (-1,282 ungated, -995 gated) has no Strawberry demand shop until day
+18. Strawberry realised ~19 there against Fertilizer at ~46, so the trade
+inverts. The spot-price gate only partly catches it, because morning prices
+look healthy and the crash happens inside our own sell orders:
+
+    d19  morning SB 150  FERT 40        -> the gate passes, Fertilizer spent
+    d22  sell x49  144 -> 7             -> the extra units sell at single digits
+
+The 49-unit order is the Strawberry sell rule lifting its daily cap when the
+opponent is Strawberry-heavy. That dump loses money with or without the
+Fertilizer; it is a sell-side problem and is left for its own experiment.
+
+The price gate moved the gate result from +3,918.7 to +3,945.1 per game, all
+from seed 6.

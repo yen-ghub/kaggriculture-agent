@@ -41,13 +41,15 @@ from baselines.water_slack_v2 import agent as water_slack_v2_agent
 from baselines.ne_goose_coexist_v1 import agent as ne_goose_coexist_v1_agent
 from baselines.immediate_milk_deposit_v1 import agent as immediate_milk_deposit_v1_agent
 from baselines.permanent_ne_geese_v1 import agent as permanent_ne_geese_v1_agent
+from baselines.day10_relief_hand_v1 import agent as day10_relief_hand_v1_agent
+from baselines.offday_fertilize_sw_v1 import agent as offday_fertilize_sw_v1_agent
 
 # Define variables
-# SEEDS = list(range(1,21))
+SEEDS = list(range(1,21))
 # Small multi-opponent regression: the twenty-seed gate already ran against the
 # direct predecessor. Mirrored positions return identical scores on both sides
 # here, so each seed is one independent sample.
-SEEDS = [1, 2, 3, 4, 5]
+# SEEDS = [1, 2, 3, 4, 5]
 OPPONENTS = {
     # "second_quadrant_v1": second_quadrant_agent,
     # "third_quadrant_v1": third_quadrant_agent,
@@ -73,17 +75,17 @@ OPPONENTS = {
     # Regression set: the two livestock opponents both accepted precedents
     # used, the current frozen reference, and one non-livestock control.
     # "locked_sw_livestock_v1": locked_sw_livestock_v1_agent,
-    "day0_livestock_v1": day0_livestock_v1_agent,
+    # "day0_livestock_v1": day0_livestock_v1_agent,
     # "ne_wheat_buffer_v1": ne_wheat_buffer_v1_agent,
     # "twelve_melon_opening_v1": twelve_melon_opening_v1_agent,
     # "staged_cow_v1": staged_cow_v1_agent,
     # "early_ne_livestock_v1": early_ne_livestock_v1_agent,
     # "early_ne_single_milk_v1": early_ne_single_milk_v1_agent,
     # "melon_early_return_v1": melon_early_return_v1_agent,
-    "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
+    # "early_nw_strawberry_v1": early_nw_strawberry_v1_agent,
     # "crop_sale_priority_v1": crop_sale_priority_v1_agent,
     # Cumulative: everything in main.py since the last frozen reference.
-    "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
+    # "wheat_feed_cash_reserve_v1": wheat_feed_cash_reserve_v1_agent,
     # Direct predecessor: byte-identical to main.py before the immediate-Milk
     # deposit change.  Used for the twenty-seed gate; left out of the
     # multi-opponent regression, where it would just be self-play again.
@@ -95,7 +97,14 @@ OPPONENTS = {
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here; swap the top import to score its side of a
     # regression instead.
-    "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
+    # "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
+    # permanent_ne_geese_v1 plus the day-0 seed cash floor and the Melon-day
+    # relief hand (commit 2444200). Direct predecessor of offday_fertilize_sw_v1
+    # and the opponent of its twenty-seed gate (34W-6L, +3,945.1 per game).
+    # "day10_relief_hand_v1": day10_relief_hand_v1_agent,
+    # Current frozen baseline. Identical to main.py until main.py moves on, so
+    # it would be self-play here.
+    # "offday_fertilize_sw_v1": offday_fertilize_sw_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

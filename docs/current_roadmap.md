@@ -6,10 +6,47 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/permanent_ne_geese_v1.py`
+`baselines/offday_fertilize_sw_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`day10_relief_hand_v1` plus off-day Fertilizer on SW Strawberry: on the off day
+before each production night, a SW Strawberry watered yesterday gets
+FERTILIZE instead of WATER, so that night yields +2 instead of +1 at no extra
+actions. Twenty-seed gate 34W--6L--0T, 85.0%, +3,945.1 per game. See the
+experiment log.
+
+Next, in order:
+
+- **Extend it to NW and NE.** SW is roughly a quarter of the Strawberry
+  acreage, so this is about four times the volume -- and the point where the
+  shared Strawberry market becomes the real question.
+- **The Strawberry sell side on glut seeds.** When the opponent is
+  Strawberry-heavy, the daily cap lifts and the whole shed sells at h01: on
+  seed 6 a 49-unit order took the price from 144 to 7. That loses money with or
+  without the Fertilizer, and it is what the six remaining losses most likely
+  share (only seed 6 has been traced).
+- **Whose money moved.** Seed 1 was our gain (+7,569 on the mirror, opponent
+  -412); seed 6 was a transfer (us -504, opponent +491). A baseline self-play
+  average over the same twenty seeds would show how much of +3,945 is our own
+  revenue and how much is denying the opponent a Strawberry price -- which
+  matters against opponents who do not grow Strawberry.
+
+`baselines/day10_relief_hand_v1.py` (commit `2444200`) is its direct
+predecessor: `permanent_ne_geese_v1` plus two safety changes, frozen without a
+gate:
+
+- **Seed purchases keep tomorrow's hire cost in reserve.** A day 0 that ended
+  on zero money hired nobody on day 1 and never recovered
+  (`replays/zero_money.json`). Forced locally with `startingMoney` 2989: 0
+  final before, 125,969 after.
+- **A one-day relief hand on Melon day** when at least three Wheat stand
+  ready on the western route (`replays/leftover_wheat.json`). It never fires
+  on seeds 1-20 against our own baselines -- the early NW Strawberry
+  conversion has already cleared that Wheat by day 9 -- so it cannot be
+  measured locally; it only fires when the day-6 Wheat wave slips a day.
+
+The previous baseline, `baselines/permanent_ne_geese_v1.py`, is
 `immediate_milk_deposit_v1` plus the permanent NE Geese package: the two NE
 Geese run on every seed, not only on Egg-demand prefixes; when the compact NE
 block also runs, the Geese sit at (5,1)/(5,2) with the four animals on the

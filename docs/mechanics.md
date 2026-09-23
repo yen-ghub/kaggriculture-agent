@@ -980,3 +980,34 @@ What this means in practice:
   would produce. Untested: a naive replay from the hour-23 observation
   mispredicted 3 of 7 unlocks on seed 15, because the plant refresh and the
   final hour's actions change the count after that observation.
+
+## Confirmed: an ongoing crop's Fertilizer bonus is decided on the production night, and needs that day watered
+
+From `_daily_refresh_plants`, on the night of each production day only:
+
+    fertilized = was_watered and tile["fertilized_until_day"] >= current_day
+    tile["yield_units"] += (2 if fertilized else 1)
+
+and from the FERTILIZE action:
+
+    tile["fertilized_until_day"] = max(..., day + 2)   # active day, day+1, day+2
+
+So, for Strawberry (production nights at plant ages 9, 11, 13 and 15; the
+units appear the next morning at ages 10, 12, 14 and 16):
+
+- **The production day must be watered** or the bonus is lost -- Fertilizer
+  applied to a dry production day is simply wasted, and the night yields the
+  normal +1.
+- **Fertilizer applied on the off day before a production day** covers that
+  production night (`day + 1 <= day + 2`), and can replace that off day's
+  watering: a plant watered the day before survives one dry day. This is free
+  in actions and costs one Fertilizer per bonus unit.
+- **Fertilizer applied on a production day** (with its watering) covers that
+  night and the next production night two days later -- two bonus units per
+  Fertilizer, but one extra action. This is what the older
+  `fertilizer_bonus_units` pass does at ages 9 and 13.
+- Watering an ongoing crop on an off day has no effect on yield. It only
+  resets the dry-day counter.
+- The yield itself does not depend on watering at all. A dry production day
+  still yields +1; only the bonus needs the water.
+- HARVEST does not require the tile to be watered that day.

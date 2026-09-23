@@ -466,17 +466,6 @@ ANIMAL_PRODUCT_ORDER = ("MILK", "WOOL", "EGG")
 ANIMAL_HARVEST_THRESHOLD = 1
 FERTILIZER_USE_VALUE_MARGIN = 1.20
 
-# Off-day Fertilizer for SW Strawberry. An ongoing crop's yield is computed on
-# the night of each production day, and the +1 Fertilizer bonus needs THAT day
-# watered. FERTILIZE lasts three days (day .. day+2), so applying it on the off
-# day before a production day boosts that night and replaces the off day's
-# watering: a plant watered yesterday survives one dry day. Same action count,
-# one Fertilizer (sold at ~46-50) per extra Strawberry. SW only for a first,
-# small measurement.
-OFFDAY_FERTILIZE_START_DAY = 15
-OFFDAY_FERTILIZE_TILES = frozenset(THIRD_QUADRANT_ROUTE)
-STRAWBERRY_PRODUCTION_INTERVAL = 2
-
 # All four centre-adjacent positions can access the shed.
 SHED_ACCESS_TILES = (
     (4, 4),
@@ -1675,62 +1664,15 @@ def agent(obs):
     
     
     # 2.8 Farm hand logic
-    # Plant ages whose night is a Strawberry production night: 9, 11, 13, 15.
-    strawberry_production_ages = tuple(range(
-        CROP_CONFIGS["STRAWBERRY"]["harvest_day"] - 1,
-        CROP_CONFIGS["STRAWBERRY"]["last_production_day"],
-        STRAWBERRY_PRODUCTION_INTERVAL,
-    ))
-
-    def offday_fertilize_applies(position, tile, day_offset=0):
-        # True on the off day before a production night, for SW Strawberry
-        # that tomorrow's Fertilizer bonus does not already cover.
-        day = obs["day"] + day_offset
-
-        if (
-            day < OFFDAY_FERTILIZE_START_DAY
-            or position not in OFFDAY_FERTILIZE_TILES
-            or not isinstance(tile, dict)
-            or tile.get("kind") != "PLANT"
-            or tile.get("crop") != "STRAWBERRY"
-        ):
-            return False
-
-        # Only worth a Fertilizer when the extra Strawberry outsells it -- the
-        # same test the production-day pass uses. On a Strawberry-glut seed
-        # (seed 6: no Strawberry shop until day 18, sold at ~19) the extra
-        # units are worth less than the Fertilizer, and pushing them into the
-        # glut lowers the price of every Strawberry sold.
-        if (
-            obs["market"]["prices"]["STRAWBERRY"]
-            < obs["market"]["prices"]["FERTILIZER"]
-                * FERTILIZER_USE_VALUE_MARGIN
-        ):
-            return False
-
-        return (day - tile["planted_day"]) + 1 in strawberry_production_ages
-
-    def offday_fertilizer_needed(position, tile):
-        # Today's plants that still need their off-day Fertilizer. Only a plant
-        # watered yesterday may go dry today.
-        return (
-            offday_fertilize_applies(position, tile)
-            and not tile["watered_today"]
-            and tile.get("consecutive_unwatered", 0) == 0
-            and tile.get("fertilized_until_day", -1) < obs["day"] + 1
-        )
-
     def choose_hand_action(
-        hand_position,
-        assigned_tiles,
+        hand_position, 
+        assigned_tiles, 
         crop_to_plant,
         available_seed_counts,
-        last_planting_day,
-        fertilizer_carried=0):
+        last_planting_day):
         
         hand_harvest_targets = []
         hand_water_targets = []
-        hand_fertilize_targets = []
         hand_plant_targets = []
         hand_weed_targets = []
         
@@ -1836,27 +1778,7 @@ def agent(obs):
                 continue
             
             ready_to_harvest = crop_is_harvestable(tile)
-
-            # Off day before a production night: Fertilizer replaces the
-            # watering, or the watering is skipped outright when tomorrow is
-            # already boosted. Harvesting needs no water, so it goes ahead.
-            if (
-                not tile["watered_today"]
-                and tile.get("consecutive_unwatered", 0) == 0
-                and offday_fertilize_applies(position, tile)
-            ):
-                if ready_to_harvest:
-                    hand_harvest_targets.append(position)
-
-                if tile.get("fertilized_until_day", -1) >= obs["day"] + 1:
-                    continue
-
-                if fertilizer_carried > 0:
-                    hand_fertilize_targets.append(position)
-                else:
-                    hand_water_targets.append(position)
-                continue
-
+            
             if tile["watered_today"] and ready_to_harvest:
                 hand_harvest_targets.append(position)
             elif not tile["watered_today"]:
@@ -1872,10 +1794,7 @@ def agent(obs):
 
         if hand_position in hand_water_targets:
             return ["WATER"]
-
-        if hand_position in hand_fertilize_targets:
-            return ["FERTILIZE"]
-
+        
         if hand_position in hand_plant_targets:
             plant_crop = crop_to_plant
 
@@ -1895,11 +1814,8 @@ def agent(obs):
         # Third, travel to harvest ready produce first, then handle remaining watering.
         if hand_harvest_targets:
             target = nearest_position(hand_position, hand_harvest_targets)
-        elif hand_water_targets or hand_fertilize_targets:
-            target = nearest_position(
-                hand_position,
-                hand_water_targets + hand_fertilize_targets,
-            )
+        elif hand_water_targets:
+            target = nearest_position(hand_position, hand_water_targets)
         elif hand_weed_targets:
             target = nearest_position(hand_position, hand_weed_targets)
         elif hand_plant_targets:
@@ -3555,12 +3471,7 @@ def agent(obs):
         farmer_crop = farmer_action[1]
         available_seed_counts[farmer_crop] -= 1
     
-    # Fertilizer the hands take from the shed this turn, so the market below
-    # does not sell the same units.
-    offday_fertilizer_shed_available = shed.get("FERTILIZER", 0)
-    offday_fertilizer_picked = 0
-
-    # Loop for each HAND
+    # Loop for each HAND    
     for hand_index, hand_position in enumerate(farm["hands"]):
         if hand_index < len(current_hand_work_tiles_each):
             assigned_tiles = current_hand_work_tiles_each[hand_index]
@@ -3629,30 +3540,6 @@ def agent(obs):
                 assigned_tiles,
             )
 
-        # Take today's off-day Fertilizer from the shed before leaving it.
-        # Hands spawn on shed access, so this costs one action and no walk.
-        fertilizer_carried = hand_inventory.get("FERTILIZER", 0)
-
-        if (
-            hand_action is None
-            and tuple(hand_position) in SHED_ACCESS_TILES
-            and offday_fertilizer_shed_available > 0
-        ):
-            offday_fertilizer_need = sum(
-                1
-                for position in assigned_tiles
-                if offday_fertilizer_needed(position, tile_at(farm, position))
-            )
-            quantity_to_pickup = min(
-                offday_fertilizer_shed_available,
-                offday_fertilizer_need - fertilizer_carried,
-            )
-
-            if quantity_to_pickup > 0:
-                hand_action = ["PICKUP", "FERTILIZER", quantity_to_pickup]
-                offday_fertilizer_shed_available -= quantity_to_pickup
-                offday_fertilizer_picked += quantity_to_pickup
-
         if hand_action is None:
             hand_crop_to_plant = crop_selected_for_planting
             hand_last_planting_day = selected_last_planting_day
@@ -3677,8 +3564,7 @@ def agent(obs):
                 assigned_tiles,
                 hand_crop_to_plant,
                 available_seed_counts,
-                hand_last_planting_day,
-                fertilizer_carried)
+                hand_last_planting_day)
 
         hand_actions.append(hand_action)
 
@@ -3964,35 +3850,7 @@ def agent(obs):
             fertilizer_sell_order = order
             break
 
-    offday_fertilizer_reserve = 0
-
-    for position in OFFDAY_FERTILIZE_TILES:
-        tile = tile_at(farm, position)
-
-        if offday_fertilizer_needed(position, tile):
-            offday_fertilizer_reserve += 1
-        elif (
-            offday_fertilize_applies(position, tile, day_offset=1)
-            and tile.get("fertilized_until_day", -1) < obs["day"] + 2
-        ):
-            offday_fertilizer_reserve += 1
-
-    offday_fertilizer_reserve = max(
-        0,
-        offday_fertilizer_reserve
-        - offday_fertilizer_picked
-        - sum(
-            inventory.get("FERTILIZER", 0)
-            for inventory in private["inventories"][1:]
-        ),
-    )
-
-    fertilizer_in_shed = max(
-        0,
-        shed.get("FERTILIZER", 0)
-        - offday_fertilizer_picked
-        - offday_fertilizer_reserve,
-    )
+    fertilizer_in_shed = shed.get("FERTILIZER", 0)
 
     if fertilizer_sell_order is not None:
         fertilizer_sell_order[2] += fertilizer_in_shed

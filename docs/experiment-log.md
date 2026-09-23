@@ -2538,3 +2538,84 @@ looked at what. Worth knowing before this ceiling is touched again.
 Measured against one opponent -- our own direct predecessor, which plants the
 same 48. In a shared market the best acreage depends on the opponent's
 acreage, so this is optimal against a mirror, not optimal absolutely.
+
+## Accepted and frozen: permanent NE Geese
+
+**Status: frozen as `baselines/permanent_ne_geese_v1.py`.** Twenty-seed gate
+against `immediate_milk_deposit_v1`: **18W--6L--16T, 65.0%, average 95,325.5
+vs 95,091.3 (+234.2 per game, about +390 per changed game)**. Zero errors,
+zero leftovers except the usual ~3.9 Wheat. The five-seed regressions against
+older baselines were not run before freezing.
+
+### The package
+
+Three changes, measured together:
+
+1. **`PERMANENT_NE_GEESE = True`.** The two NE Geese run on every seed, not
+   only when the first two shops demand Eggs. Eggs sold rose from 38.0 to 75.4
+   on average.
+2. **New coexistence layout.** When the compact NE block also runs, the Geese
+   move to (5,1)/(5,2) and the four animals return to the default block
+   (6,4)/(7,4)/(6,3)/(7,3) beside the shed. Hand ownership:
+
+   | hand | work |
+   |---|---|
+   | 4 | the four NE animals only |
+   | 5 | Goose (5,2) + (6,2) (7,2) (8,2) (8,3) (8,4) (9,4) |
+   | 6 | (6,1) (7,1) (8,1) (9,1) (9,2) (9,3) |
+   | 7 | Goose (5,1) + (5,0) (6,0) (7,0) (8,0) (9,0) |
+
+3. **`EARLY_NE_LIVESTOCK_CASH_RESERVE` 500 -> 0.** The Wheat feed floor that
+   protects existing animals is computed separately and is unchanged.
+
+### Why each piece was needed -- the seed-15 chain
+
+Removing the Egg gate alone went 1W--9L on the ten newly affected seeds
+(-12,741). Seed 15 took four steps to explain:
+
+- **The Geese took the Cows' cash.** Buying the Geese on day 8 left 2,053 at
+  d9 h01; four Cows at 1,600 left 453, under the flat 500 reserve. The
+  purchase is all-or-nothing, so the whole block waited 14 hours for
+  Fertilizer income. Cow first yield is 8 days on a 2-day interval, so the
+  opponent's synchronized block produced a 24-Milk batch at d17 h23 (@231)
+  that ours had no counterpart for: -5,730 on day 17 alone, after the Geese
+  had been +733 ahead through day 16. The Wheat part of the reserve was zero
+  from h01 -- 22 in the shed plus 4 carried exactly covered the target -- so
+  the block was the flat reserve, not feed. Lowering it to 400 and then 300
+  each worked on one seed and failed on the next (day-8 income varies by
+  ~100); removing it fixed seeds 15 and 19 together.
+- **The old coexistence layout cost Milk timing.** With the Geese on
+  (6,4)/(6,3), the Cows moved to (7,x)/(8,x). The livestock hand's round then
+  finished after h23, so every hand-collected Milk batch banked overnight and
+  sold the next morning behind the opponent's: -1,296 at identical volume.
+  It also took one Strawberry and one Wheat tile.
+- **The first (5,1)/(5,2) attempt put the Goose hands on the wrong side.**
+  The NE block phase reslices the quadrant from the remaining tiles, which
+  left hands 5 and 6 working the east end. Every Goose visit crossed the
+  quadrant, and (7,1), (9,3), (8,1) went to weed -- Strawberry 45 vs 48. The
+  explicit ownership table above fixes that.
+- **With all three in place, seed 15 won +305**, with an identical shop
+  sequence to the baseline mirror, so that figure is like for like.
+
+On their own, the Geese on seed 15 net about +1,800 over the season: Eggs
++3,528 and Fertilizer +1,460, less 600 for the birds and 2,584 of bought
+feed Wheat.
+
+### Remaining losses
+
+- **Seed 19** (-445 after the reserve removal, -3,259 before): the structural
+  cost. Feed Wheat plus the two crop tiles the Geese occupy come to about
+  -4,472 in Wheat (sold and bought) on a seed whose baseline sells a lot of
+  Wheat, against +4,124 in Eggs.
+- **Seed 6** (-971): an Egg + Yarn seed that already ran Geese with Sheep
+  under the previously accepted coexistence layout. The relayout brings it no
+  Milk benefit (Sheep) and costs a little Wheat. Seeds 6 and 10 are the two
+  Egg seeds this package changed; that is why ties fell from 20 to 16.
+
+### Method note: the town re-rolls
+
+One seed-15 variant scored 80,174 vs 83,106 -- both players about 36,000
+below every other run -- because a different shop sequence unlocked from day
+12 (see `docs/mechanics.md`, "which shop unlocks depends on how many tiles are
+empty on BOTH farms"). Before attributing a large single-seed swing to a
+strategy change, compare the shop sequence against the baseline mirror.

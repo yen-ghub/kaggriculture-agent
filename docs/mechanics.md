@@ -933,3 +933,50 @@ answerable from the crop table before any code was written.
 One-shot crops (WHEAT, CARROT, MELON) behave differently -- see the
 `harvest_yield` section above -- because each watered day inside their window
 converts to yield, so for them the planting date does move the total.
+
+## Confirmed: which shop unlocks depends on how many tiles are empty on BOTH farms
+
+The shop sequence is not fixed per seed. At each day boundary the engine does,
+in order (`kaggriculture.py`, day-end block):
+
+    rng = random.Random((seed * 1_000_003) ^ day)
+    for each farm (player 0, then player 1):
+        _daily_refresh_plants(...)
+        _spawn_weeds(farm, ..., rng)     # one rng.random() per EMPTY tile
+        ...
+    if (day + 1) % townShopUnlockInterval == 0:        # every 3rd day
+        town["unlocked_shops"].append(rng.choice(sorted(SHOPS)))
+
+Weed spawning and the shop draw share one RNG, and weed spawning consumes one
+draw per empty tile on each farm. So the shop that unlocks on days 3, 6, 9,
+12, ... is a function of the total number of empty tiles on both farms at the
+end of the previous day. Change that count by one and a different shop can
+unlock -- for both players.
+
+Evidence, seed 15, NE Goose layout experiment vs the baseline mirror:
+
+| unlock | empty tiles (ours+opp) | shop, candidate | shop, baseline mirror |
+|---|---|---|---|
+| after d17 | 8+7 vs 7+7 | BAKERY | FARMERS_MARKET |
+
+and the sequence diverged from day 12 on (candidate: PET_CAFE, BAKERY,
+SMOOTHIE_SHOP; baseline: SMOOTHIE_SHOP, FARMERS_MARKET, ICE_CREAM_SHOP). Losing
+three Milk/Strawberry demand shops took BOTH players from ~118,000 to
+80,000-83,000, with Milk selling at 70-80 by day 22.
+
+What this means in practice:
+
+- **Single-seed deltas after about day 11 carry a town-lottery term.** Any
+  change that alters the empty-tile count at an unlock boundary can re-roll
+  the rest of the shop sequence. A seed that swings by thousands on a small
+  change may be measuring the town, not the change. Check the unlock sequence
+  (`town.unlocked_shops` over time) before attributing a large single-seed
+  swing to the strategy.
+- The first two shops (days 3 and 6) are usually stable, because both farms
+  are nearly identical that early. `tools/trace.py shops` only reports those
+  two, so it will not show a divergence that starts later.
+- It is potentially steerable. Both farms' tiles are visible, so at hour 23 on
+  an unlock day an agent could evaluate which shop each achievable empty count
+  would produce. Untested: a naive replay from the hour-23 observation
+  mispredicted 3 of 7 unlocks on seed 15, because the plant refresh and the
+  final hour's actions change the count after that observation.

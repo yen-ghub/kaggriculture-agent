@@ -40,6 +40,7 @@ from baselines.water_slack_v1 import agent as water_slack_v1_agent
 from baselines.water_slack_v2 import agent as water_slack_v2_agent
 from baselines.ne_goose_coexist_v1 import agent as ne_goose_coexist_v1_agent
 from baselines.immediate_milk_deposit_v1 import agent as immediate_milk_deposit_v1_agent
+from baselines.permanent_ne_geese_v1 import agent as permanent_ne_geese_v1_agent
 
 # Define variables
 # SEEDS = list(range(1,21))
@@ -88,10 +89,13 @@ OPPONENTS = {
     # multi-opponent regression, where it would just be self-play again.
     # Still not a promoted baseline -- its own regressions were skipped.
     # "ne_goose_coexist_v1": ne_goose_coexist_v1_agent,
+    # Direct predecessor of permanent_ne_geese_v1, and the opponent of its
+    # twenty-seed gate (18W-6L-16T, +234.2 per game).
+    # "immediate_milk_deposit_v1": immediate_milk_deposit_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here; swap the top import to score its side of a
     # regression instead.
-    # "immediate_milk_deposit_v1": immediate_milk_deposit_v1_agent,
+    # "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

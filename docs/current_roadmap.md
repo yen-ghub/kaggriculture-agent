@@ -6,13 +6,30 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/immediate_milk_deposit_v1.py`
+`baselines/permanent_ne_geese_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. This baseline is
-cumulative: it carries everything in the NE Goose coexistence work plus the
-immediate-Milk-deposit change below. `baselines/wheat_feed_cash_reserve_v1.py`
-remains the last single-change reference before that pair.
+a newer candidate passes the evaluation gates below. It is
+`immediate_milk_deposit_v1` plus the permanent NE Geese package: the two NE
+Geese run on every seed, not only on Egg-demand prefixes; when the compact NE
+block also runs, the Geese sit at (5,1)/(5,2) with the four animals on the
+default block beside the shed; and the flat early-NE livestock cash reserve is
+removed. Twenty-seed gate 18W--6L--16T, +234.2 per game. The five-seed
+regressions have **not** been run yet -- see the experiment log.
+`baselines/immediate_milk_deposit_v1.py` is its direct predecessor.
+
+Open items on this baseline, in order:
+
+- Seeds 6 and 10 (Egg + Yarn) moved off the previously accepted coexistence
+  layout onto the new one, and seed 6 lost 971 for it. Restricting the new
+  layout to the seeds where the Geese exist only because they are permanent
+  would return both to byte-identical.
+- The animal purchase is still all-or-nothing. Removing the reserve fixed the
+  Cow delay on seeds 15 and 19; a seed with even weaker day-8 cash could still
+  delay the block behind the Wheat feed floor.
+- On seeds with no Egg demand, the Geese carry ~50 bought feed Wheat and two
+  lost crop tiles against ~75 Eggs at ~46. Seed 15 says that nets slightly
+  positive, seed 19 says slightly negative.
 
 Current characteristics:
 

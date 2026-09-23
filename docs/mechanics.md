@@ -902,3 +902,34 @@ When the split is evaluated matters. Firing the deposit *before* servicing an
 animal that is standing on a shed-access tile is what captures the h13--h14
 peak; on day 15 the second Milk deposit lands at `(5,4)` at h13--h14, so a
 deposit evaluated after servicing still sells into the h15 collapse.
+
+## Confirmed: an ongoing crop's yield count is fixed by `last_production_day`, not by how early it is planted
+
+Ongoing crops (TOMATO, STRAWBERRY) produce on a schedule measured in *growth
+days*: the first yield lands at `harvest_day`, then every `interval` days, and
+production stops after `last_production_day`. The number of cycles a plant
+delivers is therefore a property of the crop, not of its planting date.
+
+    STRAWBERRY  harvest_day 10  interval 2  last_production_day 16
+                -> growth days 10, 12, 14, 16 = four yields
+
+    planted day 10 -> yields on days 20, 22, 24, 26
+    planted day 11 -> yields on days 21, 23, 25, 27
+
+Four either way. **Pulling an ongoing-crop planting forward by one day buys no
+extra yield cycle.** It only moves each sale one day earlier, which is worth
+something against a declining price curve and nothing else.
+
+The practical rule: before spending actions, hands or coins to plant an
+ongoing crop earlier, divide the days remaining before `FINAL_DAY` by
+`interval` and compare against `last_production_day`. If the plant already
+reaches its last production day inside the season, an earlier planting adds
+no production.
+
+Two experiments have now been built and rejected against this arithmetic: the
+permanent goose at `(4,2)` and the melon-harvest-day relief hire. Both were
+answerable from the crop table before any code was written.
+
+One-shot crops (WHEAT, CARROT, MELON) behave differently -- see the
+`harvest_yield` section above -- because each watered day inside their window
+converts to yield, so for them the planting date does move the total.

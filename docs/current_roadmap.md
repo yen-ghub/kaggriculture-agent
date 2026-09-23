@@ -536,6 +536,24 @@ order.
 - Broad early liquidation to avoid shed overflow: it diverted hands from more
   valuable field work. Prefer harvest staggering and targeted product returns.
 - Large multi-variable changes: they make failures impossible to attribute.
+- Raising the Strawberry acreage ceiling: swept in both directions and
+  rejected both ways; 45/48 is confirmed optimal against the frozen baseline.
+  Upward gluts the shared market and drops our own money from 97,849 to
+  91,886; downward costs us almost nothing but raises the *opponent's* money
+  to 98,670, because a large part of what this acreage buys is denying them a
+  Strawberry price. Moving it requires `PREMIUM_CROP_PLANT_TARGET` as well --
+  the other two constants alone are clamped and produce an identical agent.
+  See the experiment log for the full curve and one unexplained non-monotonic
+  row at offset -3.
+- Planting an ongoing crop earlier to gain a day: rejected twice, as the
+  permanent goose at `(4,2)` and as the melon-harvest-day relief hire
+  (26W--14L, 65.0%). Strawberry delivers four yield cycles whether it is
+  planted on day 10 or day 11, because `last_production_day` caps growth-day
+  production at 16 -- see `docs/mechanics.md`. Before proposing this shape
+  again, do the cycle arithmetic from the crop table first; both attempts were
+  answerable on paper before any code was written. Acreage is capped by live
+  plant count too, so earlier planting displaces other crops rather than
+  adding tiles.
 
 ## Evaluation protocol
 

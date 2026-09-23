@@ -2386,3 +2386,155 @@ Two levers the trace exposed, neither addressed by this change:
   an animal on the tile is what would capture them, instead of landing at h15.
 
 Accepted and frozen as `baselines/immediate_milk_deposit_v1.py`.
+
+## Rejected: melon-harvest-day relief hire
+
+**Status: rejected.** Twenty-seed gate against `immediate_milk_deposit_v1`:
+26W--14L, 65.0%, average ours 93,367.4 vs 93,143.8. Reverted at `5baaa61`;
+nothing from it survives in `main.py`.
+
+### The idea
+
+Day 10 is the one day the NW hands are saturated. They harvest the opening
+Melon wave and make an extra return trip to bank it early, and that traffic
+displaces two things: the freed Melon tiles at `(4,2) (3,2) (2,2)` are not
+replanted until day 11, and the western column `(1,2) (0,2) (0,1) (0,0)` is
+left unwatered and unharvested. One extra hand was hired for that single day
+to absorb both. The ninth hire slot costs 34 coins and the roster is re-hired
+nightly, so the cost really was a one-off.
+
+### Why it cannot pay
+
+    STRAWBERRY  harvest_day 10  ongoing, interval 2  last_production_day 16
+
+Strawberry yields at growth days 10, 12, 14 and 16, then the plant stops.
+Planted day 10 it yields on days 20, 22, 24, 26; planted day 11, on days 21,
+23, 25, 27. **Four cycles either way.** Pulling a Strawberry planting forward
+by one day buys no extra yield cycle at all -- it only moves four sale days
+one day earlier. The replanting half of this hire had no upside available to
+it before any code was written.
+
+This is the same arithmetic that sank the permanent goose at `(4,2)`: check
+`last_production_day` against the planting day *before* building the route.
+
+The second half fared no better, because Strawberry acreage is capped by live
+plant count, not by cumulative plantings. Filling tiles a day early reaches
+the cap a day early; it does not add acreage, it displaces whatever the
+displaced hands would otherwise have planted.
+
+### Evidence
+
+Per-side sales, head-to-head, seed 19 -- the clean case:
+
+| product | ours | opponent | diff |
+|---|---:|---:|---:|
+| STRAWBERRY | 202 | 202 | 0 |
+| MILK | 222 | 222 | 0 |
+| WOOL | 120 | 120 | 0 |
+| MELON | 60 | 60 | 0 |
+| CARROT | 38 | 38 | 0 |
+| WHEAT | 164 | 176 | **-12** |
+
+Identical on every line the change does not touch, twelve Wheat short, and
+-1,268 on the match. The Strawberry cap is binding, so the relief hand's
+plantings pushed the displaced tiles off Wheat. Seed 8 shows the mirror image:
+Strawberry -6, Wheat +4, -948.
+
+### A design note worth keeping
+
+The first implementation gave the relief hand the seven tiles *exclusively*.
+It inherited the Melon tiles with them, so `choose_melon_priority_harvest_action`
+and `choose_melon_return_action` fired for it and it spent h03--h15 harvesting
+15 Melons and walking them to the shed. It became the melon hand, while the
+hand it relieved idled through three `COLLECT_FERTILIZER`s. Any future relief
+hand must be excluded from the melon helpers, or it will simply take over the
+round-trip it was hired to compensate for.
+
+### Collateral: the Tomato/Strawberry acreage coupling
+
+`strawberry_plant_target = min(requested, premium_crop_plant_target -
+tomato_plant_target)` meant every Tomato tile the shop mix asked for took a
+Strawberry tile off the board for the rest of the season. Decoupling the two
+was tried as a repair and is **inert on its own**: on seeds 1 and 8 it scores
+identically to the baseline to the coin, because `tomato_shop_count` never
+exceeds 1 there. It measured -732 on seed 19 alone. It was reverted with the
+hire, having never had an independent case -- but the coupling is real and is
+worth testing on its own on seeds where a second Tomato demand shop unlocks.
+
+## Confirmed optimum: the Strawberry acreage ceiling at 45/48
+
+**Status: current value confirmed, both directions rejected.** Swept against
+`immediate_milk_deposit_v1`, seeds 1-5, 8 and 19, both positions.
+
+### How to move this ceiling at all
+
+Three constants have to move together:
+
+    strawberry_plant_target = min(
+        requested_strawberry_target,                     # 39 or 45, + SW bonus 3
+        premium_crop_plant_target - tomato_plant_target, # 45 + SW bonus 3
+    )
+
+Both arms evaluate to 48, so `PREMIUM_CROP_PLANT_TARGET` clamps the result
+just as tightly as the Strawberry targets do. Moving only
+`STRAWBERRY_PLANT_TARGET` or `HIGH_STRAWBERRY_PLANT_TARGET` produces a
+byte-identical agent and a sweep that reads as "no effect" -- a wrong
+conclusion, not a null result. `sweep_strawberry.py` moves all three.
+
+### The curve
+
+| offset | targets | score | ours | opponent | our margin | Strawberry | Wheat |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| -6 | 33/39 | 57.1% | 97,921.3 | 98,200.0 | -278.7 | 173.4 | 217.3 |
+| -3 | 36/42 | 14.3% | 97,763.0 | 98,670.0 | -907.0 | 186.4 | 192.3 |
+| **0** | **39/45** | **50.0%** | **97,849.1** | **97,849.1** | **0.0** | **200.0** | **173.9** |
+| +3 | 42/48 | 42.9% | 92,579.4 | 92,917.7 | -338.3 | 216.3 | 135.3 |
+| +6 | 45/51 | 57.1% | 91,886.4 | 92,487.1 | -600.7 | 226.4 | 117.0 |
+
+The offset-0 row is the control and scored exactly 50.0% with both sides on
+identical money, so the harness is sound and the rows are comparable.
+
+### The two directions fail for different reasons
+
+**Upward destroys value outright.** Our own money falls from 97,849 to 91,886
+and the opponent's falls with it. The farm is saturated -- measured at day 12
+on seeds 1, 8 and 19, all 68 managed tiles are in use with zero empty -- so
+every added Strawberry tile is taken from Wheat. The +6 row buys 26 Strawberry
+units for 57 Wheat and both players end poorer. `wheat_left` held at 3.6-4.4
+and harvests were identical at 365.3-365.6 throughout, so this is not starved
+livestock; it is simply a bad exchange rate into a glutted market.
+
+**Downward costs us almost nothing and pays the opponent.** Our money barely
+moves (97,921 and 97,763 against 97,849) while the opponent's *rises* to
+98,200 and 98,670. Cutting acreage does not reduce our own revenue; it hands
+them a better Strawberry price.
+
+### Why this matters beyond the number
+
+45/48 is not a yield optimum, it is a **competitive** one: the most acreage we
+can hold before the glut begins eating our own revenue, which coincides with
+the point of maximum price suppression on the opponent. A large part of what
+this acreage buys is denying the opponent a Strawberry price, not earning one
+ourselves. That is a more durable reason to keep the value than "39 was
+fine-tuned", and it predicts that the right ceiling moves with the opponent's
+own acreage -- `opponent_is_strawberry_heavy` already exists on that premise.
+
+### Do not read match score alone here
+
+Two rows disagree with their own margin. Offset +6 scores 57.1% while running
+a *larger* average deficit than +3 at 42.9%; offset -6 scores 57.1% while
+losing 278.7 on average. Both win narrowly and lose widely. Where score and
+margin disagree in a shared market, the margin is the honest figure.
+
+### Unexplained
+
+The -3 row at **14.3%** (2W--12L) against -6 at 57.1% is non-monotonic. A
+single parameter moved in equal steps should not produce that shape, so
+something discrete flips between an effective ceiling of 42 and 39. Nobody has
+looked at what. Worth knowing before this ceiling is touched again.
+
+### Scope
+
+Measured against one opponent -- our own direct predecessor, which plants the
+same 48. In a shared market the best acreage depends on the opponent's
+acreage, so this is optimal against a mirror, not optimal absolutely.

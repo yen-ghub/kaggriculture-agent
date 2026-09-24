@@ -1011,3 +1011,25 @@ units appear the next morning at ages 10, 12, 14 and 16):
 - The yield itself does not depend on watering at all. A dry production day
   still yields +1; only the bonus needs the water.
 - HARVEST does not require the tile to be watered that day.
+
+## Confirmed: player position is not always symmetric
+
+Two identical agents do not always score identically. Seed 16, the frozen
+baseline `offday_fertilize_ne12_v1` playing itself: **122,522 in position 0,
+122,596 in position 1**, reproducibly. Mirrored gate lines have also started
+to disagree across positions (seed 11: 78,875 vs 78,817 for the same pairing).
+
+Earlier entries (experiment log, "the environment carries no first-mover
+asymmetry"; roadmap line on 40 games being 20 independent seeds) generalised
+from seeds where the two positions happened to tie. They are not a rule. The
+likely source is order of resolution when both players act on the shared
+market or town in the same turn, which only matters once the two agents'
+orders overlap.
+
+In practice:
+
+- `tools/trace.py isolation` will flag seed 16 as changed even for a candidate
+  identical to the baseline. Check a flagged seed against the baseline's own
+  self-play before blaming the change.
+- The two positions of a mirrored gate are usually, but not always, the same
+  sample. The difference is small next to a strategy's effect (74 here).

@@ -6,10 +6,19 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/offday_fertilize_ne12_v1.py`
+`baselines/day0_opening_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`offday_fertilize_ne12_v1` plus the day-0 opening package: 12 Melons + 7 Wheat
++ 4 animals on day 0 with day-1 Fertilizer paying for day-1 feed; a fix for a
+staged Cow stranded in the shed; and Carrot-or-empty on NW days 7-9 so every
+NW tile joins the day-10 Strawberry wave. Twenty-seed gate **25W--15L, 62.5%,
++754.2 per game**. It changes the empty-tile count from day 0, so it re-rolls
+most towns and flips individual seeds; judge it by the margin over many games
+(public submission) rather than by win count.
+
+`baselines/offday_fertilize_ne12_v1.py` is its direct predecessor:
 `offday_fertilize_ne_early_v1` with all twelve early Strawberry seeds planted
 in NE on its unlock day (day 7), instead of six there and six converted from NW
 Wheat on day 9. Twenty-seed gate **40W--0L--0T, 100.0%, +2,888.2 per game**,
@@ -973,6 +982,7 @@ action rather than a detour -- no travel is added.
   11 (-32) and 17 (-84), on scores near 100,000.
 - Both mirrored positions return identical scores, so the environment carries
   no first-mover asymmetry and the 40 games are 20 independent seeds.
+  (Not always true -- see docs/mechanics.md on position asymmetry.)
 - Five-seed regressions, candidate side only: 10W--0L against Day-0 livestock
   v1 (+10,941.0), Early NW Strawberry v1 (+668.3) and the frozen reference
   Wheat-feed cash-reserve v1 (+498.4), all zero errors. These establish that

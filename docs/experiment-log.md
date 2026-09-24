@@ -2347,6 +2347,8 @@ seed, unlike the shop-gated coexistence trigger whose gate produced 34 ties in
 40. The six losses are seeds 8 (-38), 11 (-32) and 17 (-84), each appearing in
 both mirrored positions with identical scores -- the environment carries no
 first-mover asymmetry, so these 40 games are 20 independent seeds.
+(Later corrected: position can matter -- see docs/mechanics.md, "player
+position is not always symmetric".)
 
 ### Regression
 
@@ -2814,3 +2816,76 @@ split measures the town, not the change -- seed 18 shows own +20,897 and taken
 head-to-head delta is still fair there, since both players share the re-rolled
 town: it is positive on all 20 seeds (+871 to +5,087) and averages +2,884,
 matching the gate's +2,888.
+
+## Accepted and frozen: the day-0 opening package
+
+**Status: frozen as `baselines/day0_opening_v1.py`.** Twenty-seed gate against
+`offday_fertilize_ne12_v1`: **25W--15L, 62.5%, average 81,989.7 vs 81,235.5
+(+754.2 per game)**. Three changes measured as one package, each added after
+tracing a specific loss:
+
+| version | W--L | margin per game |
+|---|---|---:|
+| opening only | 23--17 | +68 |
+| + stranded staged-Cow fix | 27--13 | +315.6 |
+| + NW Carrot-or-empty window | 25--15 | +754.2 |
+
+### 1. The opening (`replays/day0_setup.json`)
+
+A real opponent ended day 0 with 12 Melons + 7 Wheat + 4 animals; we ended
+with 12 Melons and no Wheat. The difference was feed: we bought 8 feed Wheat
+on day 0 (two days' worth, since day 1 had no income), the opponent bought
+~5 and paid for day 1's feed by selling that morning's Fertilizer at ~100.
+
+- Day 0 buys one day of feed: the "tomorrow" term of the feed target is
+  dropped on day 0.
+- Day 0 plants 12 Melons (`DAY0_MELON_TARGET`; the normal target reads 15 on
+  day 0 because the opponent has planted nothing yet), then Wheat. Carrot
+  seeds stay blocked on day 0.
+- Day 1: while feed is short, the farmer collects the overnight Fertilizer and
+  places it for a same-turn sale; any hand carrying Fertilizer banks it too.
+  On the replay's seed, 2 Fertilizer sold at h05, feed bought at h06, all four
+  animals fed by h12 -- earlier than the opponent's h15-16.
+- Feed purchases buy what the cash allows instead of all or nothing.
+
+An unfed day would not have been free: an animal escapes only after two unfed
+days, but the care bonus needs a fed and cared day, so skipping day-1 feed
+costs each animal one unit of its first yield (~740 for four).
+
+### 2. Stranded staged Cow
+
+Seed 11 (opening only, -2,255): the staged Cow's tile (1,4) only emptied at
+h17 on day 10, the last start day, when its Carrot was harvested. The Cow was
+bought at h18, hand 0 picked it up at h23, and the phase -- which only latches
+once the Pasture exists -- lapsed at midnight. The Cow sat in the shed all
+game. The fix has two parts:
+
+- On day 11 only, an unplaced Cow with every other Cow plan complete (SW and
+  adaptive Cows start day 12) latches the staged phase.
+- Hand 0 then sets the Cow up before its Sheep round; with four Sheep the round
+  fills its day, which is why it only reached the Cow at h23 on both days.
+  Seed 11: placed d11 h08, delta +1,029.
+
+**A first attempt was wrong and is worth remembering:** a no-purchase-after-
+h12 cutoff on day 10 fired on six seeds and lost on all six (-1,088 to
+-3,682). On those seeds late purchases *did* get their Pasture up before
+midnight and paid. The real failure was narrower than "late purchase". The
+latch version is byte-identical to the baseline on those six seeds.
+
+### 3. NW Carrot-or-empty on days 7-9
+
+Seed 9 (-1,440): two fewer NW Strawberry (13 vs 15). The day-0 Wheat cycles
+d0 -> d4 -> d8 -> ready d12, missing the day-10 Strawberry wave for good. Rule:
+a staple planted in NW after day `STRAWBERRY_START_DAY - 4` (Wheat can no
+longer be ready by day 10) is Carrot while Carrot still can be (3 days: day
+7 only), otherwise the tile stays empty. Seed 9: 16 NW Strawberry, delta -19.
+The baseline has the same habit on its own -- it planted six NW Wheat on days
+7-8 on seed 9 -- so this rule is not only repairing the opening.
+
+### Reading the result
+
+The package changes the empty-tile count from day 0, so it re-rolls most
+towns (docs/mechanics.md) and flips individual seeds either way; the biggest
+remaining loss, seed 18 (-1,672), is a re-rolled town with the deficit spread
+thinly across Wheat, Wool, Carrot and Strawberry, not a defect. Win count
+wobbles while the margin climbs. Judge it over many games.

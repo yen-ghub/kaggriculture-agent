@@ -2889,3 +2889,45 @@ towns (docs/mechanics.md) and flips individual seeds either way; the biggest
 remaining loss, seed 18 (-1,672), is a re-rolled town with the deficit spread
 thinly across Wheat, Wool, Carrot and Strawberry, not a defect. Win count
 wobbles while the margin climbs. Judge it over many games.
+
+## Accepted and frozen: fill NE with Strawberry on its unlock day
+
+**Status: frozen as `baselines/ne_strawberry_fill_v1.py`.** Twenty-seed gate
+against `day0_opening_v1`: **40W--0L--0T, 100.0%, average 86,358.4 vs
+83,277.2 (+3,081.2 per game)**. The second clean sweep in this log.
+
+### What changed
+
+- **Every free NE crop tile gets Strawberry on day 7**, not a fixed twelve:
+  `early_ne_strawberry_target` counts the NE crop tiles not reserved for
+  animals (17 on seeds 1 and 15). The four overflow-buffer Wheat tiles, whose
+  days-7-9 Wheat rule used to take them, give way during the early wave.
+- **The early-wave seed purchase buys what cash allows**, so a short turn
+  still gets the first twelve rather than none.
+- **Geese yield to the NE block.** A Goose is only bought if the NE block's
+  still-unbought cost (priced from its actual Cow or Sheep plan, less block
+  animals already waiting in the shed) is left in hand afterwards.
+
+### Why the Geese, not the Cows
+
+Five extra seeds on day 7 leave ~62 in hand (seeds 1 and 15: 562 after land
+and twelve seeds). A strict cash guard reserving both the Geese and the Cows
+could never let an extra seed through on day 7, which would have made the
+change a no-op. Delay costs are lopsided: Geese a day late cost ~1 Egg per
+bird; the NE Cow block a day late cost the synchronized day-17 Milk batch
+(seed 15: -5,730 in one day). So the Geese absorb the squeeze. Traced on both
+seeds: the NE Cows landed at the baseline's exact hours (d9 h05, h09, h13,
+h17); the Geese moved from d8 h08/h10 to d9 h08/h10.
+
+### Correction: this added Strawberry volume
+
+The expectation before the gate was that the live Strawberry cap would make
+this a pure timing shift. It was not: Strawberry sold rose 254.8 -> 268.4.
+The cap limits live plants, not units per plant, and the five extra NE tiles
+are first-wave, so the off-day Fertilizer rule boosts them -- about 20 more
+boosted production nights a season. Fertilizer sold fell 182.6 -> 163.7 to
+pay for it.
+
+Other lines: Carrot 28.1 -> 52.4 and Wheat 193.8 -> 173.7 (the NW/SW tiles
+that lose their day-10/11 Strawberry to NE grow staples, more of them
+Carrot); Eggs 75.8 -> 74.4 (the Geese a day late).

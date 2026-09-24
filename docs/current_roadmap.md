@@ -6,10 +6,16 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/day0_opening_v1.py`
+`baselines/ne_strawberry_fill_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is
+a newer candidate passes the evaluation gates below. It is `day0_opening_v1`
+with every free NE crop tile planted with Strawberry on the unlock day (17 on
+seeds 1 and 15, up from 12, including the four overflow-buffer Wheat tiles),
+and the day-8 Geese yielding their cash to the day-9 NE block. Twenty-seed
+gate **40W--0L--0T, 100.0%, +3,081.2 per game**.
+
+`baselines/day0_opening_v1.py` is its direct predecessor:
 `offday_fertilize_ne12_v1` plus the day-0 opening package: 12 Melons + 7 Wheat
 + 4 animals on day 0 with day-1 Fertilizer paying for day-1 feed; a fix for a
 staged Cow stranded in the shed; and Carrot-or-empty on NW days 7-9 so every

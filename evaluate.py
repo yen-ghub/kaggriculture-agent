@@ -46,6 +46,7 @@ from baselines.offday_fertilize_sw_v1 import agent as offday_fertilize_sw_v1_age
 from baselines.offday_fertilize_ne_early_v1 import agent as offday_fertilize_ne_early_v1_agent
 from baselines.offday_fertilize_ne12_v1 import agent as offday_fertilize_ne12_v1_agent
 from baselines.day0_opening_v1 import agent as day0_opening_v1_agent
+from baselines.ne_strawberry_fill_v1 import agent as ne_strawberry_fill_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -114,9 +115,12 @@ OPPONENTS = {
     # Direct predecessor of day0_opening_v1, and the opponent of its
     # twenty-seed gate (25W-15L, +754.2 per game).
     # "offday_fertilize_ne12_v1": offday_fertilize_ne12_v1_agent,
+    # Direct predecessor of ne_strawberry_fill_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +3,081.2 per game).
+    # "day0_opening_v1": day0_opening_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    # "day0_opening_v1": day0_opening_v1_agent,
+    # "ne_strawberry_fill_v1": ne_strawberry_fill_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

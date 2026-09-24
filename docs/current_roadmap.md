@@ -6,13 +6,22 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/offday_fertilize_ne_early_v1.py`
+`baselines/offday_fertilize_ne12_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`offday_fertilize_sw_v1` with off-day Fertilizer extended to NE's first
-Strawberry wave (planted before day 10). Twenty-seed gate 36W--4L--0T, 90.0%,
-+1,882.1 per game against the SW-only baseline.
+`offday_fertilize_ne_early_v1` with all twelve early Strawberry seeds planted
+in NE on its unlock day (day 7), instead of six there and six converted from NW
+Wheat on day 9. Twenty-seed gate **40W--0L--0T, 100.0%, +2,888.2 per game**,
+and it held up in public submission. On seed 15 (like-for-like town) the split
+was own +1,738 / taken +1,797 -- the first NE Strawberry change with a
+substantial own-money share. The twenty-seed split is still unmeasured:
+`python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_ne_early_v1`.
+
+`baselines/offday_fertilize_ne_early_v1.py` is its direct predecessor:
+off-day Fertilizer extended to NE's first Strawberry wave (planted before day
+10). Twenty-seed gate 36W--4L--0T, 90.0%, +1,882.1 per game against the SW-only
+baseline.
 
 **That win is mostly taken from the opponent, not earned.** On seed 1 our own
 money was level with the baseline mirror (+6) while the opponent lost 2,042:

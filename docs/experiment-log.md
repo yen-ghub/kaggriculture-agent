@@ -2745,3 +2745,48 @@ command:
 Two games per seed. Seeds whose shop sequence differs from the mirror's are
 flagged and left out of the average; seed 6 re-rolled its town in one trace
 of this change.
+
+## Accepted and frozen: all twelve early Strawberry in NE on its unlock day
+
+**Status: frozen as `baselines/offday_fertilize_ne12_v1.py`.** Twenty-seed
+gate against `offday_fertilize_ne_early_v1`: **40W--0L--0T, 100.0%, average
+91,902.4 vs 89,014.2 (+2,888.2 per game)**, zero errors. Held up in public
+submission. The first clean sweep recorded in this log.
+
+### What changed
+
+The twelve Strawberry seeds bought when NE unlocks used to be two targets
+added together: six planted in NE on day 7 (`EARLY_NE_STRAWBERRY_TARGET`) and
+six converted from NW Wheat on day 9 (`EARLY_NW_STRAWBERRY_TARGET`). Now all
+twelve go into NE on day 7:
+
+- `EARLY_NE_STRAWBERRY_TARGET` 6 -> 12, `EARLY_NW_STRAWBERRY_TARGET` 6 -> 0.
+- The NE early phase counts NE's own Strawberry, as the NW phase already did.
+  With the old farm-wide count, the one or two Strawberry already in NW used
+  up part of NE's target.
+- The early seed purchase tops up each quadrant against its own count.
+
+Same seeds, two days earlier, and all twelve are now in NE's first wave, which
+the off-day Fertilizer rule boosts. The six NW conversion tiles never were.
+
+### Evidence
+
+Seeds 1 and 15: twelve NE Strawberry on day 7 on both; the NW conversion is
+gone. The cash risk -- ~600 of seeds spent on day 7 instead of day 9, ahead of
+the day-9 Cow purchase -- did not materialise: the NE Cows landed at d9 h06,
+h10, h14 and h18 exactly as in the baseline.
+
+`tools/trace.py mirror`:
+
+| seed | own | taken | delta | town |
+|---|---:|---:|---:|---|
+| 15 | +1,738 | +1,797 | +3,535 | like-for-like |
+| 1 | -5,105 | +8,629 | +3,524 | re-rolled |
+
+Seed 15 is the first NE Strawberry result where about half the gain is our own
+money rather than the opponent's. Seed 1's split is unreadable: planting
+twelve tiles on day 7 changes the empty-tile count at the next shop draws, so
+its town re-rolled.
+
+Side effects in the gate: Wheat sold rose to 181.4 from ~150 (the six NW tiles
+stay Wheat until day 10) and Carrot fell to 30.6 from ~40.

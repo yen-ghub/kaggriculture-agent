@@ -44,6 +44,7 @@ from baselines.permanent_ne_geese_v1 import agent as permanent_ne_geese_v1_agent
 from baselines.day10_relief_hand_v1 import agent as day10_relief_hand_v1_agent
 from baselines.offday_fertilize_sw_v1 import agent as offday_fertilize_sw_v1_agent
 from baselines.offday_fertilize_ne_early_v1 import agent as offday_fertilize_ne_early_v1_agent
+from baselines.offday_fertilize_ne12_v1 import agent as offday_fertilize_ne12_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -106,9 +107,12 @@ OPPONENTS = {
     # Direct predecessor of offday_fertilize_ne_early_v1, and the opponent of
     # its twenty-seed gate (36W-4L, +1,882.1 per game).
     # "offday_fertilize_sw_v1": offday_fertilize_sw_v1_agent,
+    # Direct predecessor of offday_fertilize_ne12_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +2,888.2 per game).
+    # "offday_fertilize_ne_early_v1": offday_fertilize_ne_early_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    # "offday_fertilize_ne_early_v1": offday_fertilize_ne_early_v1_agent,
+    # "offday_fertilize_ne12_v1": offday_fertilize_ne12_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

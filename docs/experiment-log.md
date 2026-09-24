@@ -2790,3 +2790,27 @@ its town re-rolled.
 
 Side effects in the gate: Wheat sold rose to 181.4 from ~150 (the six NW tiles
 stay Wheat until day 10) and Carrot fell to 30.6 from ~40.
+
+### Twenty-seed own/taken split
+
+`python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_ne_early_v1`:
+
+| like-for-like seed | own | taken | delta |
+|---|---:|---:|---:|
+| 4 | +1,470 | +1,364 | +2,834 |
+| 8 | +1,985 | +3,102 | +5,087 |
+| 15 | +1,738 | +1,797 | +3,535 |
+| 16 | +1,604 | +1,051 | +2,655 |
+| **average** | **+1,699** | **+1,829** | **+3,528** |
+
+All four readable seeds are positive on both sides, roughly half and half.
+Unlike NE's first-wave change (own +6 on seed 1), this one earns our own money
+as well as taking the opponent's.
+
+**16 of 20 towns re-rolled.** Planting twelve tiles on day 7 changes the
+empty-tile count at almost every later shop draw. On those seeds the own/taken
+split measures the town, not the change -- seed 18 shows own +20,897 and taken
+-17,303 because its new town was simply richer for both players. The
+head-to-head delta is still fair there, since both players share the re-rolled
+town: it is positive on all 20 seeds (+871 to +5,087) and averages +2,884,
+matching the gate's +2,888.

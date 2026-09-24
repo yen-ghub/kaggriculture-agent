@@ -336,7 +336,13 @@ def view_mirror(args, opponent):
       taken  = mirror    - theirs    (money it cost the opponent)
       delta  = own + taken
     A seed whose shop sequence differs from the mirror's re-rolled the town
-    (docs/mechanics.md); its split is not a like-for-like comparison.
+    (docs/mechanics.md); its split is not a like-for-like comparison. Its
+    delta still is, since both players share the re-rolled town.
+
+    Small-sample warning: a change that moves many tiles early re-rolls most
+    towns. Planting twelve NE Strawberry on day 7 re-rolled 16 of 20, leaving
+    four readable seeds. Judge such a change by its delta across all seeds and
+    treat the own/taken average as indicative only.
     """
     print("mirror vs %s -- own = ours - mirror, taken = mirror - theirs"
           % args.opponent)

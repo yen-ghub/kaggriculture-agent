@@ -14,9 +14,10 @@ a newer candidate passes the evaluation gates below. It is
 in NE on its unlock day (day 7), instead of six there and six converted from NW
 Wheat on day 9. Twenty-seed gate **40W--0L--0T, 100.0%, +2,888.2 per game**,
 and it held up in public submission. On seed 15 (like-for-like town) the split
-was own +1,738 / taken +1,797 -- the first NE Strawberry change with a
-substantial own-money share. The twenty-seed split is still unmeasured:
-`python tools/trace.py mirror --seeds 1-20 --opponent offday_fertilize_ne_early_v1`.
+split across the four like-for-like seeds was own +1,699 / taken +1,829 --
+the first NE Strawberry change with a substantial own-money share. The other
+16 seeds re-rolled their towns, but the head-to-head delta is positive on all
+20.
 
 `baselines/offday_fertilize_ne_early_v1.py` is its direct predecessor:
 off-day Fertilizer extended to NE's first Strawberry wave (planted before day

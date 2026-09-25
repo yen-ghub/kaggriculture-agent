@@ -3064,3 +3064,72 @@ and hand 0's tiles (hand 0 is not a Melon worker).
   returned with a single tile and the last two, (2,1) and (3,0), fell to one
   hand that reached (3,0) at h19 and could not get back by h23.
 
+## Rejected: two early Cows on days 2-3
+
+**Status: rejected, `main.py` reverted to `melon_layout_v1`.** Twenty-seed gate
+against `melon_layout_v1`: **4W--36L--0T, 10.0%, average 79,375.8 vs 83,069.5
+(-3,693.7 per game)**, zero errors. The ninth early-livestock attempt to lose.
+
+### What was tried
+
+From `replays/scaling1.json`/`scaling2.json`, where the ladder leaders own four
+Cows by day 3:
+
+- Cows at (4,2) from day 2 and (3,2) from day 3, one stage at a time (the
+  second opens only once the first is placed), set up and served by the
+  farmer beside its own Cows. Both tiles unplanted from day 0.
+- Their two day-0 Melons moved to (0,4) and (2,0).
+- Carried Fertilizer banked and sold the same day on days 1-3, not only day 1.
+- On Melon day, hands outside the Melon crew leave Melon tiles alone.
+
+On seed 1 the Cows were placed on days 3 and 5, the day-4 Sheep on day 5, NE
+opened on day 7 with 8 Strawberry (17 by day 8), SW on day 11 as before.
+
+### Why it lost
+
+Seed 8, same game (-9,174 in both positions):
+
+| product | ours | baseline | revenue change |
+|---|---|---|---:|
+| Milk | 149, 10,478 | 126, 10,479 | 0 |
+| Fertilizer | 167, 11,437 | 135, 9,289 | +2,148 |
+| Egg | 38, 2,138 | 76, 4,284 | -2,146 |
+| Strawberry | 253, 37,036 | 269, 40,424 | -3,388 |
+| Carrot + Wheat | 230 units | 269 units | -1,487 |
+
+- **Milk is saturated.** 23 more Milk earned exactly nothing: the average price
+  fell from 83 to 70. Both sides already run up to 9-10 Cows. The early Cows
+  earn only their Fertilizer (~+2.1k for two) against 800 and a Wheat a day
+  each.
+- **The cash squeeze delays everything else.** Eggs halved (one Goose
+  effectively missing: the Geese yield to the NE Cow block and the wait grows),
+  three NE Strawberry went in on day 8, the day-4 Sheep slipped a day.
+- **Labour.** Harvests fell 18 across the suite (Carrot -20, Wheat -4.4),
+  consistent with the farmer's crop hours going to four Cows from day 8.
+- Twenty-seed totals against the previous gate: Milk +31.9 (3.3 left unsold),
+  Fertilizer +26.4, Egg -19.5, Strawberry -13.4.
+
+Seeds 8 and 19 re-rolled their towns (both players below the baseline's
+self-play); the head-to-head deltas are still like-for-like.
+
+### Dead ends on the way, worth keeping
+
+- **Stages opened together** raised the Cow target by two, and the
+  all-or-nothing purchase waited for 800 that day 3 never had.
+- **Hand 0 has no spare capacity.** First placed at (0,3)/(0,4) on its Sheep
+  row: its day ran h01-h19 with two Sheep and one Cow, the second Cow sat in
+  the shed from day 5 to day 11 and held up SW. On day 0 it plants only
+  (1,4) and (0,4) after the Sheep setup. The farmer passes 13-15 hours a day on
+  days 2-6 but is saturated from day 8.
+- A hand's `PLACE COW` on a pasture is converted into a `SELL COW` order. The
+  engine drops it (not a product), so it only wastes a market slot. Present in
+  the baseline's staged-Cow and NE-block paths too.
+
+### Why the ladder leaders gain from it
+
+They buy Cows instead of our day-4 Sheep and early Strawberry, and against
+opponents that grow less Milk. In our self-play the Milk market has no room.
+Early Cows should only be retried with Milk demand to absorb them (several
+Milk shops) and without delaying the Geese or the NE fill. The same-day
+Fertilizer sale on days 2-3 is untested on its own.
+

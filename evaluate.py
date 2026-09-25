@@ -131,7 +131,7 @@ OPPONENTS = {
     # twenty-seed gate (40W-0L, +1,888.5 per game).
     # "melon_crew_v1": melon_crew_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
-    # it would be self-play here.
+    # it would be self-play here. (Early-Cow gate against it: 4W-36L.)
     # "melon_layout_v1": melon_layout_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.

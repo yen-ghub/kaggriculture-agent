@@ -24,8 +24,11 @@ Twenty-seed gate **40W--0L--0T, 100.0%, +1,888.5 per game**.
   late hand, which could not reach the shed by h23 (12 Melons overnight).
 - **The stronger layout**: also (1,1) -> (0,4) (total 46, furthest 5), which
   needs hand 0 in the Melon pool. (1,4) is out: it is the staged Cow tile.
-- From the same replays: early Cows on days 2-3 funded by same-day Fertilizer
-  sales, NW Strawberry from day 5, NE on day 6.
+- From the same replays: NW Strawberry from day 5, NE on day 6. **Early Cows
+  on days 2-3 were tried and rejected (4W--36L, -3,693.7)**: the extra Milk
+  sells for nothing in our Milk-saturated self-play market, and the 800 they
+  tie up delays the Geese and part of the NE Strawberry. The same-day
+  Fertilizer sale on days 2-3 that funded them has not been tested on its own.
 
 `baselines/melon_crew_v1.py` is its direct predecessor: `strawberry_ceiling_m6_v1`
 with a day-10 Melon crew: all eleven hands hired (8-10 are the SW hands a day

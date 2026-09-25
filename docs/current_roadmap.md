@@ -15,6 +15,10 @@ with the day-0 Melons on a fixed set of twelve NW tiles nearer the shed
 shed 52 -> 48, furthest 7 -> 6; every other NW crop tile gets Wheat on day 0.
 Twenty-seed gate **40W--0L--0T, 100.0%, +1,888.5 per game**.
 
+**Closed: selling Strawberry ahead of the opponent** (evening sale, watering
+slack, first-harvest crew; see the experiment log). The edge only exists in
+glut, when our hands have no spare hours.
+
 **Next, in order:**
 
 - **A fixed day-10 pairing plan.** The tiles are fixed now, so the per-turn

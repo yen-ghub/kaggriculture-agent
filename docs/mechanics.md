@@ -1076,3 +1076,21 @@ Carrot 42, Wheat 45, Tomato 84, Strawberry 204. Carrot (log) and Wheat (sqrt)
 climb very slowly past that -- Carrot is still only ~45 at a 10,000-unit
 shortfall -- so a Pet-Cafe-heavy town absorbing hundreds of Carrots does not
 make Carrot a premium crop.
+
+## Confirmed: selling first only pays when the market is in glut
+
+The price curve has two halves around the reference inventory `I0` (10,000):
+
+- **Below `I0` (short supply)** most products use a sqrt or log curve, which is
+  flat near the top: Strawberry `120 + 8.4 * sqrt(deficit)`, so at a
+  155-unit deficit (price ~225) each unit sold moves the price only ~0.34.
+- **Above `I0` (glut)** Strawberry is linear at 1.92 per unit, Milk 2.1.
+
+Selling a batch ahead of the opponent's batch in the same market (evening
+sale, first-harvest crew) is worth roughly `slope x their units` per unit of
+ours, so it is worth a lot in glut and almost nothing in short supply. Both
+sides' first NE Strawberry harvest (day 17) lands while the market is still
+short: on seed 8, selling 22 units at h22-h23 ahead of the opponent's 21 at
+h00 gained +141. Most towns only cross `I0` for Strawberry around day 20,
+the days when our hands have no hours to spare.
+

@@ -3133,3 +3133,61 @@ Early Cows should only be retried with Milk demand to absorb them (several
 Milk shops) and without delaying the Geese or the NE fill. The same-day
 Fertilizer sale on days 2-3 is untested on its own.
 
+## Rejected (idea closed): selling Strawberry ahead of the opponent
+
+**Status: closed, `main.py` reverted to `melon_layout_v1`.** Both sides' daily
+Strawberry harvest goes into the shed overnight and sells at h00 in the same
+market step, so the units interleave. The idea was to sell ours first.
+
+### Evening sale (gated)
+
+A hand carrying Strawberry sets off in time to reach the shed and place by h23
+(the hand PLACE -> SELL fusion sells it before midnight); only while the
+opponent is Strawberry-heavy, so the h00 cap-of-8 rule is not bypassed.
+
+- v1, on a timer: hands left with watering unfinished, 17-25 plants dry on
+  every production day. Seed 8: 57 fewer Strawberry sold, +7 a unit, -11,074.
+- v2, only once every plant on the hand's own tiles is watered. Seed 8: 253
+  vs 259 sold, 212.5 vs 210.2 a unit, -1,101. Seed 1 (glut): 237 vs 249,
+  105.0 vs 95.8, +502.
+- **Gate (v2) against `melon_layout_v1`: 24W--16L, 60.0%, 90,396.5 vs
+  90,419.6 (-23.1)**, zero errors; biggest loss seed 15 (-1,786 both
+  positions). Fertilizer 179.5 -> 168.0 and harvests 374.9 -> 369.4 against
+  the previous gate's totals: the trips cost other hand work.
+
+### Paired with watering slack
+
+`water_slack_v2` (skip a watering that would produce nothing, on a tile
+watered yesterday) was logged as "an enabler, not a win" and paired here to
+free hours for the trip.
+
+- Skipping every Strawberry day: seed 8 sold 152 vs 259, Fertilizer 289
+  sold against ~206 -- the per-age Fertilizer passes decide after the hands
+  have skipped a production day's watering, so the bonus is lost. Weeds did not
+  rise.
+- Never skipping on a production night: seed 8 231 vs 259 (-4,517), seed 1
+  224 vs 251 (+35). Still behind.
+
+The slack rule as written in `water_slack_v2` predates off-day Fertilizer and
+must not be re-used without the production-night exception.
+
+### First NE harvest only (day 17)
+
+- SW hands 8-10 as a one-day crew harvesting NE Strawberry and selling on
+  arrival: took them all day at ~1 unit a plant, sold 22 at h22-h23 ahead of
+  the opponent's 21 at h00. SW crops lost nothing (same weeds, 259 Strawberry,
+  +6 Wheat); sales +914 against self-play, of which Strawberry only +141; final
+  money -144 (about 1,058 more spent on purchases, not traced).
+- NE hands carrying back on day 17 once their watering is done: 3 units made
+  it by h23 (-312). Off-day Fertilizer tiles are unwatered on purpose and had
+  to be excluded from the "watering done" check, or no hand ever qualifies.
+
+### Why it cannot pay
+
+The first-mover edge is `slope x opponent's units` per unit. Below the
+reference inventory (short supply, which is where the day-17 harvest lands)
+the Strawberry curve moves ~0.34 per unit; above it (glut, from about day 20)
+1.92. So the edge is real only on the later, larger glut-day harvests, which
+fall on the days our hands have no spare hours -- every version paid for the
+trip with Strawberry yield or other work. See `docs/mechanics.md`.
+

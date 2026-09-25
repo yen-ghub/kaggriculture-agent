@@ -49,6 +49,7 @@ from baselines.day0_opening_v1 import agent as day0_opening_v1_agent
 from baselines.ne_strawberry_fill_v1 import agent as ne_strawberry_fill_v1_agent
 from baselines.strawberry_ceiling_m6_v1 import agent as strawberry_ceiling_m6_v1_agent
 from baselines.melon_crew_v1 import agent as melon_crew_v1_agent
+from baselines.melon_layout_v1 import agent as melon_layout_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -126,9 +127,12 @@ OPPONENTS = {
     # Direct predecessor of melon_crew_v1, and the opponent of its
     # twenty-seed gate (40W-0L, +2,662.8 per game).
     # "strawberry_ceiling_m6_v1": strawberry_ceiling_m6_v1_agent,
+    # Direct predecessor of melon_layout_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +1,888.5 per game).
+    # "melon_crew_v1": melon_crew_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    # "melon_crew_v1": melon_crew_v1_agent,
+    # "melon_layout_v1": melon_layout_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

@@ -3033,3 +3033,34 @@ field but landed 30 units after the opponent's h19 dump. The binding limit is
 walking -- (1,0) is seven steps from the shed, so no assignment sells it
 before ~h18. That is the next experiment (see the roadmap).
 
+## Accepted and frozen: day-0 Melons nearer the shed
+
+**Status: frozen as `baselines/melon_layout_v1.py`.** Twenty-seed gate against
+`melon_crew_v1`: **40W--0L--0T, 100.0%, average 93,444.4 vs 91,555.9
+(+1,888.5 per game)**, zero errors.
+
+### What changed
+
+`DAY0_MELON_TILES` fixes where the twelve day-0 Melons go: (4,2), (3,2),
+(2,2), (2,3), (4,1), (3,1), (2,1), (1,1), (4,0), (3,0), (1,3), (1,2). On day 0
+`day0_layout_crop` plants Melon on those and Wheat on every other NW crop tile,
+at the same point as the NW Carrot-or-empty rule. Before, the Melons went
+wherever hands happened to plant while the count was under twelve, which put
+(1,0) and (2,0) at seven and six steps from the shed.
+
+Only Melons need walking back for a same-day sale; Wheat in a hand's pack
+reaches the shed overnight. So the near tiles go to Melon. Excluded: the
+animal tiles, (2,4) (day-4 Sheep), (1,4) (staged Cow, may clear on days 8-10)
+and hand 0's tiles (hand 0 is not a Melon worker).
+
+### Evidence
+
+- Seed 1: Melon 13,644 against the baseline's 12,564 in the same game; 60 on
+  day 10 and 12 overnight against 54 and 18. Seed 2: +2,928 / +1,968.
+- Melon volume unchanged at 72.0. Milk 165.1 -> 168.4, Wool 138.3 -> 141.1,
+  Fertilizer 173.2 -> 179.5, Carrot and Wheat slightly down. Consistent with
+  hands spending less time walking on days 0 and 10; not traced.
+- Six hands still cannot clear the twelve tiles in one pass: on seed 1 some
+  returned with a single tile and the last two, (2,1) and (3,0), fell to one
+  hand that reached (3,0) at h19 and could not get back by h23.
+

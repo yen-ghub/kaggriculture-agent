@@ -6,26 +6,34 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/melon_crew_v1.py`
+`baselines/melon_layout_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is
-`strawberry_ceiling_m6_v1` with a day-10 Melon crew: all eleven hands hired
-(8-10 are the SW hands a day early, Melon only), every Melon watered to 6
-before harvest, tiles matched nearest-first each turn with a detour limit for
-loaded hands, and each batch placed and sold on arrival at the shed.
-Twenty-seed gate **40W--0L--0T, 100.0%, +2,662.8 per game**; Melon sold 72.0
-(from 60). Learned from ladder replays `replays/scaling1.json` and
-`scaling2.json`.
+a newer candidate passes the evaluation gates below. It is `melon_crew_v1`
+with the day-0 Melons on a fixed set of twelve NW tiles nearer the shed
+(`DAY0_MELON_TILES`): (1,0) -> (1,3) and (2,0) -> (1,2), total distance to the
+shed 52 -> 48, furthest 7 -> 6; every other NW crop tile gets Wheat on day 0.
+Twenty-seed gate **40W--0L--0T, 100.0%, +1,888.5 per game**.
 
-**Next:** move the day-0 Melons nearer the shed. The furthest tile, (1,0), is
-seven steps out, so its hand cannot sell before ~h18; on seed 1, 18 Melons
-still went overnight. Minimal version: (1,0) -> (1,3) and (2,0) -> (1,2),
-keeping every Melon with hands 1-3 (total distance 52 -> 48, furthest 7 -> 6).
-Stronger: also (1,1) -> (0,4) (46, furthest 5), which needs hand 0 in the
-Melon pool. (1,4) is out: it is the staged Cow tile. After that, from the same
-replays: early Cows on days 2-3 funded by same-day Fertilizer sales, NW
-Strawberry from day 5, NE on day 6.
+**Next, in order:**
+
+- **A fixed day-10 pairing plan.** The tiles are fixed now, so the per-turn
+  nearest-first matching can be replaced by six pairs of neighbouring tiles,
+  one per Melon worker, each worker returning with 12. On seed 1 the matching
+  still sent hands back with a single tile and left (2,1) and (3,0) to one
+  late hand, which could not reach the shed by h23 (12 Melons overnight).
+- **The stronger layout**: also (1,1) -> (0,4) (total 46, furthest 5), which
+  needs hand 0 in the Melon pool. (1,4) is out: it is the staged Cow tile.
+- From the same replays: early Cows on days 2-3 funded by same-day Fertilizer
+  sales, NW Strawberry from day 5, NE on day 6.
+
+`baselines/melon_crew_v1.py` is its direct predecessor: `strawberry_ceiling_m6_v1`
+with a day-10 Melon crew: all eleven hands hired (8-10 are the SW hands a day
+early, Melon only), every Melon watered to 6 before harvest, tiles matched
+nearest-first each turn with a detour limit for loaded hands, and each batch
+placed and sold on arrival at the shed. Twenty-seed gate **40W--0L--0T,
+100.0%, +2,662.8 per game**; Melon sold 72.0 (from 60). Learned from ladder
+replays `replays/scaling1.json` and `scaling2.json`.
 
 `baselines/strawberry_ceiling_m6_v1.py` is its direct predecessor:
 `ne_strawberry_fill_v1` with the Strawberry acreage ceiling cut by 6 on all

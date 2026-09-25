@@ -276,7 +276,13 @@ def view_h2h(args, opponent):
 
 
 def view_isolation(args, opponent):
-    """Which seeds actually changed? A gated experiment must tie elsewhere."""
+    """Which seeds actually changed? A gated experiment must tie elsewhere.
+
+    Compares against the baseline playing ITSELF, not against the other
+    player in the same game: some seeds are position-asymmetric (16, and 9
+    at 132,407 vs 131,727), so an unchanged agent can still score differently
+    from its opponent. Two games per seed.
+    """
     print("isolation vs %s -- IDENTICAL means the change did not fire"
           % args.opponent)
     changed = []
@@ -284,12 +290,21 @@ def view_isolation(args, opponent):
         env = play(seed, opponent)
         ours = env.steps[-1][0].reward
         theirs = env.steps[-1][1].reward
-        if ours == theirs:
-            print("  seed %2d  %9.0f  IDENTICAL" % (seed, ours))
+        mirror_env = make(
+            "kaggriculture",
+            configuration={"episodeSteps": 720, "seed": seed},
+            debug=False,
+        )
+        with contextlib.redirect_stdout(io.StringIO()):
+            mirror_env.run([opponent, opponent])
+        mirror = (mirror_env.steps[-1][0].reward, mirror_env.steps[-1][1].reward)
+        if (ours, theirs) == mirror:
+            print("  seed %2d  %9.0f / %9.0f  IDENTICAL" % (seed, ours, theirs))
         else:
             changed.append(seed)
             print("  seed %2d  ours %9.0f  opp %9.0f  delta %+8.0f"
-                  % (seed, ours, theirs, ours - theirs))
+                  "  (mirror %.0f / %.0f)"
+                  % (seed, ours, theirs, ours - theirs, mirror[0], mirror[1]))
     print("  changed seeds: %s" % (changed or "none"))
 
 

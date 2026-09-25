@@ -24,7 +24,7 @@ mode is unfed livestock, which will not show up as a Strawberry number.
 import main
 
 from evaluate import evaluate_opponent
-from baselines.immediate_milk_deposit_v1 import agent as baseline_agent
+from baselines.ne_strawberry_fill_v1 import agent as baseline_agent
 
 # Offsets applied to all three ceilings at once. 0 reproduces the baseline and
 # is the control -- it scores 50.0% with both sides on identical money.
@@ -35,12 +35,33 @@ from baselines.immediate_milk_deposit_v1 import agent as baseline_agent
 # were glutting the shared market rather than earning. Going down is the
 # untested direction: the log only ever raised this ceiling (33 -> 39 -> 45,
 # plus the SW bonus of 3), so the optimum below 48 has never been looked at.
-CEILING_OFFSETS = [-6, -3, 0]
-SEEDS = [1, 2, 3, 4, 5, 8, 19]
+# Re-run downward on ne_strawberry_fill_v1 (2026-09-25): the sweep above was
+# measured at ~200 Strawberry per player, before off-day Fertilizer and the NE
+# fill took it to ~268. At that volume the late dumps sell mostly at the price
+# floor (seed 1, d22: 110 units sold, market inventory +31, so ~79 went for 1
+# coin), and a unit sold at the floor neither earns nor lowers the opponent's
+# price, so the denial argument for 48 may no longer hold.
+#
+# Seven-seed result (seeds 1-5, 8, 19, both positions), control 85,996.7 each:
+#
+#   offset  ours      opponent  margin   score  Strawberry  Wheat
+#   -12     87,976.9  87,309.7   +667.2  57.1%  201.9       232.0
+#    -9     91,053.4  89,279.0  +1774.4  71.4%  224.6       225.0
+#    -6     89,002.6  87,091.0  +1911.6  71.4%  233.7       204.6
+#    -3     89,804.0  88,847.3   +956.7  85.7%  259.0       191.1
+#     0     85,996.7  85,996.7      0.0  50.0%  264.4       178.3
+#
+# Every cut raised our OWN money, the reverse of the ~200-unit sweep. The
+# -6/-9 plateau is the twenty-seed candidate; -3 gains 3,807 for only 5 fewer
+# Strawberry, which smells of re-rolled towns on seven seeds.
+CEILING_OFFSETS = [-9]  # -6 is main.py now: gate it with evaluate.py
+SEEDS = list(range(1, 21))
 
-BASE_STRAWBERRY_TARGET = main.STRAWBERRY_PLANT_TARGET
-BASE_HIGH_STRAWBERRY_TARGET = main.HIGH_STRAWBERRY_PLANT_TARGET
-BASE_PREMIUM_TARGET = main.PREMIUM_CROP_PLANT_TARGET
+# Hard-coded to ne_strawberry_fill_v1's values, so the offsets stay relative to
+# the baseline while main.py carries a trial value.
+BASE_STRAWBERRY_TARGET = 39
+BASE_HIGH_STRAWBERRY_TARGET = 45
+BASE_PREMIUM_TARGET = 45
 
 
 for offset in CEILING_OFFSETS:
@@ -49,7 +70,7 @@ for offset in CEILING_OFFSETS:
     main.PREMIUM_CROP_PLANT_TARGET = BASE_PREMIUM_TARGET + offset
 
     summary = evaluate_opponent(
-        f"Strawberry ceiling +{offset}",
+        f"Strawberry ceiling {offset:+d}",
         baseline_agent,
         SEEDS,
     )
@@ -58,7 +79,7 @@ for offset in CEILING_OFFSETS:
     wheat = summary["crops"]["WHEAT"]
 
     print(
-        f"offset=+{offset}, "
+        f"offset={offset:+d}, "
         f"targets={main.STRAWBERRY_PLANT_TARGET}/"
         f"{main.HIGH_STRAWBERRY_PLANT_TARGET}, "
         f"premium={main.PREMIUM_CROP_PLANT_TARGET}, "

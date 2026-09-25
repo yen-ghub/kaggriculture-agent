@@ -1018,6 +1018,10 @@ Two identical agents do not always score identically. Seed 16, the frozen
 baseline `offday_fertilize_ne12_v1` playing itself: **122,522 in position 0,
 122,596 in position 1**, reproducibly. Mirrored gate lines have also started
 to disagree across positions (seed 11: 78,875 vs 78,817 for the same pairing).
+Seed 9, `ne_strawberry_fill_v1` playing itself: **132,407 vs 131,727**, the
+two players' actions first diverging at d11 h03 (hand 3, WEST vs EAST).
+`tools/trace.py isolation` now compares against this self-play result rather
+than against the other player in the same game.
 
 Earlier entries (experiment log, "the environment carries no first-mover
 asymmetry"; roadmap line on 40 games being 20 independent seeds) generalised
@@ -1033,3 +1037,42 @@ In practice:
   self-play before blaming the change.
 - The two positions of a mirrored gate are usually, but not always, the same
   sample. The difference is small next to a strategy's effect (74 here).
+
+## Confirmed: how the market drains, and the $1 floor
+
+From `kaggriculture.py` (`_town_consume` and the SELL branch):
+
+- Every 4 steps (6 times a day), each unlocked shop instance removes 1 unit
+  of every product it lists, or 2 if it lists only one product (Pet Cafe,
+  Yarn Store). A shop drawn twice consumes twice.
+- Once a day, the town centre removes 1 unit of every product except
+  Fertilizer.
+- A sale at price 1 does **not** add to market inventory.
+
+| Shop | Products |
+|---|---|
+| BAKERY | Egg, Wheat |
+| PIZZA_SHOP | Milk, Tomato, Wheat |
+| BRUNCH_SPOT | Egg, Wheat, Strawberry |
+| YARN_STORE | Wool (x2) |
+| ICE_CREAM_SHOP | Strawberry, Milk, Wheat |
+| PET_CAFE | Carrot (x2) |
+| SMOOTHIE_SHOP | Strawberry, Milk |
+| FARMERS_MARKET | Wheat, Carrot, Tomato, Strawberry |
+
+So Strawberry absorbs `1 + 6 x (Strawberry shops)` units a day and nothing
+else drains it. Seed 1 (`ne_strawberry_fill_v1` self-play) opens its first
+Strawberry shop on day 15 and absorbs ~180 units over the season against 416
+sold by the two players; Strawberry averaged 25.6.
+
+The floor matters for any argument that our volume "denies" the opponent a
+price. Seed 1, day 22: both players sold 55 at h00, market inventory rose
+only 31 (10,028 -> 10,059), so ~79 of the 110 units sold for 1 coin. A unit
+sold at the floor earns nothing and moves the opponent's price not at all.
+
+An undersupplied market pays little more for the staples. At a shortfall of
+`T` units (the curve's scale) the price is `base x (1 + below_target)`:
+Carrot 42, Wheat 45, Tomato 84, Strawberry 204. Carrot (log) and Wheat (sqrt)
+climb very slowly past that -- Carrot is still only ~45 at a 10,000-unit
+shortfall -- so a Pet-Cafe-heavy town absorbing hundreds of Carrots does not
+make Carrot a premium crop.

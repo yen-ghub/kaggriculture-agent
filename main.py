@@ -166,8 +166,8 @@ WHEAT_PLANT_TARGET      = 18        # Currently no limit, to flood the carrot ma
 
 #
 # STRAWBERRY related
-STRAWBERRY_PLANT_TARGET     = 39        # Fine-tuned: 39
-HIGH_STRAWBERRY_PLANT_TARGET = 45
+STRAWBERRY_PLANT_TARGET     = 33        # Fine-tuned: 39; -6 on trial (sweep_strawberry.py)
+HIGH_STRAWBERRY_PLANT_TARGET = 39        # 45; -6 on trial
 STRAWBERRY_START_DAY        = 10
 EARLY_NE_STRAWBERRY_START_DAY = SECOND_QUADRANT_PURCHASE_DAY
 # All twelve early Strawberry go into NE on its unlock day, instead of six in
@@ -199,7 +199,7 @@ TOMATO_DEMAND_SHOPS = {
     "FARMERS_MARKET",
 }
 
-PREMIUM_CROP_PLANT_TARGET = 45
+PREMIUM_CROP_PLANT_TARGET = 39        # 45; -6 on trial, clamps the Strawberry target too
 TOMATO_PLANTS_PER_DEMAND_SHOP = 3
 MAX_TOMATO_PLANT_TARGET = 6
 TOMATO_START_DAY = 13

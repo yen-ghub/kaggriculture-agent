@@ -98,7 +98,7 @@ OPPONENTS = {
     # Direct predecessor of permanent_ne_geese_v1, and the opponent of its
     # twenty-seed gate (18W-6L-16T, +234.2 per game).
     # "immediate_milk_deposit_v1": immediate_milk_deposit_v1_agent,
-    # Current frozen baseline. Identical to main.py until main.py moves on, so
+    # Current frozen baseline, and the opponent of the Strawberry-ceiling -6
     # it would be self-play here; swap the top import to score its side of a
     # regression instead.
     # "permanent_ne_geese_v1": permanent_ne_geese_v1_agent,
@@ -118,9 +118,9 @@ OPPONENTS = {
     # Direct predecessor of ne_strawberry_fill_v1, and the opponent of its
     # twenty-seed gate (40W-0L, +3,081.2 per game).
     # "day0_opening_v1": day0_opening_v1_agent,
-    # Current frozen baseline. Identical to main.py until main.py moves on, so
-    # it would be self-play here.
-    # "ne_strawberry_fill_v1": ne_strawberry_fill_v1_agent,
+    # Current frozen baseline, and the opponent of the Strawberry-ceiling -6
+    # gate (main.py differs from it only in the three ceiling constants).
+    "ne_strawberry_fill_v1": ne_strawberry_fill_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

@@ -3191,3 +3191,30 @@ the Strawberry curve moves ~0.34 per unit; above it (glut, from about day 20)
 fall on the days our hands have no spare hours -- every version paid for the
 trip with Strawberry yield or other work. See `docs/mechanics.md`.
 
+## Accepted and frozen: one more Melon nearer the shed
+
+**Status: frozen as `baselines/melon_layout_v2.py`.** Twenty-seed gate against
+`melon_layout_v1`: **38W--2L--0T, 95.0%, average 90,912.1 vs 90,168.4
+(+743.7 per game)**, zero errors. The only loss is seed 9, by 92 in both
+positions (122,909 vs 123,001).
+
+### What changed
+
+- `DAY0_MELON_TILES`: (1,1) -> (0,4). Total distance to the shed 48 -> 46,
+  furthest 6 -> 5.
+- (0,4) belongs to hand 0, which is not a Melon worker. On Melon crew day
+  `choose_hand_action` now skips Melon tiles, so only the workers' matching
+  touches them; otherwise hand 0 would harvest (0,4) at 5 before the crew
+  waters it.
+
+Hand 0 kept (0,4) watered through days 1-9: every Melon was at 5 on the
+morning of day 10, as before.
+
+### Evidence
+
+Seed 1: every Melon batch sold in the same hour as the baseline's except the
+last -- we sold our final 12 on day 10 at h22 for 131, the baseline carried 12
+overnight and sold at h00 on day 11 for 104. All 72 on day 10 against 60;
++580. Suite: Melon unchanged at 72.0; Strawberry 239.2, Fertilizer 177.0,
+harvests 376.4, Wheat leftover 3.6.
+

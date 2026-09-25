@@ -569,31 +569,6 @@ MELON_RELIEF_WAIT_LAST_HOUR = 12
 # day 10 still gets four cycles, the same as day 11.
 MELON_RELIEF_MIN_READY_WHEAT = 3
 
-# Melon day crew (replays/scaling1.json, scaling2.json). The ladder leaders
-# hire all eleven hands on day 10, WATER each Melon before harvesting it (a
-# watering inside a one-time crop's window adds a unit on the spot, so a
-# 5-unit Melon becomes 6), and sell each hand's batch as it reaches the shed
-# from h09. We harvested at 5 with three hands and sold at h14 and h19, after
-# them: 60 Melons for 11,261 against their 72 for 16,087.
-# On day 10 the three SW hands (indices 8-10) are hired a day early as a
-# one-day crew. Crew and Melon owners share the ripe Melon tiles, matched
-# nearest-first every turn; each waters to full yield, harvests, and returns
-# to sell once carrying a trip's load or when no Melon is left unclaimed.
-# Replaces the day-10 relief hand, which needs index 8.
-MELON_CREW_ACTIVE = True
-MELON_CREW_FIRST_HAND_INDEX = SECOND_QUADRANT_HAND_COUNT
-MELON_CREW_HAND_COUNT = THIRD_QUADRANT_HAND_COUNT - SECOND_QUADRANT_HAND_COUNT
-# Hand 0 runs the NW Sheep; hands 1-3 own the Melon tiles.
-MELON_OWNER_HAND_INDICES = tuple(range(1, NW_HAND_COUNT))
-# Two tiles at full yield per trip.
-MELON_TRIP_LOAD = 12
-# A worker already carrying Melon only takes another tile if the detour
-# costs at most this many extra steps on its way back to the shed; otherwise
-# it sells what it has. Unrestricted nearest-first pairing sent loaded hands
-# from (2,3) to (1,1) and left them seven steps out at h14.
-MELON_DETOUR_SLACK = 2
-MELON_MAX_YIELD = 6
-
 # List tiles for crops (not reserved for animal)
 FIRST_QUADRANT_CROP_TILES = [
     position
@@ -1441,15 +1416,8 @@ def agent(obs):
     melon_relief_already_hired = (
         len(farm["hands"]) > MELON_RELIEF_HAND_INDEX
     )
-    melon_crew_active = (
-        MELON_CREW_ACTIVE
-        and obs["day"] == MELON_HARVEST_DAY
-        and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
-        and THIRD_QUADRANT_NAME not in farm["unlocked_quadrants"]
-    )
     melon_relief_hand_active = (
-        not MELON_CREW_ACTIVE
-        and obs["day"] == MELON_HARVEST_DAY
+        obs["day"] == MELON_HARVEST_DAY
         and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
         and THIRD_QUADRANT_NAME not in farm["unlocked_quadrants"]
         and (
@@ -1483,11 +1451,6 @@ def agent(obs):
 
     if melon_relief_hand_active:
         hands_to_hire_today = MELON_RELIEF_HAND_INDEX + 1
-
-    if melon_crew_active:
-        hands_to_hire_today = (
-            MELON_CREW_FIRST_HAND_INDEX + MELON_CREW_HAND_COUNT
-        )
             
     # Inventory count in the shed and in the backpack (dictionaries, one entry for each crop)
     seed_counts     = {
@@ -2926,127 +2889,6 @@ def agent(obs):
 
         return move_to(hand_position, target)
 
-    # Melon day crew: match the ripe Melon tiles to the Melon workers once per
-    # turn. A worker already standing on a Melon keeps it (it may need two
-    # turns there, WATER then HARVEST); the rest are paired nearest-first. A
-    # worker carrying a trip's load takes no tile and goes to sell.
-    melon_worker_indices = []
-    melon_crew_targets = {}
-
-    if melon_crew_active:
-        melon_worker_indices = [
-            hand_index
-            for hand_index in (
-                list(MELON_OWNER_HAND_INDICES)
-                + list(range(
-                    MELON_CREW_FIRST_HAND_INDEX,
-                    MELON_CREW_FIRST_HAND_INDEX + MELON_CREW_HAND_COUNT,
-                ))
-            )
-            if hand_index < len(farm["hands"])
-        ]
-        unclaimed_melon_tiles = set(
-            (x, y)
-            for x, y in FIRST_QUADRANT_ROUTE
-            if (
-                isinstance(farm["tiles"][y][x], dict)
-                and farm["tiles"][y][x].get("kind") == "PLANT"
-                and farm["tiles"][y][x].get("crop") == "MELON"
-                and crop_is_harvestable(farm["tiles"][y][x])
-            )
-        )
-        free_melon_workers = [
-            hand_index
-            for hand_index in melon_worker_indices
-            if private["inventories"][hand_index + 1].get("MELON", 0)
-                < MELON_TRIP_LOAD
-        ]
-
-        for hand_index in free_melon_workers:
-            worker_position = tuple(farm["hands"][hand_index])
-
-            if worker_position in unclaimed_melon_tiles:
-                melon_crew_targets[hand_index] = worker_position
-                unclaimed_melon_tiles.discard(worker_position)
-
-        unmatched_melon_workers = [
-            hand_index
-            for hand_index in free_melon_workers
-            if hand_index not in melon_crew_targets
-        ]
-
-        def distance_to_shed(position):
-            return min(
-                distance_between(position, shed_tile)
-                for shed_tile in SHED_ACCESS_TILES
-            )
-
-        def melon_tile_is_eligible(hand_index, melon_tile):
-            worker_position = tuple(farm["hands"][hand_index])
-
-            if private["inventories"][hand_index + 1].get("MELON", 0) <= 0:
-                return True
-
-            return (
-                distance_between(worker_position, melon_tile)
-                + distance_to_shed(melon_tile)
-                <= distance_to_shed(worker_position) + MELON_DETOUR_SLACK
-            )
-
-        while unmatched_melon_workers and unclaimed_melon_tiles:
-            melon_candidates = [
-                (
-                    distance_between(
-                        tuple(farm["hands"][hand_index]),
-                        melon_tile,
-                    ),
-                    hand_index,
-                    melon_tile,
-                )
-                for hand_index in unmatched_melon_workers
-                for melon_tile in unclaimed_melon_tiles
-                if melon_tile_is_eligible(hand_index, melon_tile)
-            ]
-
-            if not melon_candidates:
-                break
-
-            _, hand_index, melon_tile = min(melon_candidates)
-            melon_crew_targets[hand_index] = melon_tile
-            unmatched_melon_workers.remove(hand_index)
-            unclaimed_melon_tiles.discard(melon_tile)
-
-    def choose_melon_crew_action(hand_index, hand_position, hand_inventory):
-        melon_target = melon_crew_targets.get(hand_index)
-
-        if melon_target is not None:
-            if hand_position != melon_target:
-                return move_to(hand_position, melon_target)
-
-            x, y = melon_target
-            melon_tile = farm["tiles"][y][x]
-
-            if (
-                not melon_tile.get("watered_today", False)
-                and melon_tile.get("yield_units", 0) < MELON_MAX_YIELD
-            ):
-                return ["WATER"]
-
-            return ["HARVEST"]
-
-        melon_carried = hand_inventory.get("MELON", 0)
-
-        if melon_carried <= 0:
-            return None
-
-        if hand_position not in SHED_ACCESS_TILES:
-            return move_to(
-                hand_position,
-                nearest_position(hand_position, SHED_ACCESS_TILES),
-            )
-
-        return ["PLACE", "MELON", melon_carried]
-
     def choose_melon_return_action(hand_position, hand_inventory, assigned_tiles):
         if obs["day"] != MELON_HARVEST_DAY:
             return None
@@ -3982,22 +3824,6 @@ def agent(obs):
         # Choose action according to priority: liquidate -> sheep care for the designated HAND -> other actions
         hand_action = choose_hand_liquidation_action(tuple(hand_position), hand_inventory)
 
-        # The day-10 crew hands are SW hands hired a day early: their SW
-        # routes and routines do not exist yet, so they only work Melon.
-        if (
-            hand_action is None
-            and melon_crew_active
-            and hand_index >= MELON_CREW_FIRST_HAND_INDEX
-        ):
-            hand_action = choose_melon_crew_action(
-                hand_index,
-                tuple(hand_position),
-                hand_inventory,
-            )
-
-            if hand_action is None:
-                hand_action = ["PASS"]
-
         # Take today's off-day Fertilizer from the shed before leaving it.
         # Hands spawn on shed access, so this costs one action and no walk.
         # It runs ahead of the Goose and livestock routines: those always
@@ -4084,29 +3910,20 @@ def agent(obs):
                 available_seed_counts,
             )
 
-        if melon_crew_active:
-            if hand_action is None and hand_index in melon_worker_indices:
-                hand_action = choose_melon_crew_action(
-                    hand_index,
-                    tuple(hand_position),
-                    hand_inventory,
-                )
-        else:
-            # On melon harvest day, clear any mature Melon tile immediately,
-            # then sell once the block is done, ahead of replanting or other
-            # tiles.
-            if hand_action is None:
-                hand_action = choose_melon_priority_harvest_action(
-                    tuple(hand_position),
-                    assigned_tiles,
-                )
+        # On melon harvest day, clear any mature Melon tile immediately, then
+        # sell once the block is done, ahead of replanting or other tiles.
+        if hand_action is None:
+            hand_action = choose_melon_priority_harvest_action(
+                tuple(hand_position),
+                assigned_tiles,
+            )
 
-            if hand_action is None:
-                hand_action = choose_melon_return_action(
-                    tuple(hand_position),
-                    hand_inventory,
-                    assigned_tiles,
-                )
+        if hand_action is None:
+            hand_action = choose_melon_return_action(
+                tuple(hand_position),
+                hand_inventory,
+                assigned_tiles,
+            )
 
 
         if hand_action is None:
@@ -4355,19 +4172,7 @@ def agent(obs):
         # is the farm's first income: a day 0 that ends on zero hires nobody,
         # collects nothing, and never recovers (replays/zero_money.json -- the
         # Melon top-up bought one seed an hour until the last 80 coins went).
-        next_day_hire_count = hands_to_hire_today
-
-        if (
-            MELON_CREW_ACTIVE
-            and obs["day"] == MELON_HARVEST_DAY - 1
-            and SECOND_QUADRANT_NAME in farm["unlocked_quadrants"]
-        ):
-            next_day_hire_count = max(
-                next_day_hire_count,
-                MELON_CREW_FIRST_HAND_INDEX + MELON_CREW_HAND_COUNT,
-            )
-
-        next_day_hire_cost = sum(HAND_HIRE_COSTS[:next_day_hire_count])
+        next_day_hire_cost = sum(HAND_HIRE_COSTS[:hands_to_hire_today])
         cash_reserve_after_seed_purchase = max(
             INITIAL_SHEEP_CASH_RESERVE
             if initial_sheep_cash_reserve_active

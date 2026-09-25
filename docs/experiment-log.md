@@ -2931,3 +2931,105 @@ pay for it.
 Other lines: Carrot 28.1 -> 52.4 and Wheat 193.8 -> 173.7 (the NW/SW tiles
 that lose their day-10/11 Strawberry to NE grow staples, more of them
 Carrot); Eggs 75.8 -> 74.4 (the Geese a day late).
+
+## Accepted and frozen: Strawberry ceiling -6
+
+**Status: frozen as `baselines/strawberry_ceiling_m6_v1.py`.** Twenty-seed gate
+against `ne_strawberry_fill_v1`: **32W--8L--0T, 80.0%, average 85,724.6 vs
+83,665.8 (+2,058.8 per game)**, zero errors. Strawberry sold 233.5 (from
+~264), Wheat 207.0.
+
+### Why the earlier sweep no longer applied
+
+The 45/48 optimum above was measured at ~200 Strawberry a player. Off-day
+Fertilizer and the NE fill took it to ~268, and at that volume the late dumps
+sell mostly at the 1-coin floor: seed 1, day 22, 110 units sold between the two
+players and market inventory rose only 31, so ~79 went for 1 coin. A sale at
+the floor earns nothing and, since it does not add to inventory, does not lower
+the opponent's price either (`docs/mechanics.md`, "how the market drains").
+
+### Sweep against `ne_strawberry_fill_v1`
+
+Seeds 1-5, 8, 19, both positions; control (offset 0) 85,996.7 each:
+
+| offset | ours | opponent | margin | score | Strawberry | Wheat |
+|---:|---:|---:|---:|---:|---:|---:|
+| -12 | 87,976.9 | 87,309.7 | +667.2 | 57.1% | 201.9 | 232.0 |
+| -9 | 91,053.4 | 89,279.0 | +1,774.4 | 71.4% | 224.6 | 225.0 |
+| -6 | 89,002.6 | 87,091.0 | +1,911.6 | 71.4% | 233.7 | 204.6 |
+| -3 | 89,804.0 | 88,847.3 | +956.7 | 85.7% | 259.0 | 191.1 |
+
+Every cut raised our own money -- the reverse of the ~200-unit sweep. Twenty
+seeds: -9 scored 30W--10L, 86,471.8 vs 84,276.8 (+2,195.0); -6 (the gate
+above) +2,058.8. Within noise of each other; -6 was kept as the smaller
+change.
+
+### Rejected: cut only in weak Strawberry towns
+
+Target 33 only while fewer than two Strawberry shops are open, 45/48
+otherwise. Seeds 1-20 split evenly at day 10 (weak: 1, 3, 7, 10, 12, 13, 14,
+17, 18, 20). Gate: **21W--5L--14T, 70.0%, 83,495.8 vs 82,699.0 (+796.8)** --
+well short of the flat cut. So most strong towns gain from the cut too; the
+flat cut's biggest loss, seed 9 (-2.2k to -2.8k), has seven Strawberry shops of
+eight and its price never fell below 200, but its first three shops look like
+seeds 5, 6, 16 and 19, which the cut helps. Shop count at day 10 cannot pick
+it out. A live-price signal (seed 9's d10 Strawberry price 196 vs seed 1's
+147) is untested.
+
+Side finding: seed 9 is position-asymmetric (132,407 vs 131,727 in self-play),
+which made `tools/trace.py isolation` report it as changed. That view now
+compares against the baseline's self-play.
+
+## Accepted and frozen: day-10 Melon crew
+
+**Status: frozen as `baselines/melon_crew_v1.py`.** Twenty-seed gate against
+`strawberry_ceiling_m6_v1`: **40W--0L--0T, 100.0%, average 89,678.6 vs
+87,015.8 (+2,662.8 per game)**, zero errors. Melon sold 72.0 (from 60.0);
+every other product level with the baseline, Wheat leftover 3.8.
+
+### Where it came from
+
+Two ladder losses, `replays/scaling1.json` (quantara.cv 83,500 vs 50,086)
+and `scaling2.json` (Riva Kajangu 125,775 vs 90,228), the same agent on both
+sides of day 0-5. On day 10 it hired all eleven hands, watered each Melon then
+harvested it, and sold in 6-24 unit batches from h09: 72 Melons for 16,087.
+We harvested at 5 units between h06 and h11 with three hands and sold 20 at
+h14 and 40 at h19: 60 for 11,261.
+
+### The mechanic
+
+For one-time crops each WATER inside the growth window, ages
+`(max_yield_day + 1) // 2` to `max_yield_day`, adds a yield unit on the spot
+(two if fertilized), up to `max_yield`. Melon: ages 6-12, max 6. A 5-unit
+Melon watered on day 10 is 6 before the hand leaves the tile. The old
+"same-day watering bonus" wording in this log meant this.
+
+### What changed
+
+- `melon_crew_active` on day 10 while NE is unlocked and SW is not: hire
+  eleven; hands 8-10 work Melon only, then PASS.
+- Workers are hands 1-3 and 8-10. Each turn the ripe Melon tiles are matched
+  to them: a hand standing on a Melon keeps it; the rest pair nearest-first.
+  A hand carrying Melon only takes another tile if
+  `dist(hand, tile) + dist(tile, shed) <= dist(hand, shed) + 2`; it stops
+  taking tiles at 12 units.
+- On a tile: WATER if not watered and below 6, else HARVEST. With no tile:
+  walk to shed access and PLACE, which the existing code fuses with a same-turn
+  SELL.
+- Day 9's seed-purchase reserve covers eleven hires.
+- The day-10 relief hand is disabled (it needs index 8). It never fired on
+  seeds 1-20.
+
+### Two matching rules tried on seed 1
+
+| rule | our Melon | opponent's Melon | final |
+|---|---:|---:|---:|
+| nearest-first, no detour limit | -- | -- | sold h10-h21, loaded hands sent to far tiles |
+| crew furthest-first | 13,866 (72 on d10) | 11,540 | 81,919 vs 75,346 |
+| nearest-first + detour limit (kept) | 14,532 (54 d10, 18 d11) | 10,620 | 82,588 vs 74,667 |
+
+Selling early beats selling everything on day 10: furthest-first cleared the
+field but landed 30 units after the opponent's h19 dump. The binding limit is
+walking -- (1,0) is seven steps from the shed, so no assignment sells it
+before ~h18. That is the next experiment (see the roadmap).
+

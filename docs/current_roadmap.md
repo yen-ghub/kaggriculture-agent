@@ -6,10 +6,40 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/ne_strawberry_fill_v1.py`
+`baselines/melon_crew_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is `day0_opening_v1`
+a newer candidate passes the evaluation gates below. It is
+`strawberry_ceiling_m6_v1` with a day-10 Melon crew: all eleven hands hired
+(8-10 are the SW hands a day early, Melon only), every Melon watered to 6
+before harvest, tiles matched nearest-first each turn with a detour limit for
+loaded hands, and each batch placed and sold on arrival at the shed.
+Twenty-seed gate **40W--0L--0T, 100.0%, +2,662.8 per game**; Melon sold 72.0
+(from 60). Learned from ladder replays `replays/scaling1.json` and
+`scaling2.json`.
+
+**Next:** move the day-0 Melons nearer the shed. The furthest tile, (1,0), is
+seven steps out, so its hand cannot sell before ~h18; on seed 1, 18 Melons
+still went overnight. Minimal version: (1,0) -> (1,3) and (2,0) -> (1,2),
+keeping every Melon with hands 1-3 (total distance 52 -> 48, furthest 7 -> 6).
+Stronger: also (1,1) -> (0,4) (46, furthest 5), which needs hand 0 in the
+Melon pool. (1,4) is out: it is the staged Cow tile. After that, from the same
+replays: early Cows on days 2-3 funded by same-day Fertilizer sales, NW
+Strawberry from day 5, NE on day 6.
+
+`baselines/strawberry_ceiling_m6_v1.py` is its direct predecessor:
+`ne_strawberry_fill_v1` with the Strawberry acreage ceiling cut by 6 on all
+three constants (`STRAWBERRY_PLANT_TARGET` 39 -> 33,
+`HIGH_STRAWBERRY_PLANT_TARGET` 45 -> 39, `PREMIUM_CROP_PLANT_TARGET` 45 -> 39).
+Twenty-seed gate **32W--8L--0T, 80.0%, +2,058.8 per game**; our own money rose
+too (85,724.6 against 83,665.8). At ~268 Strawberry a player the late dumps
+sold mostly at the 1-coin floor, so the old 45/48 "denial" optimum no longer
+held. A shop-count-gated version (cut only when fewer than two Strawberry
+shops are open) was worse: most strong towns gain from the cut as well. Seed 9
+(seven Strawberry shops of eight) is the exception, and its late shops are not
+visible when the day-10 wave is planted. Public-submission result pending.
+
+`baselines/ne_strawberry_fill_v1.py` is its direct predecessor. It is `day0_opening_v1`
 with every free NE crop tile planted with Strawberry on the unlock day (17 on
 seeds 1 and 15, up from 12, including the four overflow-buffer Wheat tiles),
 and the day-8 Geese yielding their cash to the day-9 NE block. Twenty-seed

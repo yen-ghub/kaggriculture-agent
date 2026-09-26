@@ -1094,3 +1094,13 @@ short: on seed 8, selling 22 units at h22-h23 ahead of the opponent's 21 at
 h00 gained +141. Most towns only cross `I0` for Strawberry around day 20,
 the days when our hands have no hours to spare.
 
+## Confirmed: Wheat never gluts
+
+Wheat stays below `I0` all game. Both sides buy 10-15 feed Wheat a day and
+the shops drain it, so market inventory falls steadily (9,990 on day 0 to
+~9,350 by day 28 in `replays/sw_full_1.json` and `sw_full_2.json`) and the
+price climbs from 28 to ~50, even with ~630 Wheat sold between the two
+players. Below `I0` Wheat is `25 + 1.0 * sqrt(deficit)`: at a ~600 deficit a
+150-unit dump moves the price only ~49 -> ~46. Wheat is a flat-priced sink
+worth ~48 late in the game; volume does not hurt its price the way it hurts
+Strawberry, Milk or Melon.

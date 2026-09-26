@@ -3286,3 +3286,48 @@ A fix must act only when the leak would fire -- e.g. hand 1 waters (0,4) only
 if it is still dry around h20 on days 6-9 -- so that other seeds tie. Worth
 about 200 on a fifth of seeds; not pursued.
 
+
+## Accepted: lift the live Wheat cap
+
+**Status: accepted, frozen as `baselines/wheat_uncapped_v1.py`.** Twenty-seed
+gate against `nw_day5_strawberry_v1`: **40W--0L--0T, 100.0%, average 90,925.3
+vs 89,835.8 (+1,089.5 per game)**, zero errors. Wheat sold 243.9, Carrot 28.6,
+Wheat leftover 3.5 (a few late plants not reaching the shed; ~170 coins, not
+yet looked at).
+
+### Where it came from
+
+Ladder losses `replays/sw_full_1.json` (-15.1k) and `sw_full_2.json` (-18.2k),
+same opponent template. Product gaps from a shed-capped sale simulation (the
+raw orders overstate: those opponents issue SELL orders larger than their
+shed, and deposit with a `DROP` hand action, not `PLACE`); the totals
+reconcile with the money deltas:
+
+| opponent - us | replay 1 | replay 2 |
+|---|---|---|
+| Wheat | +11.7k (439 vs 194 units) | +10.1k (424 vs 216) |
+| Fertilizer | +3.8k | +5.5k |
+| Strawberry | +1.4k | +4.9k |
+| Milk | +1.0k | +6.4k (our 4 Cows to day 15 vs their 8 by day 8) |
+| Wool | +2.2k | +1.6k |
+| Melon | -1.3k | -1.8k |
+| our Egg/Carrot/Tomato | -6.2k | -7.6k |
+
+7-8k of the Wheat gap is days 24-29: they hold 45-57 Wheat on days 24-26 and
+sell ~150-165 on day 29 at ~48-49. Wheat never gluts (see `mechanics.md`).
+`WHEAT_PLANT_TARGET = 18` dated from the starter agents and was never
+retested; our board peaked at exactly 18-19 Wheat on day 24, and the
+remaining day 24-25 plantings became Carrot (3 x ~41 - 20 against
+4 x ~48 - 10 per tile).
+
+Seed 2 trace: identical to the baseline through day 24, then Wheat 24/31/25
+on days 25-27 against the baseline's 17/16/10 plus Carrot 7/16/19.
+
+### Their SW, for the next experiment
+
+Both opponents buy SW on day 10 at h00, crop all 25 tiles with no animals
+(15-16 Strawberry on rows 7-9, a second Melon wave on rows 5-6 that becomes
+Wheat after day 20), and keep all 13 animals in NW/NE by the shed. They hire
+12-14 hands on heavy days (hire spend 7.1k vs our 4.9k). They run fewer
+Strawberry plants than we do (36 vs 42): the SW Strawberry is relocated, not
+added. Our hands are at zero idle hours on days 19-26 in both replays.

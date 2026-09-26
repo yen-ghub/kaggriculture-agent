@@ -6,10 +6,28 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/nw_day5_strawberry_v1.py`
+`baselines/wheat_uncapped_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is `melon_layout_v2`
+a newer candidate passes the evaluation gates below. It is
+`nw_day5_strawberry_v1` with the live Wheat cap lifted (`WHEAT_PLANT_TARGET`
+18 -> 75, i.e. none). The cap only bound on days 24-25, where it sent the
+staple plantings to Carrot; they are Wheat now. Twenty-seed gate **40W--0L--0T,
+100.0%, +1,089.5 per game**; Wheat sold 243.9, Carrot 28.6. Learned from
+ladder replays `replays/sw_full_1.json` and `sw_full_2.json`.
+
+**Next, from the same replays:** the seven unmanaged SW tiles on Wheat, with
+a 12th hand hired on days 11-25 only. Both replay opponents crop all 25 SW
+tiles (no SW animals) and out-sell us on Wheat by 10-12k, 7-8k of it on days
+24-29. At ~48 per Wheat, seven tiles are worth ~270/day against the 144/day
+hire, so the ceiling is roughly +2k a game. Our hands have no idle hours on
+days 19-26, so the tiles need the extra hand. The P0 rejection below was in an
+older, cheaper-Wheat economy; treat this as a retest, not a new idea. Also
+cheap: SW purchase on day 10 after the Melon sale (the replay opponents buy at
+day 10 h00). Not recommended: a second Melon wave (whoever sells first on day
+20 takes it; the replay opponents crash the price to 4-22).
+
+`baselines/nw_day5_strawberry_v1.py` is its direct predecessor. It is `melon_layout_v2`
 with four NW Strawberry planted on day 5: the day-0 Wheat tiles (1,1), (0,1),
 (0,2), (2,0) stay empty after their day-4 harvest and take Strawberry on days
 5-6 as the day's cash allows, and they get off-day Fertilizer from day 13.

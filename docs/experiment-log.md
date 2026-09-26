@@ -3256,3 +3256,33 @@ Not this change: on seeds 3, 4, 8 and 13 both sides (candidate and
 `melon_layout_v2`) sell 71 Melons with all 12 planted on day 0. One tile a unit
 short, probably a missed watering inside the yield window. Not traced.
 
+## Rejected: sharing the (0,4) Melon with hand 1
+
+**Status: rejected, `main.py` reverted to `nw_day5_strawberry_v1`; the leak is
+left in place.** Twenty-seed gate against `nw_day5_strawberry_v1`:
+**11W--29L--0T, 27.5%, average 84,894.7 vs 85,392.8 (-498.1 per game)**, zero
+errors.
+
+### The leak
+
+On some seeds one side sells 71 Melons, not 72. Seed 3 against
+`melon_layout_v2`: all twelve Melons harvested on day 10, but (0,4) at 5
+units. Hand 0 owns (0,4) and does crop work only after its Sheep round; it ran
+out of day on day 9 and skipped the watering, so the Melon started day 10 at 4
+and the crew's watering took it to 5. In self-play hand 0 had time. Seeds 3,
+4, 8, 13 against `melon_layout_v2`; which seeds leak depends on the opponent.
+
+### The fix tried, and why it lost
+
+Until Melon day, a day-0 Melon tile outside hands 1-3 ((0,4) only) was added
+to hand 1's list as well. It closed the leak (72 Melons on all 20 seeds
+against `melon_layout_v2`) but changed every seed: no ties in the gate. Hand 1
+walked to (0,4) every day 0-9, even when hand 0 had watered it, shifting its
+route and the empty-tile pattern (towns re-rolled). Seed 19 (-1,092): the gap
+is all Strawberry, 272 vs 276; suite Strawberry 224.3 against ~246, Milk 152.6
+against ~167. The per-step cause of the Strawberry drop was not traced.
+
+A fix must act only when the leak would fire -- e.g. hand 1 waters (0,4) only
+if it is still dry around h20 on days 6-9 -- so that other seeds tie. Worth
+about 200 on a fifth of seeds; not pursued.
+

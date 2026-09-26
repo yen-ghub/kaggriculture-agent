@@ -140,7 +140,7 @@ OPPONENTS = {
     # twenty-seed gate (38W-2L, +2,552.6 per game).
     # "melon_layout_v2": melon_layout_v2_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
-    # it would be self-play here.
+    # it would be self-play here. (Sharing (0,4) with hand 1 gated 11W-29L.)
     # "nw_day5_strawberry_v1": nw_day5_strawberry_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.

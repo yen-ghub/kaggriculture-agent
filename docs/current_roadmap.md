@@ -17,8 +17,11 @@ Twenty-seed gate **38W--2L--0T, 95.0%, +2,552.6 per game**; the only loss is
 seed 20 by 17. Without the Fertilizer the same change gated 35W--5L,
 +1,259.9.
 
-Known leak, in the baseline too: on seeds 3, 4, 8 and 13 both sides sell 71
-Melons, not 72 -- one tile a unit short (not traced).
+Known leak, left in place: on some seeds (3, 4, 8, 13 against
+`melon_layout_v2`) hand 0 skips watering its (0,4) Melon on day 9 and it sells
+at 5, not 6. Sharing the tile with hand 1 on days 0-9 closed the leak but lost
+11W--29L (-498.1). A late-day check (hand 1 waters (0,4) only if it is still
+dry around h20 on days 6-9) is untested.
 
 `baselines/melon_layout_v2.py` is its direct predecessor: `melon_layout_v1`
 with one more Melon moved nearer the shed, (1,1) -> (0,4) (total distance

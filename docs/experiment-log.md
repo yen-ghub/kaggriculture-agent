@@ -3218,3 +3218,41 @@ overnight and sold at h00 on day 11 for 104. All 72 on day 10 against 60;
 +580. Suite: Melon unchanged at 72.0; Strawberry 239.2, Fertilizer 177.0,
 harvests 376.4, Wheat leftover 3.6.
 
+## Accepted and frozen: four NW Strawberry on day 5, with off-day Fertilizer
+
+**Status: frozen as `baselines/nw_day5_strawberry_v1.py`.** Twenty-seed gate
+against `melon_layout_v2`: **38W--2L--0T, 95.0%, average 92,394.2 vs 89,841.6
+(+2,552.6 per game)**, zero errors. The only loss is seed 20 by 17.
+
+### What changed
+
+From `replays/scaling1.json`/`scaling2.json`, where the ladder leaders plant 4
+Strawberry on harvested day-0 Wheat on day 5.
+
+- `NW_DAY5_STRAWBERRY_TILES` (1,1), (0,1), (0,2), (2,0): empty on day 4 after
+  their day-0 Wheat harvest, Strawberry on days 5-6, normal crop from day 7 if
+  still empty. Seeds bought partially as the day's cash allows (day 5 starts on
+  ~11-33 and ends on ~840-900).
+- The same tiles join `OFFDAY_FERTILIZE_TILES` and may start before
+  `OFFDAY_FERTILIZE_START_DAY`: their production nights are 14, 16, 18, 20, so
+  the first off day is 13.
+
+The live Strawberry cap is binding, so these are four plants moved from the
+day-10/11 wave, not four added. Seed 1: day 5 ends on 418 against 838; NE
+still opens on day 7 (14 NE plants that day, 3 on day 8).
+
+### Without the Fertilizer: 35W--5L, +1,259.9
+
+Seed 14 lost 1,146 on Strawberry volume (268 vs 277): the cap takes back four
+of the last day-10/11 plantings, many of them SW, which is off-day
+fertilized (up to 8 units a plant), while the NW tiles gave 4. With the
+Fertilizer, seed 14 went to +1,358, seed 1 +1,046 -> +3,107, seed 8
++2,112 -> +4,380. Suite: Strawberry 234.1 -> 246.2, Fertilizer sold
+180.3 -> 168.2.
+
+### Melon 71.8
+
+Not this change: on seeds 3, 4, 8 and 13 both sides (candidate and
+`melon_layout_v2`) sell 71 Melons with all 12 planted on day 0. One tile a unit
+short, probably a missed watering inside the yield window. Not traced.
+

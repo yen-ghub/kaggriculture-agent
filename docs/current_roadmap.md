@@ -6,10 +6,21 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/melon_layout_v2.py`
+`baselines/nw_day5_strawberry_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is `melon_layout_v1`
+a newer candidate passes the evaluation gates below. It is `melon_layout_v2`
+with four NW Strawberry planted on day 5: the day-0 Wheat tiles (1,1), (0,1),
+(0,2), (2,0) stay empty after their day-4 harvest and take Strawberry on days
+5-6 as the day's cash allows, and they get off-day Fertilizer from day 13.
+Twenty-seed gate **38W--2L--0T, 95.0%, +2,552.6 per game**; the only loss is
+seed 20 by 17. Without the Fertilizer the same change gated 35W--5L,
++1,259.9.
+
+Known leak, in the baseline too: on seeds 3, 4, 8 and 13 both sides sell 71
+Melons, not 72 -- one tile a unit short (not traced).
+
+`baselines/melon_layout_v2.py` is its direct predecessor: `melon_layout_v1`
 with one more Melon moved nearer the shed, (1,1) -> (0,4) (total distance
 48 -> 46, furthest 6 -> 5), and a guard so that on Melon day the ordinary crop
 routine leaves Melon tiles to the Melon workers (hand 0 owns (0,4) and is not
@@ -34,7 +45,7 @@ glut, when our hands have no spare hours.
   one per Melon worker, each worker returning with 12. On seed 1 the matching
   still sent hands back with a single tile and left (2,1) and (3,0) to one
   late hand, which could not reach the shed by h23 (12 Melons overnight).
-- From the same replays: NW Strawberry from day 5, NE on day 6. **Early Cows
+- From the same replays: NE on day 6. **Early Cows
   on days 2-3 were tried and rejected (4W--36L, -3,693.7)**: the extra Milk
   sells for nothing in our Milk-saturated self-play market, and the 800 they
   tie up delays the Geese and part of the NE Strawberry. The same-day

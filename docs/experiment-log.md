@@ -3331,3 +3331,53 @@ Wheat after day 20), and keep all 13 animals in NW/NE by the shed. They hire
 12-14 hands on heavy days (hire spend 7.1k vs our 4.9k). They run fewer
 Strawberry plants than we do (36 vs 42): the SW Strawberry is relocated, not
 added. Our hands are at zero idle hours on days 19-26 in both replays.
+
+## Accepted: SW Wheat block with a twelfth hand
+
+**Status: accepted, frozen as `baselines/sw_wheat_block_v1.py`.** Twenty-seed
+gate against `wheat_uncapped_v1`: **40W--0L--0T, 100.0%, average 92,075.9 vs
+90,493.9 (+1,582.0 per game)**, zero errors. Wheat sold 314.8, leftover 2.4.
+The first version (no Wheat-sale fix) gated 36W--4L, 91,444.8 vs 90,310.6
+(+1,134.2).
+
+### What it is
+
+The seven SW tiles never in `THIRD_QUADRANT_ROUTE` ((3,8), (4,8), (0,9)-(4,9))
+grow Wheat, worked only by a twelfth hand (`HAND_HIRE_COSTS` gains 144). It is
+hired from SW unlock while Wheat can still be planted (day 25), then while any
+Wheat stands on the block. Wheat seeds are topped up by the block's empty
+tiles. The hand never walks to the shed: the harvest goes in with the
+overnight deposit (Wheat does not glut, so a day's delay is free); the
+final-day liquidation carries the last one.
+
+Learned from `replays/sw_full_1.json` and `sw_full_2.json` (both opponents crop
+all 25 SW tiles). Retest of the rejected P0 full-SW Wheat candidate (0W--10L,
+-2,568), in today's economy with Wheat ~45-50 late.
+
+### Tracing it into shape (seed 1)
+
+- **Generic crop routine: far tiles died.** The twelfth hire lands at h2-h3
+  (the other hires take the market slots first) and walks 4-5 steps, so the
+  hand works from ~h6. Wheat starts at 1 unit and gains +1 per watering at ages
+  2, 3, 4 (4 on day 4); the generic routine also watered at age 1 (adds
+  nothing) and watered full plants before harvest. (0,9), served last by
+  nearest-first, dried out and died twice. A block-specific routine waters only
+  for yield or survival: 4 waterings, a harvest and a replant a cycle.
+- **Priority.** Three tiles ripen together, so on harvest days the far tile
+  still dried. Tiles that would die tonight (dry since yesterday) now come
+  first; a ripe Wheat keeps its 4 units, so its harvest waits. No deaths after.
+
+### The morning hire slot (seeds 8, 15)
+
+Both losses of the first gate were one Milk sale. The block's overnight Wheat
+puts a `SELL WHEAT` at the head of the h0 market list; with 10 slots and 3
+reserved, that left room for 4 hires at h0 instead of 5. Hand 4 (NE Cows, the
+5th hire) came in at h1 on the (5,5) spawn tile, ran its round two hours
+late, and sold its 24 Milk on day 17 at h23 instead of h21 -- after the
+opponent's batch instead of before (-1.2k on seed 15, -1.3k on seed 8; Wheat
+itself was +1.8k/+2.5k against ~2.6k of hire). Fix: no Wheat sale while
+`len(farm["hands"]) < hands_to_hire_today` (not on the final day). Seed 8
+-319 -> +1,831, seed 15 -990 -> +1,904.
+
+All towns re-roll with this change (the empty-tile count differs), so the
+mirror own/taken split is meaningless here; the margin is the measure.

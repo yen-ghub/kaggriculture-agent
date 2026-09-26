@@ -53,6 +53,7 @@ from baselines.melon_layout_v1 import agent as melon_layout_v1_agent
 from baselines.melon_layout_v2 import agent as melon_layout_v2_agent
 from baselines.nw_day5_strawberry_v1 import agent as nw_day5_strawberry_v1_agent
 from baselines.wheat_uncapped_v1 import agent as wheat_uncapped_v1_agent
+from baselines.sw_wheat_block_v1 import agent as sw_wheat_block_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -144,9 +145,12 @@ OPPONENTS = {
     # twenty-seed gate (40W-0L, +1,089.5 per game). (Sharing (0,4) with hand 1
     # gated 11W-29L against it.)
     # "nw_day5_strawberry_v1": nw_day5_strawberry_v1_agent,
+    # Direct predecessor of sw_wheat_block_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +1,582.0 per game).
+    # "wheat_uncapped_v1": wheat_uncapped_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    # "wheat_uncapped_v1": wheat_uncapped_v1_agent,
+    # "sw_wheat_block_v1": sw_wheat_block_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

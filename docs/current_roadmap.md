@@ -6,26 +6,44 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/wheat_uncapped_v1.py`
+`baselines/sw_wheat_block_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is
+a newer candidate passes the evaluation gates below. It is `wheat_uncapped_v1`
+plus the SW Wheat block: the seven SW tiles outside `THIRD_QUADRANT_ROUTE`
+((3,8), (4,8), (0,9)-(4,9)) grow Wheat, worked by a twelfth hand (144/day)
+hired from SW unlock while Wheat can still be planted (day 25) and after that
+while any stands on the block. The hand waters only for yield or survival
+(not at age 1, not a full plant), reaches tiles that would die tonight first,
+and never walks to the shed (overnight deposit). Coupled fix: no Wheat sale
+while the day's roster is still being hired, so the morning Wheat order does
+not take a hire's market slot. Twenty-seed gate **40W--0L--0T, 100.0%,
++1,582.0 per game**; Wheat sold 314.8 (from ~244). Without the Wheat-sale fix
+it gated 36W--4L, +1,134.2. Every town re-rolls (the empty-tile count
+changes), so judge by margin, not the own/taken split.
+
+This overturns the P0 rejection below: that test ran in an older economy with
+cheaper Wheat, the generic crop routine, and the morning hire-slot loss.
+
+**Next, in order:**
+
+- **Wheat leftover** (2.4 a game): the block's day-25 plantings ripen on day
+  29 on the far tiles; check whether the final-day liquidation reaches the
+  shed in time, or stop planting the far tiles a day earlier.
+- **SW purchase on day 10** after the Melon sale (the replay opponents buy at
+  day 10 h00; our `THIRD_QUADRANT_PURCHASE_START_DAY` is 11). Cheap; the
+  day-10 crew hands 8-10 are idle once the Melons are sold.
+- The replay-2 Milk gap (4 Cows to day 15 on a Brunch Spot + Farmers Market
+  prefix, against their 8 by day 8, -6.4k) -- a livestock-branch question.
+- Not recommended: a second Melon wave (whoever sells first on day 20 takes
+  it; the replay opponents crash the price to 4-22).
+
+`baselines/wheat_uncapped_v1.py` is its direct predecessor:
 `nw_day5_strawberry_v1` with the live Wheat cap lifted (`WHEAT_PLANT_TARGET`
 18 -> 75, i.e. none). The cap only bound on days 24-25, where it sent the
 staple plantings to Carrot; they are Wheat now. Twenty-seed gate **40W--0L--0T,
 100.0%, +1,089.5 per game**; Wheat sold 243.9, Carrot 28.6. Learned from
 ladder replays `replays/sw_full_1.json` and `sw_full_2.json`.
-
-**Next, from the same replays:** the seven unmanaged SW tiles on Wheat, with
-a 12th hand hired on days 11-25 only. Both replay opponents crop all 25 SW
-tiles (no SW animals) and out-sell us on Wheat by 10-12k, 7-8k of it on days
-24-29. At ~48 per Wheat, seven tiles are worth ~270/day against the 144/day
-hire, so the ceiling is roughly +2k a game. Our hands have no idle hours on
-days 19-26, so the tiles need the extra hand. The P0 rejection below was in an
-older, cheaper-Wheat economy; treat this as a retest, not a new idea. Also
-cheap: SW purchase on day 10 after the Melon sale (the replay opponents buy at
-day 10 h00). Not recommended: a second Melon wave (whoever sells first on day
-20 takes it; the replay opponents crash the price to 4-22).
 
 `baselines/nw_day5_strawberry_v1.py` is its direct predecessor. It is `melon_layout_v2`
 with four NW Strawberry planted on day 5: the day-0 Wheat tiles (1,1), (0,1),
@@ -314,7 +332,7 @@ different opponent, later recorded actions may become inefficient or invalid.
 
 ## Prioritized experiments
 
-### P0 — Complete SW coverage — rejected
+### P0 — Complete SW coverage — rejected, then accepted as `sw_wheat_block_v1` (see top)
 
 Hypothesis: the seven already-purchased but unmanaged SW tiles can produce more
 value than the incremental labour and seed cost. This is the only major

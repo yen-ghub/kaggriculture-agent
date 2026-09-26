@@ -1104,3 +1104,19 @@ players. Below `I0` Wheat is `25 + 1.0 * sqrt(deficit)`: at a ~600 deficit a
 150-unit dump moves the price only ~49 -> ~46. Wheat is a flat-priced sink
 worth ~48 late in the game; volume does not hurt its price the way it hurts
 Strawberry, Milk or Melon.
+
+## Confirmed: a morning sale order can delay the day's hires
+
+The roster is re-hired every morning through market orders, and a turn takes
+at most 10 orders (the agent reserves 3 after hiring). Sale orders built
+before the hires (crops, then animal products) take slots first, so one extra
+morning `SELL` pushes a hire into the next turn. A hand hired a turn later
+also spawns on a different shed-access tile ((5,5) instead of (5,4)), one
+step further out. On seeds 8 and 15 a single `SELL WHEAT 1` at h0 made the NE
+Cow hand (5th hire) start at h1 and run its whole round two hours late.
+Keep non-urgent morning sales (anything with a flat price, like Wheat) out
+of the list until the roster is complete.
+
+Wheat (one-time crop) on an unfertilized tile: 1 unit at planting, +1 per
+watering at ages 2, 3 and 4, reaching 4 on day 4. Watering at age 1 adds
+nothing, and a plant watered the day before survives one dry day.

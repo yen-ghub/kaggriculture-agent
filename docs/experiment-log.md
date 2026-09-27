@@ -3500,3 +3500,24 @@ Wheat -32 (-1.4k).
 
 Untested: the same in-passing collection for the NE block and the other SW
 plans (same routine, same detour likely).
+
+## Rejected: Fertilizer-in-passing for every hand-served livestock plan
+
+**Status: rejected, `main.py` reverted to `sw_ne_block_pair_v1`.** Not gated:
+head-to-head over seeds 1-6 summed -21,230 (seed 1 -2,137, seed 3 -4,034,
+seed 6 -4,334, all NE-block seeds; SW-pair seeds 2 and 4 about flat; seed 5
+tied).
+
+The change turned `collects_fertilizer_in_passing` on for the shared call
+(the NE livestock block and the existing SW pair / four-animal plan), as the
+SW pair beside the NE block already does. The routes changed as intended: the
+NE block hand (hand 4) no longer re-walks its four animals, and the SW pair
+hand reaches its crops an hour earlier.
+
+Seed 6 (town not re-rolled) shows the cost: Milk 282 @112.9 against 282
+@119.4 (-1.8k), Strawberry 253 against 266 (-2.4k), Fertilizer 257 against
+230 (+1.0k); own -1,247, taken -3,087. Collecting at each of four stops
+delays the later animals' feed, care and harvest (the last NE animal fed at
+h17 instead of h14), so the block's Milk reaches the market after the
+opponent's, and hand 4's crop work starts later. With two animals the delay
+is one hour and the saved walk wins; with four it loses.

@@ -1137,3 +1137,12 @@ Movement onto a LOCKED tile is allowed (the engine comments that a hand can
 spawn on one); tile actions there (PLANT, WATER, ...) are no-ops until the
 quadrant is bought. A hand can wait on a not-yet-bought tile and act the turn
 after the purchase.
+
+## Confirmed: on a multi-animal round, harvest first, collect Fertilizer after
+
+A hand serving several animals should feed, care for and harvest all of them
+before collecting any Fertilizer. Collecting at each stop pushes the later
+animals' harvest back an hour per stop; on the four-animal NE block that put
+its Milk on the market ~3 hours later, after the opponent's, at a lower price
+for the same volume (seed 6: 112.9 against 119.4 on 282 Milk). For a
+two-animal pair the one-hour delay is cheaper than walking back.

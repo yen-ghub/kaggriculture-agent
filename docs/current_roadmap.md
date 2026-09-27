@@ -21,10 +21,13 @@ Twenty-seed gate **15W--3L--22T, 65.0%, +1,119.0 per game**; the 3 losses are
 position splits on identical seeds (no seed loses both). Before the Fertilizer
 fix it gated 13W--5L--22T, +750.1.
 
-**Next, from this change:** the same Fertilizer-in-passing fix for the other
-hand-served plans (the NE block and the existing SW pair / four-animal plan).
-They share the routine and likely make the same detour back to the first
-animal. It changes other seeds, so gate it on its own.
+**Rejected: Fertilizer-in-passing for the NE block and the other SW plans**
+(seeds 1-6 sum -21,230; see the experiment log). On a four-animal round,
+collecting at each stop pushes the last Milk harvest ~3 hours later and the
+block's Milk sells after the opponent's. Keep it to the two-animal pair.
+
+**Next, in order:** NW Wheat rot on day 16 (planting-day stagger, untried),
+then the Wheat leftover (see below).
 
 `baselines/wheat_block_rot_fix_v1.py` is its direct predecessor. It is
 `sw_wheat_block_v1` with one correctness fix: the Wheat block hand treats a ripe Wheat as urgent

@@ -9,13 +9,13 @@ from main import (
     MILK_DEMAND_SHOPS,
     WOOL_DEMAND_SHOPS,
 )
-from baselines.melon_layout_v1 import agent as baseline_agent
+from baselines.wheat_block_rot_fix_v1 import agent as baseline_agent
 
 env = make(
     "kaggriculture",
     configuration={
         "episodeSteps": 720,
-        "seed": 6,
+        "seed": 1,
     },
     debug=True,
 )

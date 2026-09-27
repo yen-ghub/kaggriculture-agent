@@ -6,6 +6,31 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
+`baselines/wheat_block_rot_fix_v1.py`
+
+The active strategy in `main.py` should be compared against this baseline until
+a newer candidate passes the evaluation gates below. It is `sw_wheat_block_v1`
+with one correctness fix: the Wheat block hand treats a ripe Wheat as urgent
+(same tier as a plant that dies tonight). Wheat is harvestable on its fourth
+day only and rots from the next morning (`docs/mechanics.md`); the old
+routine let a harvest wait a day and lost 13-14 Wheat on seeds 1 and 6.
+Twenty-seed gate **16W--8L--16T, 60.0%, +80.0 per game**; the 16 ties are
+seeds with no block rot, and the pasted losses were 1 and 150 coins.
+
+Tried and dropped with it: giving last-day Wheat/Carrot harvest-level travel
+priority in the general crop routine (4-7 Wheat rot per seed there). It cost
+seed 3 (like-for-like town) 555 of our own money: 11 fewer Wheat and 5 fewer
+Strawberry, with nothing rotting. The general routine's rot is capacity, not
+ordering.
+
+**Closed: buying SW on day 10** (four versions, best gated 21W--19L, +49.3;
+see the experiment log). There is no free labour on day 10 -- every SW hand
+is on the Melon crew -- so the early land bunches SW planting onto days 10-11,
+the Wheat ripens together and rots, and the day-earlier Strawberry sells at
+the same price on most towns.
+
+`baselines/sw_wheat_block_v1.py` is its direct predecessor.
+
 `baselines/sw_wheat_block_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
@@ -27,12 +52,13 @@ cheaper Wheat, the generic crop routine, and the morning hire-slot loss.
 
 **Next, in order:**
 
+- **NW Wheat rot on day 16**: the NW Wheat planted on day 11 ripens together
+  on day 15 and some rots ((3,1), (4,1) on seed 3, in the baseline too).
+  Harvest-first travel in the general routine was tried and cost more than it
+  saved (see the rot-fix entry); a planting-day stagger has not been tried.
 - **Wheat leftover** (2.4 a game): the block's day-25 plantings ripen on day
   29 on the far tiles; check whether the final-day liquidation reaches the
   shed in time, or stop planting the far tiles a day earlier.
-- **SW purchase on day 10** after the Melon sale (the replay opponents buy at
-  day 10 h00; our `THIRD_QUADRANT_PURCHASE_START_DAY` is 11). Cheap; the
-  day-10 crew hands 8-10 are idle once the Melons are sold.
 - The replay-2 Milk gap (4 Cows to day 15 on a Brunch Spot + Farmers Market
   prefix, against their 8 by day 8, -6.4k) -- a livestock-branch question.
 - Not recommended: a second Melon wave (whoever sells first on day 20 takes

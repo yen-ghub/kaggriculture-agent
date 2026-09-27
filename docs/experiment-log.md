@@ -3381,3 +3381,69 @@ itself was +1.8k/+2.5k against ~2.6k of hire). Fix: no Wheat sale while
 
 All towns re-roll with this change (the empty-tile count differs), so the
 mirror own/taken split is meaningless here; the margin is the measure.
+
+## Accepted: Wheat block rot fix
+
+**Status: accepted, frozen as `baselines/wheat_block_rot_fix_v1.py`.**
+Twenty-seed gate against `sw_wheat_block_v1`: **16W--8L--16T, 60.0%, average
+87,333.9 vs 87,253.9 (+80.0 per game)**, zero errors. Ties are the seeds with
+no block rot (the change never fires); the pasted losses were seed 8 by 1 and
+seed 14 by 150.
+
+### Found while testing the day-10 SW purchase
+
+The day-10 candidate sold 11 fewer Wheat on seed 3 with identical plantings
+(119): 105 harvests against 111, and 14 more feed Wheat bought. Tile (1,9):
+planted day 11 at 1 unit, watered at ages 2 and 3 (3 units), not reached on
+day 15 (age 4), then 2 units at day 16 h1, 1 at h3, WEED at h5. A plant's
+`max_lifespan_step` is (planted_day + 5) x 24 for Wheat; past it the plant
+loses a unit every two hours and turns to weed. So Wheat must be harvested on
+its fourth day. The block routine assumed a ripe Wheat keeps its units
+("harvest can wait a day").
+
+Ripe-and-unharvested units lost (baseline self-play): seed 1 block 13, other
+Wheat 7, Carrot 4; seed 3 other Wheat 6, Carrot 2; seed 6 block 14, other
+Wheat 4, Carrot 4. Strawberry reaching its lifespan loses ~0 (its last
+harvest comes first).
+
+### The fix, and the half that was dropped
+
+Block routine: a ripe Wheat (to water or to harvest) joins the urgent tier.
+Block rot 13-14 -> 2 on seeds 1 and 6 (+647, +629); seed 3 ties.
+
+General crop routine (dropped): a ripe one-time crop expiring tonight got
+harvest-level travel priority. Rot elsewhere went to 0, but seed 3 (town not
+re-rolled) lost -790, own -555: 331 Wheat vs 342, 223 Strawberry vs 228. The
+detours cost more than the rot. Carrot rot on day 11 is the day-10 Melon crew
+day and was not addressed.
+
+## Rejected: buying SW on day 10
+
+**Status: rejected, `main.py` reverted to `wheat_block_rot_fix_v1`.** Best
+version's twenty-seed gate against `wheat_block_rot_fix_v1`: **21W--19L--0T,
+52.5%, average 87,218.7 vs 87,169.4 (+49.3 per game)**, zero errors. Code of
+the final version kept in the session scratchpad only.
+
+From `replays/sw_full_1.json` / `sw_full_2.json` (the opponents buy SW at day
+10 h00). Four versions, head-to-head sums over seeds 1-4 (both positions):
+
+| version | seeds 1-4 sum | what it added |
+|---|---|---|
+| purchase day 10 (land at h14) | -2,662 | `THIRD_QUADRANT_PURCHASE_START_DAY` 10; Melon crew stays on after unlock and falls through to SW work; the day-11 Sheep left out of the land's animal check until due |
+| + Strawberry seed hold | -8,054 | the day-10 NW Strawberry seeds (~1,650, bought at h01, unused until ~h16) wait for the land: land at h08 |
+| + day-10 planter (13th hand, 233) | -4,970 | plants SW route Strawberry on day 10, skipping (3,5)/(4,5) |
+| + standby hires | -4,016 | hands 11-12 hired with the morning roster, waiting at the shed |
+| + standby tiles, Wheat/Strawberry mix | -682 | hands 11-12 wait at (4,8)/(4,6); planter alternates Wheat and Strawberry; seed fallback; kept off idle Fertilizer |
+
+The last version gated +49.3. Seed 17 (-1,899, town re-rolled): Wheat 345 vs
+374 (-1,066), Fertilizer 220 vs 229 (-523), plus the two day-10 hires (377);
+Strawberry sold at ~37 there, so a day earlier bought nothing. Suite Wheat
+307.0 against 328.3 for the same baseline in its own gate.
+
+Why it cannot pay: there is no free labour on day 10 -- hands 8-10 are the
+Melon crew until the evening -- so the early land bunches SW planting onto
+days 10-11, those Wheat ripen together on days 14-15 and some rot (seed 3,
+first version: 12 day-11 Wheat rotted against 5), and the SW hands miss
+Strawberry production nights (seed 2: 269 Strawberry sold against 281). The
+day-earlier SW Strawberry sold at the same average price (seed 2: 173.5 vs
+173.2). Extra hands and staggering recover the loss but not a gain.

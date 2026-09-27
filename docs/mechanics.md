@@ -1120,3 +1120,20 @@ of the list until the roster is complete.
 Wheat (one-time crop) on an unfertilized tile: 1 unit at planting, +1 per
 watering at ages 2, 3 and 4, reaching 4 on day 4. Watering at age 1 adds
 nothing, and a plant watered the day before survives one dry day.
+
+## Confirmed: one-time crops rot after their lifespan
+
+Every plant carries `max_lifespan_step`. For Wheat it is
+`(planted_day + 5) * 24`: the plant is harvestable on its fourth day
+(`harvest_day` 4) and at the next midnight the lifespan ends. From then it
+loses a unit every two hours (seed 3, tile (1,9): 3 units at h0, 2 at h1, 1 at
+h3) and turns to WEED at h5. A ripe Wheat cannot wait a day. Ongoing crops
+(Strawberry) also expire at their lifespan, but by then their last yield has
+normally been harvested.
+
+## Confirmed: hands may stand on locked tiles
+
+Movement onto a LOCKED tile is allowed (the engine comments that a hand can
+spawn on one); tile actions there (PLANT, WATER, ...) are no-ops until the
+quadrant is bought. A hand can wait on a not-yet-bought tile and act the turn
+after the purchase.

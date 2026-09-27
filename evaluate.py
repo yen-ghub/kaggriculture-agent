@@ -55,6 +55,7 @@ from baselines.nw_day5_strawberry_v1 import agent as nw_day5_strawberry_v1_agent
 from baselines.wheat_uncapped_v1 import agent as wheat_uncapped_v1_agent
 from baselines.sw_wheat_block_v1 import agent as sw_wheat_block_v1_agent
 from baselines.wheat_block_rot_fix_v1 import agent as wheat_block_rot_fix_v1_agent
+from baselines.sw_ne_block_pair_v1 import agent as sw_ne_block_pair_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -152,9 +153,13 @@ OPPONENTS = {
     # Direct predecessor of wheat_block_rot_fix_v1, and the opponent of its
     # twenty-seed gate (16W-8L-16T, +80.0 per game).
     # "sw_wheat_block_v1": sw_wheat_block_v1_agent,
-    # Current frozen baseline. Identical to main.py until main.py moves on, so
-    # it would be self-play here. (Day-10 SW purchase gated 21W-19L, +49.3.)
+    # Direct predecessor of sw_ne_block_pair_v1, and the opponent of its
+    # twenty-seed gate (15W-3L-22T, +1,119.0 per game). (Day-10 SW purchase
+    # gated 21W-19L, +49.3 against it.)
     # "wheat_block_rot_fix_v1": wheat_block_rot_fix_v1_agent,
+    # Current frozen baseline. Identical to main.py until main.py moves on, so
+    # it would be self-play here.
+    # "sw_ne_block_pair_v1": sw_ne_block_pair_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

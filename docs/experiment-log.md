@@ -3447,3 +3447,56 @@ first version: 12 day-11 Wheat rotted against 5), and the SW hands miss
 Strawberry production nights (seed 2: 269 Strawberry sold against 281). The
 day-earlier SW Strawberry sold at the same average price (seed 2: 173.5 vs
 173.2). Extra hands and staggering recover the loss but not a gain.
+
+## Accepted: SW mammal pair beside the NE livestock block
+
+**Status: accepted, frozen as `baselines/sw_ne_block_pair_v1.py`.**
+Twenty-seed gate against `wheat_block_rot_fix_v1`: **15W--3L--22T, 65.0%,
+average 86,173.0 vs 85,054.0 (+1,119.0 per game)**, zero errors. The 22 ties
+are the seeds where it does not fire; the 3 losses are position splits on
+identical seeds (e.g. seed 2, +131/-131). First version (no in-passing
+Fertilizer): 13W--5L--22T, +750.1, seed 1 -72 in both positions.
+
+### Why
+
+The Milk gap in `replays/sw_full_2.json` (4 Cows to day 15 against their 8 by
+day 8) led to a self-play scan of seeds 1-20: Milk is strongly
+town-dependent (average 44-253, low 1-160), so more Cows everywhere would
+lose. But both SW animal plans (the adaptive pair and the four-animal plan)
+are off on every seed where the compact NE block runs (seeds 1, 3, 6, 10, 17,
+18), several of them strong towns (seed 3: four Milk shops, Milk never below
+160, only 4 Cows). A Yarn Store in the first two shops is enough to select
+the NE block, which then blocks all SW animals.
+
+### What
+
+On those seeds only, after SW unlock (start by day 15), a pair on
+ADAPTIVE_MAMMAL_TILES (4,5)/(3,5): Sheep if a Yarn Store is among the first
+three shops, else Cows if two of the first three demand Milk (type locked
+once placed). Served by hand 8, whose crop tiles shrink to the adaptive-pair
+set (SW crop tiles 18 -> 16). The service routine
+(`choose_livestock_service_action`) now takes the plan as a parameter; the
+existing call passes the shared SW/NE plan with its flags set so its
+behaviour is unchanged. The farmer's round, base setup, the farmer's crop
+scan and idle-hand Fertilizer all skip the pair.
+
+### Seed 1 (Cows) and the Fertilizer detour
+
+First version, seed 1 -72 (town re-rolled; Milk ~79 there against ~211 in the
+original draw): Milk +42 (+2.7k), Fertilizer +33 (+1.5k), against two Cows
+(-0.8k), their feed (36 Wheat, -1.7k) and ~46 fewer own Wheat harvested
+(-2.1k: two fewer crop tiles, and hand 8's ~116 animal hours). Wheat fed 384
+vs 348, bought 325 vs 260.
+
+Hand 8's daily route was (4,5) feed, care -> (3,5) feed, care, collect ->
+back to (4,5) to collect -> crops: the routine collects Fertilizer only once
+no animal needs attention, and (4,5)'s was ready by then. With
+`collects_fertilizer_in_passing` (this pair only) it collects on each tile
+before moving on and reaches its crops 1-2 hours earlier. Seed 1 -72 ->
++967, seed 3 +3,138 -> +3,511, seed 6 +3,828.
+
+Seed 3 (Sheep), first version: Wool +44 (+4.0k), Fertilizer +43 (+2.1k),
+Wheat -32 (-1.4k).
+
+Untested: the same in-passing collection for the NE block and the other SW
+plans (same routine, same detour likely).

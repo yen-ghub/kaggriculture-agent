@@ -6,11 +6,28 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/wheat_block_rot_fix_v1.py`
+`baselines/sw_ne_block_pair_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is `sw_wheat_block_v1`
-with one correctness fix: the Wheat block hand treats a ripe Wheat as urgent
+a newer candidate passes the evaluation gates below. It is
+`wheat_block_rot_fix_v1` plus a SW mammal pair on the seeds where the compact
+NE livestock block runs (both older SW animal plans are off there): two
+animals on (4,5)/(3,5) after SW unlock, served by hand 8 -- Sheep if a Yarn
+Store is among the first three shops, else Cows if two of the first three
+demand Milk. Fires on seeds 1, 3, 6, 10, 17, 18. The livestock service
+routine now takes its plan as a parameter so this pair runs beside the NE
+block; the pair's hand collects each animal's Fertilizer before moving on.
+Twenty-seed gate **15W--3L--22T, 65.0%, +1,119.0 per game**; the 3 losses are
+position splits on identical seeds (no seed loses both). Before the Fertilizer
+fix it gated 13W--5L--22T, +750.1.
+
+**Next, from this change:** the same Fertilizer-in-passing fix for the other
+hand-served plans (the NE block and the existing SW pair / four-animal plan).
+They share the routine and likely make the same detour back to the first
+animal. It changes other seeds, so gate it on its own.
+
+`baselines/wheat_block_rot_fix_v1.py` is its direct predecessor. It is
+`sw_wheat_block_v1` with one correctness fix: the Wheat block hand treats a ripe Wheat as urgent
 (same tier as a plant that dies tonight). Wheat is harvestable on its fourth
 day only and rots from the next morning (`docs/mechanics.md`); the old
 routine let a harvest wait a day and lost 13-14 Wheat on seeds 1 and 6.

@@ -6,10 +6,22 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/morning_hire_hold_v1.py`
+`baselines/final_day_no_feed_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`morning_hire_hold_v1` with no feeding on the final day: every routine sees its
+animals as fed and cared for on day 29 (the episode ends before the day-end
+refresh where feed and care pay), so no Wheat is picked up, bought or reserved
+and all shed Wheat sells; day 28 stops buying day-29 feed. Twenty-seed gate
+**40W--0L--0T, 100.0%, +1,151.4 per game**; Wheat leftover 3.6 -> 0.0.
+
+**Next, in order:**
+
+- A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
+- NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/morning_hire_hold_v1.py` is its direct predecessor. It is
 `ripe_harvest_slack_v1` with Egg and Tomato sales held, like Wheat's, while the
 day's roster is still being hired, so a morning sale order does not take a
 hire's market slot (`ROSTER_HELD_PRODUCTS`). Twenty-seed gate **32W--8L--0T,
@@ -20,11 +32,6 @@ from a hand hired an hour earlier.
 order-sensitive: held, our sale lands after the opponent's (seed 17: 94.1
 against 110.3 a unit). Strawberry, Melon, Milk and Wool keep their morning
 sale.
-
-**Next, in order:**
-
-- A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
-- NW Wheat rot on day 16, then the Wheat leftover (3.6 a game).
 
 `baselines/ripe_harvest_slack_v1.py` is its direct predecessor. It is
 `nw_geese_v1` with

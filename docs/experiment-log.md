@@ -3691,3 +3691,31 @@ the opponent's 110.3 (~-2.5k) -- held an hour or two, our order lands after
 theirs and sells into the price it leaves. Wool is order-sensitive, not flat
 like Egg; the saved hire slot is worth far less. Not gated; `main.py` back to
 `morning_hire_hold_v1`.
+
+## Accepted: no feeding on the final day
+
+**Status: accepted, frozen as `baselines/final_day_no_feed_v1.py`.**
+Twenty-seed gate against `morning_hire_hold_v1`: **40W--0L--0T, 100.0%,
+average 87,989.8 vs 86,838.4 (+1,151.4 per game)**, zero errors. Wheat sold
+303.0 (294.4), Wheat leftover 0.0 (3.6).
+
+### Why feeding on day 29 is worthless (user's idea, confirmed in the engine)
+
+The score is money alone (`s.reward = farms[...]["money"]`) and the episode
+ends during day 29. Feed and care only pay in the day-end refresh
+(`_daily_refresh_animals`: tomorrow's yield, the care bonus, the two-day
+escape), and day 29 has none. The overnight yield collected on day 29 and the
+Fertilizer still pay.
+
+### The change
+
+- On the final day the `animal_tiles` view shows every animal fed and cared
+  for, so no routine picks up Wheat, feeds or cares; harvest and Fertilizer
+  are unchanged. With nothing to feed, the Wheat reserve is 0 and all shed
+  Wheat sells.
+- On day 28 the Wheat target drops its "tomorrow's feed" term.
+
+The 3.6 leftover was the baseline buying 7 feed Wheat on day 29 after its Wheat
+sale had gone out. Seeds 1-3, day 29 against the baseline: Wheat sold 72/76/88
+against 54/58/78, 0 FEED/CARE against 20, 0 Wheat left against 7/7/0;
+head-to-head +1,985/+2,270/+668. The freed day-29 actions go to harvesting.

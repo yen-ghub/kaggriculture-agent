@@ -1188,6 +1188,12 @@ days in a row escapes (the structure stays). **Every animal gets
 `fertilizer_available` = True every night, fed or not; the flag does not
 accumulate**, so a day's Fertilizer not collected that day is lost.
 
+All of this (yield, care bonus, escape, Fertilizer) happens in the day-end
+refresh. The episode ends during the final day (`DONE` at step
+`episodeSteps - 2`, reward = money), before day 29's refresh, so feeding or
+caring on day 29 earns nothing: only the yield and Fertilizer produced the
+night before are worth collecting (`final_day_no_feed_v1`).
+
 Egg's glut side is a log curve (base 50, above_target 0.20, T 332): the price
 barely moves with volume (eggs3 sold 424 Eggs at 43). Fertilizer is linear
 both sides (base 100, 0.4 over T 200: ~0.2 a unit).

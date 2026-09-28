@@ -6,20 +6,41 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/late_feed_prune_v1.py`
+`baselines/late_melon_four_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`late_melon_pair_v2` with four late Melons instead of two. Twenty-seed gate
+**38W--2L--0T, 95.0%, +480.4 per game** (the first pair gave +1,050.6: all
+late Melons sell into one day-29 market).
+
+**Next, in order:**
+
+- Late Melon tuning: six (expect less again, maybe negative), or spreading
+  the sale -- plant some on days 17-18 so they sell on days 27-28 instead of
+  all at day 29's h22; a lower price floor.
+- A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
+- NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/late_melon_pair_v2.py` is its direct predecessor:
+`late_melon_pair_v1` with one fix, frozen without a gate: the "opponent has no
+Melon" test counts only opponent Melons planted before day 19, so an opponent
+planting its own late Melon no longer switches our pair off. Identical to v1
+against opponents with no late Melons.
+
+`baselines/late_melon_pair_v1.py` is its direct predecessor. It is `late_feed_prune_v1`
+with a late Melon pair: on day 19, if the Melon price is above 120 and the
+opponent has no Melon planted, two Melons go in (the first two staple
+plantings, the SW Wheat block hand included) and are harvested and sold on day
+29 at 6 units each. Twenty-seed gate **40W--0L--0T, 100.0%, +1,050.6 per
+game**; fired on all 20 seeds (Melon 59.2 -> 71.2).
+
+`baselines/late_feed_prune_v1.py` is its direct predecessor. It is
 `final_day_no_feed_v1` extended to days 25-29: an animal is fed only if
 tonight is a production night, a care bonus is still to be paid, or it went
 unfed yesterday (escape ends its Fertilizer), and cared for only if a
 production night is still to come; tomorrow's feed purchase follows the same
 rule. Twenty-seed gate **40W--0L--0T, 100.0%, +469.0 per game**.
-
-**Next, in order:**
-
-- A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
-- NW Wheat rot on day 16 (planting-day stagger, untried).
 
 `baselines/final_day_no_feed_v1.py` is its direct predecessor. It is
 `morning_hire_hold_v1` with no feeding on the final day: every routine sees its

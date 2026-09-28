@@ -61,6 +61,9 @@ from baselines.ripe_harvest_slack_v1 import agent as ripe_harvest_slack_v1_agent
 from baselines.morning_hire_hold_v1 import agent as morning_hire_hold_v1_agent
 from baselines.final_day_no_feed_v1 import agent as final_day_no_feed_v1_agent
 from baselines.late_feed_prune_v1 import agent as late_feed_prune_v1_agent
+from baselines.late_melon_pair_v1 import agent as late_melon_pair_v1_agent
+from baselines.late_melon_pair_v2 import agent as late_melon_pair_v2_agent
+from baselines.late_melon_four_v1 import agent as late_melon_four_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -177,9 +180,20 @@ OPPONENTS = {
     # Direct predecessor of late_feed_prune_v1, and the opponent of its
     # twenty-seed gate (40W-0L, +469.0 per game).
     # "final_day_no_feed_v1": final_day_no_feed_v1_agent,
+    # Direct predecessor of late_melon_pair_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +1,050.6 per game).
+    # "late_feed_prune_v1": late_feed_prune_v1_agent,
+    # Direct predecessor of late_melon_pair_v2. Its opponent test switches
+    # its own pair off at the first Melon an opponent plants on day 19.
+    # "late_melon_pair_v1": late_melon_pair_v1_agent,
+    # v1 with the opponent test ignoring same-day Melons (frozen without a
+    # gate; identical to v1 against opponents with no late Melons). Direct
+    # predecessor of late_melon_four_v1, and the opponent of its twenty-seed
+    # gate (38W-2L, +480.4 per game).
+    # "late_melon_pair_v2": late_melon_pair_v2_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "late_feed_prune_v1": late_feed_prune_v1_agent,
+    "late_melon_four_v1": late_melon_four_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

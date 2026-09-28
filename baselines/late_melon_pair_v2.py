@@ -710,7 +710,7 @@ MELON_MAX_YIELD = 6
 # the day take the two seeds.
 LATE_MELON_ACTIVE = True
 LATE_MELON_PLANTING_DAY = FINAL_DAY - CROP_CONFIGS["MELON"]["harvest_day"]
-LATE_MELON_COUNT = 4
+LATE_MELON_COUNT = 2
 LATE_MELON_MIN_PRICE = 120
 
 # List tiles for crops (not reserved for animal)

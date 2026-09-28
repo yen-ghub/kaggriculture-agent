@@ -678,6 +678,11 @@ cases `yield_units` plateaus at the assumed `harvest_yield` once reached (it
 does not keep growing), and an unharvested tile still decays once it passes
 its `max_lifespan_step`, separately from this yield curve.
 
+A Melon cannot be harvested before age 10 (the engine refuses `HARVEST` below
+`first_yield_day`), and its lifespan runs to `(planted_day + 13) * 24`. So the
+latest planting that still sells is day 19 (harvest on day 29, the final day,
+at 6 units if watered through age 10); `late_melon_pair_v1` plants two then.
+
 This means `crop_profit_per_day()` currently overstates every one-time
 crop's profitability (it divides `harvest_yield` by `harvest_day`, but the
 agent's own `crop_is_harvestable()` gate lets hands harvest at `harvest_day`,

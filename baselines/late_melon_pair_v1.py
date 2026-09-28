@@ -710,7 +710,7 @@ MELON_MAX_YIELD = 6
 # the day take the two seeds.
 LATE_MELON_ACTIVE = True
 LATE_MELON_PLANTING_DAY = FINAL_DAY - CROP_CONFIGS["MELON"]["harvest_day"]
-LATE_MELON_COUNT = 4
+LATE_MELON_COUNT = 2
 LATE_MELON_MIN_PRICE = 120
 
 # List tiles for crops (not reserved for animal)
@@ -3861,22 +3861,11 @@ def agent(obs):
             and tile.get("planted_day") == LATE_MELON_PLANTING_DAY
         )
     )
-    # The opponent test asks whether they run a Melon wave of their own, so
-    # it ignores Melons they plant today: an opponent with the same late pair
-    # would otherwise switch ours off with its first planting.
-    opponent_melon_wave = any(
-        isinstance(tile, dict)
-        and tile.get("kind") == "PLANT"
-        and tile.get("crop") == "MELON"
-        and tile.get("planted_day", 0) < LATE_MELON_PLANTING_DAY
-        for row in opponent_farm["tiles"]
-        for tile in row
-    )
     late_melon_phase_active = (
         LATE_MELON_ACTIVE
         and obs["day"] == LATE_MELON_PLANTING_DAY
         and obs["market"]["prices"]["MELON"] > LATE_MELON_MIN_PRICE
-        and not opponent_melon_wave
+        and count_crop_plants(opponent_farm, "MELON") == 0
         and late_melons_planted < LATE_MELON_COUNT
     )
     # Counted down as hands plant this turn, so two hands cannot both take

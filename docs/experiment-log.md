@@ -3752,3 +3752,62 @@ no animal escaped (19/19/14 all through day 29). Head-to-head +493/+346/+263.
 Mostly care: caring on an animal's last production day only builds a bonus for
 a production after the game. Gate: Strawberry 237.5 (236.1), Fertilizer 237.0
 (236.2), the freed actions going to crops.
+
+## Accepted: a late Melon pair for the final day
+
+**Status: accepted, frozen as `baselines/late_melon_pair_v1.py`.**
+Twenty-seed gate against `late_feed_prune_v1`: **40W--0L--0T, 100.0%,
+average 89,114.2 vs 88,063.6 (+1,050.6 per game)**, zero errors. Melon sold
+71.2 (59.2): it fired on all 20 seeds. Wheat sold 291.5 (303.3), Carrot 26.8
+(28.3) -- the two tiles' displaced staples.
+
+### The idea (user's)
+
+Players plant one Melon wave, so by the late game the Melon price has
+recovered. A Melon planted on day 19 is harvestable on day 29 (age 10, the
+engine's `first_yield_day`) at 6 units (1 at planting, +1 a watering at ages
+6-12, capped at 6), and does not rot before then (lifespan day +13).
+
+### The change (`LATE_MELON_*`)
+
+On day 19, if the Melon price is above 120 and the opponent has no Melon
+planted: buy two Melon seeds (past `MELON_LAST_PLANTING_DAY`), and the first
+two staple plantings of the day become Melon (`late_melon_crop`, a shared
+per-turn counter so two hands cannot take the last one). Day 29's final-day
+liquidation carries them to the shed and they sell there.
+
+First version (general crop routine only): seeds 1 and 2 planted one Melon,
+at h21 -- every crop tile was occupied on day 19 except the SW Wheat block's,
+whose hand plants only Wheat; the second seed went unused. v2 lets the block
+hand plant them too, and water a block Melon on the Melon schedule. Seeds 1-3
+head-to-head: v1 +522/+613/+761, v2 +1,208/+1,364/+953 (Melons on (4,8) and
+(3,8) at h9/h14 on seeds 1-2; seed 3 (4,8) and (0,5)); 12 sold at h22 of day
+29 for 146-169.
+
+Open: the two seeds are bought at h1 whether or not a tile frees; a spare seed
+is 80 lost. Untested: more than two, or a lower price floor.
+
+### Fix, frozen without a gate: `late_melon_pair_v2`
+
+Trying four Melons against v1 planted only one on seeds 1-3 (-149/-160
+head-to-head): v1 plants its own pair on day 19, and our "opponent has no
+Melon" test switched off at its first planting. The same would happen on the
+ladder against anyone planting Melon that day. The test now counts only
+opponent Melons planted before day 19 (a Melon wave of their own). Against an
+opponent with no late Melons it is identical to v1 (seed 1, position 0:
+105,046 vs 103,838 both), so a mirror gate cannot measure it; frozen as the
+fair reference for tuning the count. v1's own test still switches off at our
+first Melon: against v1, four Melons with the fix scored +987/+1,248/+978 on
+seeds 1-3, but that was 4 against v1's 1 (opponent Melon 65 = 59 + 6).
+
+## Accepted: four late Melons
+
+**Status: accepted, frozen as `baselines/late_melon_four_v1.py`.**
+`LATE_MELON_COUNT` 2 -> 4. Twenty-seed gate against `late_melon_pair_v2`:
+**38W--2L--0T, 95.0%, average 89,516.6 vs 89,036.2 (+480.4 per game)**, zero
+errors. Melon sold 82.3 (v2 ~71), Wheat 277.7 (291.5), Carrot 26.0 (26.8).
+
+Diminishing: the first pair was worth +1,050.6 a game, the second +480.4.
+All late Melons sell into one day-29 market at ~h22 (seed 1: 23 sold at 113
+against 12 at 150 with two; against v2 our 82 averaged 172.3, its 71 183.7).
+Seeds 1-3 against v2: +239/+486/+349 (fair: v2 keeps its own 12).

@@ -3681,4 +3681,13 @@ knock-on from a changed hire hour, not a fault of the hold.
 
 Still open: a morning Strawberry or Wool order can take a hire's slot (seed 8,
 day 17 still has `SELL STRAWBERRY 2` and `SELL WOOL 4` ahead of the hires).
-Wool's price is fairly flat and would be the next to hold.
+
+### Rejected: holding Wool the same way
+
+Adding Wool to `ROSTER_HELD_PRODUCTS` lost head-to-head against
+`morning_hire_hold_v1` on both seeds tried: seed 17 -1,456 and seed 8 -2,348,
+both positions. Seed 17: the same 155 Wool, sold at 94.1 on average against
+the opponent's 110.3 (~-2.5k) -- held an hour or two, our order lands after
+theirs and sells into the price it leaves. Wool is order-sensitive, not flat
+like Egg; the saved hire slot is worth far less. Not gated; `main.py` back to
+`morning_hire_hold_v1`.

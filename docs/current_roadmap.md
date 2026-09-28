@@ -16,10 +16,13 @@ hire's market slot (`ROSTER_HELD_PRODUCTS`). Twenty-seed gate **32W--8L--0T,
 80.0%, +1,007.1 per game**; the largest loss, seed 17 (-530), is routing drift
 from a hand hired an hour earlier.
 
+**Rejected: holding Wool too** (seeds 17 and 8, -1,456 and -2,348). Wool is
+order-sensitive: held, our sale lands after the opponent's (seed 17: 94.1
+against 110.3 a unit). Strawberry, Melon, Milk and Wool keep their morning
+sale.
+
 **Next, in order:**
 
-- Hold Wool the same way (its price is fairly flat); a morning Strawberry
-  order can still take a slot too, but Strawberry is time sensitive.
 - A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
 - NW Wheat rot on day 16, then the Wheat leftover (3.6 a game).
 

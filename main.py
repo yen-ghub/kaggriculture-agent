@@ -300,7 +300,7 @@ FERTILIZER_CASHOUT_DAY = 1
 # Day 0's Melon target, whatever the opponent shows. The regular target reads
 # 15 at day 0 (the opponent has planted nothing yet), so Melons simply bought
 # until the money ran out and the Wheat seeds never got a turn.
-DAY0_MELON_TARGET = 12
+DAY0_MELON_TARGET = 10
 # Where the day-0 Melons go: the twelve NW crop tiles nearest the shed that are
 # free on day 0 and stay with the Melon hands 1-3. Only Melons have to be
 # walked back for a same-day sale on day 10 (Wheat reaches the shed overnight
@@ -315,10 +315,26 @@ DAY0_MELON_TARGET = 12
 DAY0_MELON_TILES = frozenset((
     (4, 2), (3, 2), (2, 2), (2, 3),
     (4, 1), (3, 1), (2, 1),
-    (4, 0), (3, 0),
     (1, 3), (1, 2),
     (0, 4),
 ))
+
+# Two NW Geese in place of two day-0 Melons (replays/eggs3.json: the leaders
+# plant 8 Melons and run Geese from day 6). A Goose fed and cared for lays 2
+# Eggs a day from its fourth day and gives 1 Fertilizer a day; Eggs barely
+# glut. Later Geese lost because every tile or coin they took was already
+# worth as much (early NE Strawberry, SW Wheat); these take two Melons (~1.1k
+# each) and lay from the first week, while the opening is short of cash. On
+# the far row, (4,0)/(3,0), so the Melons keep the tiles nearest the shed
+# (walked back for the day-10 sale); both are hand 3's own tiles and hand 3
+# keeps them all game. Both tiles take the day-0 Wheat first (harvested on
+# day 4); reserved from day 1 so nothing replants them, bought from day 5 as
+# cash allows.
+NW_EARLY_GEESE_ACTIVE = True
+NW_EARLY_GEESE_TILES = ((4, 0), (3, 0))
+NW_EARLY_GEESE_HAND_INDEX = 3
+NW_EARLY_GEESE_RESERVE_DAY = 1
+NW_EARLY_GEESE_START_DAY = 5
 INITIAL_SHEEP_CASH_RESERVE_START_DAY = 1
 INITIAL_SHEEP_CASH_RESERVE_END_DAY  = 3
 INITIAL_SHEEP_CASH_RESERVE          = 1000
@@ -1411,6 +1427,29 @@ def agent(obs):
             for position in active_goose_tiles
         })
 
+    nw_early_geese_active = (
+        NW_EARLY_GEESE_ACTIVE
+        and obs["day"] >= NW_EARLY_GEESE_START_DAY
+    )
+
+    if NW_EARLY_GEESE_ACTIVE and obs["day"] >= NW_EARLY_GEESE_RESERVE_DAY:
+        reserved_adaptive_animal_tiles.update(NW_EARLY_GEESE_TILES)
+
+    # Hand 3 keeps the NW Geese, except on Melon day (see below).
+    nw_early_geese_hand_index = NW_EARLY_GEESE_HAND_INDEX
+
+    if nw_early_geese_active:
+        active_animal_plan.update({
+            position: "GOOSE"
+            for position in NW_EARLY_GEESE_TILES
+        })
+        goose_hand_tile_by_index = dict(goose_hand_tile_by_index)
+        goose_hand_tile_by_index[NW_EARLY_GEESE_HAND_INDEX] = (
+            tuple(goose_hand_tile_by_index.get(NW_EARLY_GEESE_HAND_INDEX, ()))
+            + NW_EARLY_GEESE_TILES
+        )
+        goose_hand_tiles = goose_hand_tiles + NW_EARLY_GEESE_TILES
+
     active_adaptive_mammal_plan = {}
     if adaptive_mammal_phase_active:
         active_adaptive_mammal_plan = {
@@ -1579,6 +1618,56 @@ def agent(obs):
         current_hand_work_tiles_each[MELON_RELIEF_HAND_INDEX] = list(
             MELON_RELIEF_TILES
         )
+
+    # On Melon day hand 3 only harvests and banks Melon; the NW Geese go to
+    # the NE crop hand whose tiles are nearest them. NE Strawberry (planted
+    # days 7-9) first produce on the night of day 16-18, so a day-10 watering
+    # only guards against the second dry day, which the day-9 and day-11
+    # waterings already cover: the NE hands' day is free.
+    if nw_early_geese_active and melon_crew_active:
+        def nw_geese_distance(hand_index):
+            return min(
+                abs(tile[0] - goose[0]) + abs(tile[1] - goose[1])
+                for tile in current_hand_work_tiles_each[hand_index]
+                for goose in NW_EARLY_GEESE_TILES
+            )
+
+        ne_goose_keepers = [
+            hand_index
+            for hand_index in range(NW_HAND_COUNT, SECOND_QUADRANT_HAND_COUNT)
+            if (
+                hand_index < len(current_hand_work_tiles_each)
+                and current_hand_work_tiles_each[hand_index]
+                and hand_index != active_sw_livestock_hand_index
+                and not (
+                    adaptive_goose_phase_active
+                    and hand_index in goose_hand_tile_by_index
+                )
+            )
+        ]
+
+        if ne_goose_keepers:
+            nw_early_geese_hand_index = min(
+                ne_goose_keepers,
+                key=nw_geese_distance,
+            )
+            goose_hand_tile_by_index = dict(goose_hand_tile_by_index)
+            melon_hand_geese = tuple(
+                tile
+                for tile in goose_hand_tile_by_index[NW_EARLY_GEESE_HAND_INDEX]
+                if tile not in NW_EARLY_GEESE_TILES
+            )
+
+            if melon_hand_geese:
+                goose_hand_tile_by_index[NW_EARLY_GEESE_HAND_INDEX] = (
+                    melon_hand_geese
+                )
+            else:
+                del goose_hand_tile_by_index[NW_EARLY_GEESE_HAND_INDEX]
+
+            goose_hand_tile_by_index[nw_early_geese_hand_index] = (
+                NW_EARLY_GEESE_TILES
+            )
 
     # Create a list of work tiles of the farm hands
     active_hand_work_tiles = []
@@ -2832,7 +2921,10 @@ def agent(obs):
     # Hand 5 owns the nearest NE Goose tile, so let it establish and service
     # that Goose without pulling the farmer away from the main livestock loop.
     def choose_goose_hand_action(hand_position, hand_inventory, hand_index):
-        if not adaptive_goose_phase_active:
+        if not adaptive_goose_phase_active and not (
+            nw_early_geese_active
+            and hand_index == nw_early_geese_hand_index
+        ):
             return None
 
         hand_targets = goose_hand_tile_by_index.get(hand_index, ())
@@ -2871,12 +2963,21 @@ def agent(obs):
             ]
         )
 
+        # The NW Geese keeper does each coop in one stop (feed, care,
+        # Fertilizer, Eggs) instead of a second lap for the Fertilizer, and
+        # keeps its Eggs for the overnight drop.
+        is_nw_geese_keeper = (
+            nw_early_geese_active
+            and hand_index == nw_early_geese_hand_index
+        )
+
         for target in ordered_targets:
             goose_action = choose_goose_tile_action(
                 hand_position,
                 hand_inventory,
                 target,
                 wheat_pickup_count,
+                collects_fertilizer_on_visit=is_nw_geese_keeper,
             )
 
             if goose_action is not None:
@@ -2903,7 +3004,7 @@ def agent(obs):
             # drop do it for free. A hand accrues at most 2 Eggs per Goose per
             # day, far under the shed cap, so nothing overflows.
             if (
-                early_ne_goose_coexist_active
+                (early_ne_goose_coexist_active or is_nw_geese_keeper)
                 and not hand_is_at_shed
                 and all(
                     product == "EGG"
@@ -2962,10 +3063,16 @@ def agent(obs):
             hand_inventory,
             target,
             wheat_pickup_count=1,
+            collects_fertilizer_on_visit=False,
     ):
         target_tile = animal_tiles[target]
         goose_is_present = target in animal_positions
         wheat_carried = hand_inventory.get("WHEAT", 0)
+        fertilizer_collectable = (
+            collects_fertilizer_on_visit
+            and goose_is_present
+            and target_tile.get("fertilizer_available", False)
+        )
 
         if goose_is_present:
             if hand_position == target:
@@ -2974,6 +3081,8 @@ def agent(obs):
                         return ["FEED"]
                 elif not target_tile.get("cared_today", False):
                     return ["CARE"]
+                elif fertilizer_collectable:
+                    return ["COLLECT_FERTILIZER"]
                 elif (
                     target_tile.get("yield_units", 0)
                     >= ANIMAL_HARVEST_THRESHOLD
@@ -3003,6 +3112,7 @@ def agent(obs):
                 or not target_tile.get("cared_today", False)
                 or target_tile.get("yield_units", 0)
                     >= ANIMAL_HARVEST_THRESHOLD
+                or fertilizer_collectable
             )
             if goose_needs_attention:
                 return move_to(hand_position, target)

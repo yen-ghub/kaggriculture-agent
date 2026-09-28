@@ -3521,3 +3521,99 @@ delays the later animals' feed, care and harvest (the last NE animal fed at
 h17 instead of h14), so the block's Milk reaches the market after the
 opponent's, and hand 4's crop work starts later. With two animals the delay
 is one hour and the saved walk wins; with four it loses.
+
+## Rejected: the Goose family (seven versions), from replays/eggs1-3.json
+
+**Status: all rejected, `main.py` reverted to `sw_ne_block_pair_v1`.** None
+was gated; every version lost head-to-head on seeds 1-6 (or every firing seed)
+against `sw_ne_block_pair_v1`.
+
+### What the replays show
+
+Three public losses (53.7k/65.0k/66.9k against 82.7k/94.2k/95.4k). eggs1 and
+eggs2 are the same bot: 8 Cows by day 7-9, 6 Sheep, 3 Geese (days 10-11), 17
+animals packed round the shed, 9-11 hands (hire spend ~4k against our 7.6k).
+eggs3: 12 Geese placed days 6-9 (NE west column and SW beside (4,5)), 5 Cows,
+3 Sheep, only 8 Melons, SW bought day 8. Animal-days 404/481 against our
+250/330. Fertilizer capture is equal (85-99% both sides) and Eggs per
+Goose-day equal (1.6-1.8): the gap is scale, from day ~10, while crops grow
+(eggs1 days 12-15: +11.5k for them, +2.5k for us).
+
+### Versions and results
+
+| version | result (head-to-head) | what killed it |
+|---|---|---|
+| Goose at (4,2) from day 10, farmer keeps it (Egg shop in first two) | seed 7 -3,392, seed 2 -2,356 | farmer alternated feeds between it and the NE Goose (6,3): new Goose fed 7x, never harvested; NE Goose 16 feeds vs 22; Cow round and Milk sale slipped 6-9 hours |
+| same, hand 1 keeps it | seeds 2,4,5,7 sum -8,732 | fully served (fed daily), but ~32 Eggs at ~53 do not cover purchase, feed and the displaced Wheat; seed 7 (Eggs ~70) +43 |
+| SW block v1: 5 coops (2,5),(2,6),(4,7),(3,7),(2,7), hand 9 keeper, day 11 | seeds 1-6 -104,259 | keeper over capacity (hired h2; fed ~85-90%, 0 Fertilizer collected, 173 moves, 9 Geese bought for 5); Wheat harvested 257 vs 399 |
+| SW block v2: 4 coops, one Wheat pickup, Eggs kept in backpack | seeds 1-6 -30,811 | keeper fine (97% fed, 65 Fertilizer, 114 Eggs); but the unchanged Strawberry cap pushed Strawberry onto Wheat tiles: ~120 fewer Wheat harvested for 4 Geese (~2.7 Wheat per Goose-day with feed) |
+| v3: + Strawberry cap -4 | seeds 1-6 -18,011 | on strong towns the cut Strawberry is worth more than the Geese (seed 6: Strawberry @196, -26 units, -5.1k) |
+| v3 + no Carrot before late game | seeds 1-6 -214,312 | Carrot before day 10 is structural (day 7-9 NW tiles must clear for the Strawberry wave); after day 10 the rule is a no-op (Wheat already wins) |
+| NE pair (5,2)/(5,1), hands 5/7, bought day 7 / day 8 | day 7: seeds 2,4,5 -2.6k..-4.8k; day 8: all firing seeds -0.8k..-4.8k | the purchase took the NE Strawberry fill's cash (seed 2: 6 seeds on day 7 instead of 13, sold at 93.5 vs 106.3); the reserved tiles held early NE Strawberry |
+| NW opening: 10 Melons, Geese on (4,2)/(3,2) for hand 1, bought day 5 | seeds 1-6 -57,635 | Geese earned +6.2k (seed 2) but Melon 58 vs 72 (-3.0k; one left unharvested), Strawberry -1.3k, Wheat -2.0k, Geese + feed -2.6k; the day-5 purchase drained day 6 (222 vs 825) and the day-7 NE fill (13 vs 19) |
+
+### Lesson
+
+At full service a Goose clears ~+2k a season (2 Eggs a day from its fourth
+day, 1 Fertilizer a day, less 1 Wheat). In this build every tile and every
+early coin is already spent on something worth about as much -- early NE
+Strawberry, day-10 Strawberry, Melon, Wheat -- so a bolt-on animal does not
+pay. The replay bots are built around their animals from day 2-9 (fewer hands,
+fewer early Strawberry, animals placed while tiles are empty); matching them
+is an opening redesign, not an add-on. Keeper capacity is ~4 Geese per hand at
+full service.
+
+The NW opening version was then reworked into the break-even candidate below
+and frozen at the user's call.
+
+## Frozen at break-even (user's call): NW Geese on the far row
+
+**Status: frozen as `baselines/nw_geese_v1.py`, as a base to optimise from.**
+Twenty-seed gate against `sw_ne_block_pair_v1`: **20W--20L--0T, 50.0%,
+average 89,977.6 vs 90,211.8 (-234.2 per game)**, zero errors. This does not
+meet the usual bar (positive margin); it is the eighth Goose version and the
+first near even, kept so the Goose line can be optimised further. The gate is
+mirror-only, against our Strawberry-heavy lineage, which undervalues
+diversification (see the Goose-family lesson above).
+
+Averages: Egg 158.0, Fertilizer 227.6, Melon 59.7 (all 10 tiles cleared),
+Wheat 281.1 (leftover 3.6), Strawberry 238.9, Milk 175.1, Wool 150.7.
+
+### What it is (the NW opening version plus four changes)
+
+1. **10 day-0 Melons, two NW Geese.** The Melons keep the ten tiles nearest
+   the shed ((4,2), (3,2) are Melon again); the Geese go on the far row,
+   (4,0)/(3,0), hand 3's own tiles. Hand 3 keeps them all game.
+2. **Wheat first.** Both Goose tiles take the day-0 Wheat (harvested day 4);
+   they are reserved from day 1 so nothing replants them, and the Geese are
+   bought from day 5 (`NW_EARLY_GEESE_RESERVE_DAY = 1`,
+   `NW_EARLY_GEESE_START_DAY = 5`).
+3. **Melon day: an NE hand keeps the Geese.** On day 10 the Goose tiles go to
+   the NE crop hand whose tiles are nearest (not the NE livestock hand or an NE
+   Goose keeper), and hand 3 only works Melon. NE Strawberry planted days 7-9
+   first produces on the night of day 16-18, so its day-10 watering adds
+   nothing (`docs/mechanics.md`). Seed 2 with the Geese on (4,2)/(3,2):
+   hand 1 spent h02-h12 on them and harvested no Melon; after, Melon sold on
+   day 10 rose 46 -> 52, and the four NE tiles left dry on day 10 were all
+   watered on day 11.
+4. **One stop per coop, Eggs kept.** The keeper feeds, cares, collects
+   Fertilizer and harvests at each coop before moving on (it used to lap back
+   for the Fertilizer), and leaves Eggs for the overnight drop. Seed 2: hand 3
+   shed trips 47 -> 28, moves 398 -> 283.
+
+Seed 2, head-to-head, as the changes landed: NW opening -4,115; + Wheat
+first (same); + NE keeper on day 10 -2,978; + far row -3,062; + one stop,
+Eggs kept +763 (town re-rolled: own -3,271, taken +4,034).
+
+### Seed 8, the largest loss (-2,483 both positions, town re-rolled)
+
+Own +13,350 against the mirror, but the opponent gained +15,833 from the new
+town. By product: Egg +3,708, Fertilizer +2,186; Wheat -1,944 (the two Goose
+tiles and feed), Strawberry -1,874, Milk -1,320, Melon -1,032 (10 tiles vs
+12). The Milk is one sale: hand 3 carried 2 Strawberry into day 16's night,
+so day 17's h01 market list had one more SELL than the opponent's; sells go
+before hires, so we hired 4 at h01 against their 5 and the NE Cow hand
+(hand 4) started late. Its 24 Milk reached the shed at h23, after the
+opponent's 24 at h21 (sold 135 vs 190). The same slot loss is already known
+for Wheat (`docs/mechanics.md`, "A morning sale order can delay the day's
+hires"); the baseline carries Strawberry overnight on many nights too.

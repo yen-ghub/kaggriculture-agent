@@ -6,10 +6,37 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/sw_ne_block_pair_v1.py`
+`baselines/nw_geese_v1.py`
 
-The active strategy in `main.py` should be compared against this baseline until
-a newer candidate passes the evaluation gates below. It is
+Frozen at break-even at the user's call, as a base for optimising the Goose
+line: twenty-seed gate against `sw_ne_block_pair_v1` **20W--20L--0T, 50.0%,
+-234.2 per game**. It is `sw_ne_block_pair_v1` with an NW Goose opening:
+
+- 10 day-0 Melons on the tiles nearest the shed; two Geese on the far row
+  (4,0)/(3,0), which grow the day-0 Wheat first and take the Geese from day 5.
+  Hand 3 keeps them.
+- On day 10 the nearest NE crop hand keeps the Geese (its Strawberry need no
+  water that day), so hand 3 only works Melon.
+- The keeper does each coop in one stop (feed, care, Fertilizer, Eggs) and
+  keeps Eggs for the overnight drop.
+
+Eggs 158 and Fertilizer 228 a game pay for 12 fewer Melon, two fewer crop
+tiles after day 10 and the feed, almost exactly. See the experiment log entry
+"NW Geese on the far row".
+
+**Next, in order (user is optimising this line):**
+
+- **Morning hire slots.** Every morning sell order ahead of the hires costs a
+  hire slot; seed 8's largest loss came from 2 overnight Strawberry
+  (-1,320 on one Milk sale). Put the hires ahead of the sells on the roster
+  turn, or hold Egg/Wool/Strawberry until the roster is hired as Wheat already
+  is. Independent of the Geese; judge it on its own.
+- A livestock-heavy, ladder-style test opponent (eggs1/2: 8 Cows by day 7-9,
+  6 Sheep, 3 Geese, fewer hands, less Strawberry), to judge diversification
+  against something other than our own lineage.
+- Carried over: NW Wheat rot on day 16, then the Wheat leftover.
+
+`baselines/sw_ne_block_pair_v1.py` is its direct predecessor. It is
 `wheat_block_rot_fix_v1` plus a SW mammal pair on the seeds where the compact
 NE livestock block runs (both older SW animal plans are off there): two
 animals on (4,5)/(3,5) after SW unlock, served by hand 8 -- Sheep if a Yarn
@@ -26,8 +53,12 @@ fix it gated 13W--5L--22T, +750.1.
 collecting at each stop pushes the last Milk harvest ~3 hours later and the
 block's Milk sells after the opponent's. Keep it to the two-animal pair.
 
-**Next, in order:** NW Wheat rot on day 16 (planting-day stagger, untried),
-then the Wheat leftover (see below).
+**Bolt-on Geese** (seven versions, all lost; see the experiment log entry
+"the Goose family"). A Goose clears ~+2k a season at full service, but
+every tile and early coin in this build is already worth as much. The eggs
+replays win with an animal-centred opening (17 animals by day 11, fewer hands,
+fewer early Strawberry). The eighth version, the NW opening on the far row,
+reached break-even and is now the baseline (above).
 
 `baselines/wheat_block_rot_fix_v1.py` is its direct predecessor. It is
 `sw_wheat_block_v1` with one correctness fix: the Wheat block hand treats a ripe Wheat as urgent

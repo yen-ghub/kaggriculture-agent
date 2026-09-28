@@ -934,6 +934,19 @@ One-shot crops (WHEAT, CARROT, MELON) behave differently -- see the
 `harvest_yield` section above -- because each watered day inside their window
 converts to yield, so for them the planting date does move the total.
 
+## Confirmed: an ongoing crop's watering only guards survival and the Fertilizer bonus
+
+The "growth days" above are calendar days: the engine's day-end refresh
+(`kaggriculture.py`, crops) produces on `next_day - planted_day -
+first_yield_day` alone, whether or not the plant was watered. Watering does
+two things for Strawberry and Tomato: it resets `consecutive_unwatered` (two
+dry days in a row turn the plant to WEED), and on a production night the
+Fertilizer bonus (+2 instead of +1) applies only if the plant was watered that
+day. So on a non-production day a plant watered the day before and the day
+after can go dry at no cost. Strawberry planted on days 7-9 first produces on
+the night of day 16-18, so NE hands can skip day 10's watering (seed 2: four
+dry NE tiles on day 10, all watered on day 11, none lost).
+
 ## Confirmed: which shop unlocks depends on how many tiles are empty on BOTH farms
 
 The shop sequence is not fixed per seed. At each day boundary the engine does,
@@ -1146,3 +1159,24 @@ animals' harvest back an hour per stop; on the four-animal NE block that put
 its Milk on the market ~3 hours later, after the opponent's, at a lower price
 for the same volume (seed 6: 112.9 against 119.4 on 282 Milk). For a
 two-animal pair the one-hour delay is cheaper than walking back.
+
+## Confirmed: animal production and daily Fertilizer (engine source)
+
+From `ANIMALS` in the environment:
+
+| animal | cost | first yield (days after placing) | interval | max held | product |
+|---|---|---|---|---|---|
+| Goose | 300 | 4 | 1 day | 4 | Egg |
+| Cow | 400 | 8 | 2 days | 6 | Milk |
+| Sheep | 500 | 6 | 3 days | 6 | Wool |
+
+On a production day the animal adds 1 unit, +1 if it was fed and cared for
+on the previous day (the care bonus is only consumed on a fed production
+day): a Goose fed and cared for daily lays 2 Eggs a day. An animal unfed two
+days in a row escapes (the structure stays). **Every animal gets
+`fertilizer_available` = True every night, fed or not; the flag does not
+accumulate**, so a day's Fertilizer not collected that day is lost.
+
+Egg's glut side is a log curve (base 50, above_target 0.20, T 332): the price
+barely moves with volume (eggs3 sold 424 Eggs at 43). Fertilizer is linear
+both sides (base 100, 0.4 over T 200: ~0.2 a unit).

@@ -1140,7 +1140,11 @@ Every plant carries `max_lifespan_step`. For Wheat it is
 `(planted_day + 5) * 24`: the plant is harvestable on its fourth day
 (`harvest_day` 4) and at the next midnight the lifespan ends. From then it
 loses a unit every two hours (seed 3, tile (1,9): 3 units at h0, 2 at h1, 1 at
-h3) and turns to WEED at h5. A ripe Wheat cannot wait a day. Ongoing crops
+h3) and turns to WEED at h5. A ripe Wheat cannot wait a day, and watering it
+on the rot morning adds nothing: the engine adds watering yield only at ages
+`(max_yield_day + 1) // 2` to `max_yield_day` (Wheat 2-4, Carrot 2-3). So
+watering a ripe plant before harvest is +1 unit for one action, worth it only
+if no other ripe plant is left standing at midnight for it. Ongoing crops
 (Strawberry) also expire at their lifespan, but by then their last yield has
 normally been harvested.
 

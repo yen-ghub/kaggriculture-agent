@@ -3617,3 +3617,35 @@ before hires, so we hired 4 at h01 against their 5 and the NE Cow hand
 opponent's 24 at h21 (sold 135 vs 190). The same slot loss is already known
 for Wheat (`docs/mechanics.md`, "A morning sale order can delay the day's
 hires"); the baseline carries Strawberry overnight on many nights too.
+
+## Accepted: water a ripe crop only while there is time to harvest the rest
+
+**Status: accepted, frozen as `baselines/ripe_harvest_slack_v1.py`.**
+Twenty-seed gate against `nw_geese_v1`: **36W--2L--2T, 92.5%, average
+84,076.1 vs 83,594.6 (+481.5 per game)**, zero errors. The only loss is seed
+12 by 165 in both positions (not traced).
+
+### The leak (user's find, seed 6 self-play)
+
+A ripe Wheat or Carrot not yet watered today went to the water list, never
+the harvest list: the hand watered it (+1 unit) and harvested it on the next
+turn. A ripe one-time crop is on its last day, so late in the day that trade
+can cost the next plant. Seed 6, day 16 after h20: hand 8 watered the first of
+two ripe Wheat and could not reach the second; harvested as they stood, they
+would have given 6 instead of 4. The same order held for rotting Wheat from
+the day before, where watering adds nothing.
+
+### The fix
+
+`ripe_harvest_slack(hand_position, ripe_positions)`: the actions left today
+minus a nearest-first walk that harvests every ripe plant on the route (one
+action each). A ripe Wheat/Carrot is watered first only while the slack is at
+least 1; otherwise it is harvested as it stands, and when there is no time to
+water every ripe plant the hand also walks to ripe plants before other
+watering. A ripe plant past its growth window (watering adds nothing) is
+harvested directly. Applied in the general crop routine and in the SW Wheat
+block routine; Strawberry, Tomato and the day-10 Melon crew are unchanged.
+
+Gate lines against `nw_geese_v1`'s own gate: Wheat sold 285.4 (281.1), Carrot
+29.8 (21.8), Milk 180.2 (175.1), Fertilizer 235.9 (227.6); Wheat leftover
+unchanged at 3.6.

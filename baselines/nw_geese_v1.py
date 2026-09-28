@@ -1943,41 +1943,7 @@ def agent(obs):
         crop_age = obs["day"] - tile["planted_day"]
 
         return crop_age >= crop_config["harvest_day"]
-
-    # A ripe Wheat or Carrot is on its last day: watering it first adds one
-    # unit, but a ripe plant left standing at midnight starts to rot. Water
-    # it only while every ripe plant on the hand's route can still be reached
-    # and harvested today; otherwise harvest it as it stands (seed 6, day 16:
-    # hand 8 watered one ripe Wheat for +1 and lost the next one's 3).
-    RIPE_WATER_CROPS = ("WHEAT", "CARROT")
-
-    def ripe_watering_adds_yield(tile):
-        if tile.get("crop") not in RIPE_WATER_CROPS or tile["watered_today"]:
-            return False
-
-        crop_age = obs["day"] - tile["planted_day"]
-
-        return (
-            crop_age <= CROP_CONFIGS[tile["crop"]]["harvest_day"]
-            and tile.get("yield_units", 0)
-                < CROP_CONFIGS[tile["crop"]]["harvest_yield"]
-        )
-
-    def ripe_harvest_slack(hand_position, ripe_positions):
-        # Actions left today after a nearest-first walk that harvests every
-        # ripe plant in ripe_positions (the action this turn included).
-        actions_left = LAST_HOUR_TODAY - obs["hour"] + 1
-        current = hand_position
-        unvisited = list(ripe_positions)
-
-        while unvisited:
-            next_position = nearest_position(current, unvisited)
-            actions_left -= distance_between(current, next_position) + 1
-            current = next_position
-            unvisited.remove(next_position)
-
-        return actions_left
-
+    
     ## 2.6
     def crop_profit_per_day(crop):
         crop_config     = CROP_CONFIGS[crop]
@@ -2214,12 +2180,10 @@ def agent(obs):
         
         hand_harvest_targets = []
         hand_water_targets = []
-        # Ripe Wheat/Carrot that watering would still grow by one.
-        hand_ripe_water_targets = []
         hand_fertilize_targets = []
         hand_plant_targets = []
         hand_weed_targets = []
-
+        
         # First, scan the farm-hand-assigned tiles
         for position in assigned_tiles:
             # Animal tiles are reserved for the farmer, skip this tile
@@ -2366,40 +2330,17 @@ def agent(obs):
                     hand_water_targets.append(position)
                 continue
 
-            if (
-                ready_to_harvest
-                and tile.get("crop") in RIPE_WATER_CROPS
-                and not tile["watered_today"]
-            ):
-                # Watered first only while there is time (see
-                # ripe_harvest_slack); past its window it is just harvested.
-                if ripe_watering_adds_yield(tile):
-                    hand_ripe_water_targets.append(position)
-                    hand_water_targets.append(position)
-                else:
-                    hand_harvest_targets.append(position)
-            elif tile["watered_today"] and ready_to_harvest:
+            if tile["watered_today"] and ready_to_harvest:
                 hand_harvest_targets.append(position)
             elif not tile["watered_today"]:
                 hand_water_targets.append(position)
-
-        ripe_positions = hand_harvest_targets + hand_ripe_water_targets
-        ripe_slack = (
-            ripe_harvest_slack(hand_position, ripe_positions)
-            if hand_ripe_water_targets
-            else None
-        )
 
         # Second, check if already on actionable tile before travelling elsewhere
         # If actionable, then enact
         if hand_position in hand_weed_targets:
             return ["DIG"]
-
+        
         if hand_position in hand_harvest_targets:
-            return ["HARVEST"]
-
-        # Watering this ripe plant would leave another unharvested tonight.
-        if hand_position in hand_ripe_water_targets and ripe_slack < 1:
             return ["HARVEST"]
 
         if hand_position in hand_water_targets:
@@ -2433,14 +2374,9 @@ def agent(obs):
             available_seed_counts[plant_crop] -= 1
             return ["PLANT", plant_crop]
 
-        # Third, travel to harvest ready produce first, then handle remaining
-        # watering. When there is no longer time to water every ripe plant
-        # before harvesting it, the ripe plants come first too.
-        if hand_harvest_targets or (
-            hand_ripe_water_targets
-            and ripe_slack < len(hand_ripe_water_targets)
-        ):
-            target = nearest_position(hand_position, ripe_positions)
+        # Third, travel to harvest ready produce first, then handle remaining watering.
+        if hand_harvest_targets:
+            target = nearest_position(hand_position, hand_harvest_targets)
         elif hand_water_targets or hand_fertilize_targets:
             target = nearest_position(
                 hand_position,
@@ -3490,23 +3426,6 @@ def agent(obs):
 
         if hand_position in dig_targets:
             return ["DIG"]
-
-        # A ripe Wheat is watered first only while every ripe Wheat in the
-        # block can still be harvested today (ripe_harvest_slack).
-        ripe_water_targets = [
-            position
-            for position in water_targets
-            if crop_is_harvestable(tile_at(farm, position))
-        ]
-
-        if (
-            hand_position in ripe_water_targets
-            and ripe_harvest_slack(
-                hand_position,
-                harvest_targets + ripe_water_targets,
-            ) < 1
-        ):
-            return ["HARVEST"]
 
         if hand_position in water_targets:
             return ["WATER"]

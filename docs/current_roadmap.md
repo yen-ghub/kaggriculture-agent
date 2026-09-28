@@ -6,7 +6,20 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/nw_geese_v1.py`
+`baselines/ripe_harvest_slack_v1.py`
+
+The active strategy in `main.py` should be compared against this baseline until
+a newer candidate passes the evaluation gates below. It is `nw_geese_v1` with
+one crop-routine fix: a ripe Wheat or Carrot is watered before harvest only
+while every ripe plant on the hand's route can still be harvested today
+(`ripe_harvest_slack`); otherwise it is harvested as it stands, and ripe plants
+come first in travel. Past its growth window a ripe plant is harvested
+directly. General crop routine and SW Wheat block. Twenty-seed gate
+**36W--2L--2T, 92.5%, +481.5 per game**; the only loss is seed 12 by 165.
+
+**Next, in order:** as listed under `nw_geese_v1` below.
+
+`baselines/nw_geese_v1.py` is its direct predecessor.
 
 Frozen at break-even at the user's call, as a base for optimising the Goose
 line: twenty-seed gate against `sw_ne_block_pair_v1` **20W--20L--0T, 50.0%,

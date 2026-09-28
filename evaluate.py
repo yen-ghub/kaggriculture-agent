@@ -58,6 +58,7 @@ from baselines.wheat_block_rot_fix_v1 import agent as wheat_block_rot_fix_v1_age
 from baselines.sw_ne_block_pair_v1 import agent as sw_ne_block_pair_v1_agent
 from baselines.nw_geese_v1 import agent as nw_geese_v1_agent
 from baselines.ripe_harvest_slack_v1 import agent as ripe_harvest_slack_v1_agent
+from baselines.morning_hire_hold_v1 import agent as morning_hire_hold_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -165,9 +166,12 @@ OPPONENTS = {
     # Direct predecessor of ripe_harvest_slack_v1, and the opponent of its
     # twenty-seed gate (36W-2L-2T, +481.5 per game).
     # "nw_geese_v1": nw_geese_v1_agent,
+    # Direct predecessor of morning_hire_hold_v1, and the opponent of its
+    # twenty-seed gate (32W-8L, +1,007.1 per game).
+    # "ripe_harvest_slack_v1": ripe_harvest_slack_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "ripe_harvest_slack_v1": ripe_harvest_slack_v1_agent,
+    "morning_hire_hold_v1": morning_hire_hold_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

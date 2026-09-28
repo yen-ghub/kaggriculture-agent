@@ -1128,7 +1128,12 @@ also spawns on a different shed-access tile ((5,5) instead of (5,4)), one
 step further out. On seeds 8 and 15 a single `SELL WHEAT 1` at h0 made the NE
 Cow hand (5th hire) start at h1 and run its whole round two hours late.
 Keep non-urgent morning sales (anything with a flat price, like Wheat) out
-of the list until the roster is complete.
+of the list until the roster is complete. Any sale does it, not just Wheat:
+on `nw_geese_v1` seed 8, day 17, a `SELL STRAWBERRY 2` from a pack carried
+overnight cost the NE Cow hand its h01 hire (24 Milk sold at 135 against
+190). Wheat, Tomato and Egg are now held (`morning_hire_hold_v1`). The
+reverse also holds: hiring a hand an hour earlier moves its spawn tile and
+start, which can shift the crop routes enough to rot a Wheat (seed 17).
 
 Wheat (one-time crop) on an unfertilized tile: 1 unit at planting, +1 per
 watering at ages 2, 3 and 4, reaching 4 on day 4. Watering at age 1 adds

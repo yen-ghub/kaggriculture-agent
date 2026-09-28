@@ -3649,3 +3649,36 @@ block routine; Strawberry, Tomato and the day-10 Melon crew are unchanged.
 Gate lines against `nw_geese_v1`'s own gate: Wheat sold 285.4 (281.1), Carrot
 29.8 (21.8), Milk 180.2 (175.1), Fertilizer 235.9 (227.6); Wheat leftover
 unchanged at 3.6.
+
+## Accepted: hold Egg and Tomato sales until the roster is hired
+
+**Status: accepted, frozen as `baselines/morning_hire_hold_v1.py`.**
+Twenty-seed gate against `ripe_harvest_slack_v1`: **32W--8L--0T, 80.0%,
+average 87,359.2 vs 86,352.1 (+1,007.1 per game)**, zero errors.
+
+### The change
+
+Sale orders go into the market list before the hires, and each takes one of
+the 10 slots. The Wheat hold (`sw_wheat_block_v1`) now covers Tomato and Egg
+too (`ROSTER_HELD_PRODUCTS`): while the day's roster is still being hired
+(any day but the last) they are left out, and sell on the first turn after
+the last hire. Strawberry, Melon, Milk and Wool still sell in the morning
+(time sensitive); Fertilizer was already placed after the hires.
+
+Seed 8 (the `nw_geese_v1` Milk slip): day 17's h01 loses `SELL EGG 8`, we hire
+5 at h01 (opponent 4), the roster is full by h02 (h03), the Eggs sell at h03.
+Head-to-head +2,498 both positions. Egg sold 157.3 (157.6): the two-hour delay
+costs nothing measurable. Wheat sold 294.4 (285.4).
+
+### Largest loss: seed 17, -530 both positions (like-for-like town)
+
+Own -281, taken -249. On day 12 the Egg order is gone and we hire 7 at h01
+(opponent 6): hand 6 starts an hour earlier. From there the crop routes
+drift -- Wheat plantings move a day on a few tiles (day 12/13, 16/17, 20/21,
+24/25), two Wheat rot that the opponent's do not ((2,5) day 16, (0,8) day 22),
+the final Carrot is 18 against 24 and Strawberry 236 against 239. Routing
+knock-on from a changed hire hour, not a fault of the hold.
+
+Still open: a morning Strawberry or Wool order can take a hire's slot (seed 8,
+day 17 still has `SELL STRAWBERRY 2` and `SELL WOOL 4` ahead of the hires).
+Wool's price is fairly flat and would be the next to hold.

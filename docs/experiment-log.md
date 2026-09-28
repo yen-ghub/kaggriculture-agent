@@ -3719,3 +3719,36 @@ The 3.6 leftover was the baseline buying 7 feed Wheat on day 29 after its Wheat
 sale had gone out. Seeds 1-3, day 29 against the baseline: Wheat sold 72/76/88
 against 54/58/78, 0 FEED/CARE against 20, 0 Wheat left against 7/7/0;
 head-to-head +1,985/+2,270/+668. The freed day-29 actions go to harvesting.
+
+## Accepted: no feed or care that can no longer pay (days 25-29)
+
+**Status: accepted, frozen as `baselines/late_feed_prune_v1.py`.**
+Twenty-seed gate against `final_day_no_feed_v1`: **40W--0L--0T, 100.0%,
+average 88,224.2 vs 87,755.2 (+469.0 per game)**, zero errors. User's idea:
+extend the final-day rule to animals with no production left.
+
+### The rule (from `_daily_refresh_animals`)
+
+At a refresh an animal on a production night adds 1 plus its care bonus: one
+per fed-and-cared day since its last production, paid only if fed that
+night. Every animal not escaped gives Fertilizer. The last refresh that counts
+is the night before the final day. So, per animal and day
+(`animal_feed_and_care_pay`, schedules in `ANIMAL_YIELD_SCHEDULES`):
+
+- feeding pays if tonight is a production night, if a care bonus is still to
+  be paid, or if it went unfed yesterday (a second unfed day escapes it and
+  ends its Fertilizer);
+- caring pays only if a production night is still to come after tonight.
+
+Where neither pays, the `animal_tiles` view marks the animal fed or cared for,
+from day 25 (`ANIMAL_FEED_LOOKAHEAD_DAYS` 4); tomorrow's feed purchase counts
+only animals whose feed pays tomorrow. Day 29 is unchanged (nothing pays).
+
+### Evidence (seeds 1-3, days 26-28)
+
+Care 31/31/21 against 57/57/42, feed 52/52/37 against 57/57/42, Wheat bought
+29/29/19 against 34/34/24. Milk, Wool and Fertilizer sold identical every day,
+no animal escaped (19/19/14 all through day 29). Head-to-head +493/+346/+263.
+Mostly care: caring on an animal's last production day only builds a bonus for
+a production after the game. Gate: Strawberry 237.5 (236.1), Fertilizer 237.0
+(236.2), the freed actions going to crops.

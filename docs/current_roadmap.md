@@ -6,20 +6,27 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/final_day_no_feed_v1.py`
+`baselines/late_feed_prune_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`morning_hire_hold_v1` with no feeding on the final day: every routine sees its
-animals as fed and cared for on day 29 (the episode ends before the day-end
-refresh where feed and care pay), so no Wheat is picked up, bought or reserved
-and all shed Wheat sells; day 28 stops buying day-29 feed. Twenty-seed gate
-**40W--0L--0T, 100.0%, +1,151.4 per game**; Wheat leftover 3.6 -> 0.0.
+`final_day_no_feed_v1` extended to days 25-29: an animal is fed only if
+tonight is a production night, a care bonus is still to be paid, or it went
+unfed yesterday (escape ends its Fertilizer), and cared for only if a
+production night is still to come; tomorrow's feed purchase follows the same
+rule. Twenty-seed gate **40W--0L--0T, 100.0%, +469.0 per game**.
 
 **Next, in order:**
 
 - A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
 - NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/final_day_no_feed_v1.py` is its direct predecessor. It is
+`morning_hire_hold_v1` with no feeding on the final day: every routine sees its
+animals as fed and cared for on day 29 (the episode ends before the day-end
+refresh where feed and care pay), so no Wheat is picked up, bought or reserved
+and all shed Wheat sells; day 28 stops buying day-29 feed. Twenty-seed gate
+**40W--0L--0T, 100.0%, +1,151.4 per game**; Wheat leftover 3.6 -> 0.0.
 
 `baselines/morning_hire_hold_v1.py` is its direct predecessor. It is
 `ripe_harvest_slack_v1` with Egg and Tomato sales held, like Wheat's, while the

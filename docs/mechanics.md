@@ -1194,6 +1194,15 @@ refresh. The episode ends during the final day (`DONE` at step
 caring on day 29 earns nothing: only the yield and Fertilizer produced the
 night before are worth collecting (`final_day_no_feed_v1`).
 
+The care bonus is more than +1: at a production refresh the animal adds 1
+plus `pending_care_bonus`, which counts every fed-and-cared day since its
+last production (reset at each production), and is paid only if the animal
+is fed that night. Care on a production day counts toward the *next*
+production. So near the end: care pays only while a production night is
+still to come after tonight, and feed pays only on a production night, while
+a care bonus is pending, or to stop the escape (a second unfed day ends the
+Fertilizer). Unfed but not escaped, an animal still gives Fertilizer.
+
 Egg's glut side is a log curve (base 50, above_target 0.20, T 332): the price
 barely moves with volume (eggs3 sold 424 Eggs at 43). Fertilizer is linear
 both sides (base 100, 0.4 over T 200: ~0.2 a unit).

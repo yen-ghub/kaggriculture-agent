@@ -6,21 +6,40 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/late_melon_four_v1.py`
+`baselines/early_melon_pair_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`late_melon_pair_v2` with four late Melons instead of two. Twenty-seed gate
-**38W--2L--0T, 95.0%, +480.4 per game** (the first pair gave +1,050.6: all
-late Melons sell into one day-29 market).
+`late_melon_four_v2` with an early Melon pair: on day 9, if the opponent opened
+with 6 Melons or fewer, hand 3 plants two on (0,0)/(1,0), harvests them first
+on day 19 and sells them at day 20's opening, ahead of a day-10 replanting
+wave. Judged against the test opponent `opp_melon_wave_v1` (5 opening Melons,
+12 replanted on days 10-11): **+1,479.5 per game over `late_melon_four_v2`**
+on twenty seeds; identical play against the mirror.
+
+**Evaluation note:** the mirror gate cannot see changes aimed at a kind of
+opponent. For those, run `python tools/vs_opponent.py 1-20 <test opponent>
+main <predecessor>` and compare average margins. `opp_melon_wave_v1` is the
+first test opponent; it is our own agent with the ladder's Melon pattern, so
+it measures Melon timing only.
 
 **Next, in order:**
 
-- Late Melon tuning: six (expect less again, maybe negative), or spreading
-  the sale -- plant some on days 17-18 so they sell on days 27-28 instead of
-  all at day 29's h22; a lower price floor.
-- A livestock-heavy, ladder-style test opponent (see `nw_geese_v1` below).
+- The replays' real gap: the 5-Melon bots beat us by 6-8k on Wheat (+7k, 43
+  Wheat plants on day 25), Strawberry and Milk (8 Cows by day 9, fewer hands on
+  days 5-9). Worth a study of their hand counts and Wheat acreage.
+- Late Melon tuning: six, spreading the sale over days 27-29, a lower floor.
 - NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/late_melon_four_v2.py` is its direct predecessor:
+`late_melon_four_v1` with the late-Melon opponent test also ignoring opponent
+Melons already ripe (frozen without a gate; identical to v1 against opponents
+with no early second wave).
+
+`baselines/late_melon_four_v1.py` is its predecessor. It is
+`late_melon_pair_v2` with four late Melons instead of two. Twenty-seed gate
+**38W--2L--0T, 95.0%, +480.4 per game** (the first pair gave +1,050.6: all
+late Melons sell into one day-29 market).
 
 `baselines/late_melon_pair_v2.py` is its direct predecessor:
 `late_melon_pair_v1` with one fix, frozen without a gate: the "opponent has no

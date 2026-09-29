@@ -64,6 +64,9 @@ from baselines.late_feed_prune_v1 import agent as late_feed_prune_v1_agent
 from baselines.late_melon_pair_v1 import agent as late_melon_pair_v1_agent
 from baselines.late_melon_pair_v2 import agent as late_melon_pair_v2_agent
 from baselines.late_melon_four_v1 import agent as late_melon_four_v1_agent
+from baselines.late_melon_four_v2 import agent as late_melon_four_v2_agent
+from baselines.early_melon_pair_v1 import agent as early_melon_pair_v1_agent
+from baselines.opp_melon_wave_v1 import agent as opp_melon_wave_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -191,9 +194,21 @@ OPPONENTS = {
     # predecessor of late_melon_four_v1, and the opponent of its twenty-seed
     # gate (38W-2L, +480.4 per game).
     # "late_melon_pair_v2": late_melon_pair_v2_agent,
+    # Direct predecessor of late_melon_four_v2. Its late-Melon test treats an
+    # opponent's ripe early second wave as a Melon wave and skips its pair.
+    # "late_melon_four_v1": late_melon_four_v1_agent,
+    # v1 with the late-Melon opponent test ignoring ripe opponent Melons
+    # (frozen without a gate). Direct predecessor of early_melon_pair_v1,
+    # which plays identically against it (the pair needs a 5-Melon opener).
+    # "late_melon_four_v2": late_melon_four_v2_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "late_melon_four_v1": late_melon_four_v1_agent,
+    "early_melon_pair_v1": early_melon_pair_v1_agent,
+    # TEST OPPONENT (not a baseline): our agent with the ladder's Melon
+    # pattern -- 5 opening Melons, 12 replanted on days 10-11 (built by
+    # tools/make_opp_melon_wave.py). For Melon-timing changes; compare margins
+    # with tools/vs_opponent.py rather than reading a win count.
+    # "opp_melon_wave_v1": opp_melon_wave_v1_agent,
     # Frozen baseline + the alternate-day watering rule only. Identical to the
     # current main.py, so leave it commented out unless main.py moves on.
     # "water_slack_v1": water_slack_v1_agent,

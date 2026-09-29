@@ -678,8 +678,12 @@ cases `yield_units` plateaus at the assumed `harvest_yield` once reached (it
 does not keep growing), and an unharvested tile still decays once it passes
 its `max_lifespan_step`, separately from this yield curve.
 
-A Melon cannot be harvested before age 10 (the engine refuses `HARVEST` below
-`first_yield_day`), and its lifespan runs to `(planted_day + 13) * 24`. So the
+`HARVEST` on a plant is refused only below the engine's `first_yield_day`
+(Wheat 2, Carrot 2, Melon 10, Strawberry 10), not below `harvest_day`: a
+Wheat or Carrot can be pulled early from age 2 with whatever it holds (a
+day-7 Carrot pulled on day 9 gave 1). `early_melon_pair_v1` uses this to free
+a tile. A Melon cannot be harvested before age 10, and its lifespan runs to
+`(planted_day + 13) * 24`. So the
 latest planting that still sells is day 19 (harvest on day 29, the final day,
 at 6 units if watered through age 10); `late_melon_pair_v1` plants two then.
 

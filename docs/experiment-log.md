@@ -3811,3 +3811,65 @@ Diminishing: the first pair was worth +1,050.6 a game, the second +480.4.
 All late Melons sell into one day-29 market at ~h22 (seed 1: 23 sold at 113
 against 12 at 150 with two; against v2 our 82 averaged 172.3, its 71 183.7).
 Seeds 1-3 against v2: +239/+486/+349 (fair: v2 keeps its own 12).
+
+## Accepted: an early Melon pair against day-10 replanters
+
+**Status: accepted, frozen as `baselines/early_melon_pair_v1.py`**, with
+`late_melon_four_v2` frozen first as its reference (below). Judged against a
+test opponent, not the mirror: against `opp_melon_wave_v1`, twenty seeds, both
+positions, **+3,922.1 per game against +2,442.6 for `late_melon_four_v2`
+(+1,479.5)**, ahead on 18 of 20 seeds (seeds 1 and 2 -0.7k/-0.3k). Against
+the mirror it does not fire (identical play; seed 1 splits +11/-11 by seat).
+
+### The idea (user's, from replays/5melon_starter_milk_heavy.json and
+### 5melon_starter_milk_wool_heavy.json)
+
+Many ladder opponents open with 5 Melons and replant 12 right after the day-10
+harvest, selling ~72 over day 20 (184 at h06 down to 51). Two Melons planted
+on day 9 ripen on day 19 and sell at day 20's opening, ahead of that wave. In
+both replays (which already ran the pair) ours sold 12 at d20.h00 for 201; the
+opponent's price falls ~1.7 a unit, so our 12 took ~20 off each of their 72.
+We still lost those games by 6-8k, on Wheat (+7k to them), Strawberry and Milk
+-- not Melon.
+
+### The change (`EARLY_MELON_*`)
+
+- On day 9, only if the opponent's day-0 Melons (all still standing) number
+  6 or fewer: two Melons on hand 3's (0,0) and (1,0). (0,0) is empty on days
+  7-10; (1,0)'s day-7 Carrot is harvested early (the engine allows Wheat and
+  Carrot from age 2). Seeds bought that day.
+- Hand 3 keeps them. On day 19 it harvests them first, watered to 6, after its
+  morning Wheat pickup and before its Goose round
+  (`choose_early_melon_harvest_action`); they sell with the overnight deposit.
+  The NW keeper now visits its coops nearest-first (from (0,0) the fixed order
+  walked past (3,0) and fed it too late).
+- On Melon day, the rule that leaves Melon tiles to the crew now applies only
+  to ripe ones, so the young pair is still watered.
+
+### How it got there
+
+- v1, unconditional, hand 3, same-day return on day 19: hand 3's Goose round
+  ran to h15, it planted a late Melon on (1,0) before reaching (0,0), and
+  (0,0) went unharvested. Seed 1's town re-rolled (both sides -29k).
+- v2, the tiles handed to hand 2 for days 9-19: on day 9 hand 2's own opening
+  Melons went dry (51 sold on day 10, not 59), and it left (0,0) dry every
+  other day. Rejected.
+- v3 (this): hand 3 with the day-19 harvest first. Mirror seeds 3-4 -130/-858:
+  the pair displaces Strawberry and Wheat on days 11-19 (seed 4: 844 more
+  feed Wheat bought, 2 fewer Strawberry) against 12 Melons at ~152-169. Hence
+  the opening-Melon condition.
+
+### Two fixes to make the test fair
+
+- `late_melon_four_v2`: the late-Melon opponent test also ignores opponent
+  Melons already ripe (they sell before day 29). Without it the mirror
+  opponent saw our day-9 pair on the morning of day 19, skipped its own late
+  Melons, and inflated our result. Frozen without a gate: identical to v1
+  against opponents with no early second wave.
+- `opp_melon_wave_v1` (`tools/make_opp_melon_wave.py`): `late_melon_four_v2`
+  with 5 opening Melons, the late-Melon machinery moved to days 10-11 (12
+  Melons, no floor, no opponent test, Strawberry plantings converted too), day
+  20-21 walks back as harvested, no late Melons. Seed 2: 60 second-wave Melons
+  sold d20.h15 to d22 (the replay: 72 from d20.h06). We beat it by ~2.4-3.9k a
+  game, where the real bot beat us by 6-8k: it is only a Melon-timing
+  opponent. `tools/vs_opponent.py` compares agents' margins against it.

@@ -1,3 +1,7 @@
+# TEST OPPONENT, not one of our baselines. Built from late_melon_four_v2 by
+# the scratchpad script make_opp_melon_wave.py: the ladder's Melon pattern
+# (replays/5melon_starter_*.json) -- 5 opening Melons, 12 replanted on day 10
+# and sold as harvested on day 20, no late Melons. Rest is our own agent.
 # Define tiles to manage in (x,y)
 # Define tiles to manage in (x, y)
 FIRST_QUADRANT_ROUTE = [
@@ -300,7 +304,7 @@ FERTILIZER_CASHOUT_DAY = 1
 # Day 0's Melon target, whatever the opponent shows. The regular target reads
 # 15 at day 0 (the opponent has planted nothing yet), so Melons simply bought
 # until the money ran out and the Wheat seeds never got a turn.
-DAY0_MELON_TARGET = 10
+DAY0_MELON_TARGET = 5
 # Where the day-0 Melons go: the twelve NW crop tiles nearest the shed that are
 # free on day 0 and stay with the Melon hands 1-3. Only Melons have to be
 # walked back for a same-day sale on day 10 (Wheat reaches the shed overnight
@@ -314,9 +318,7 @@ DAY0_MELON_TARGET = 10
 # crop routine leaves Melon tiles to the crew (see choose_hand_action).
 DAY0_MELON_TILES = frozenset((
     (4, 2), (3, 2), (2, 2), (2, 3),
-    (4, 1), (3, 1), (2, 1),
-    (1, 3), (1, 2),
-    (0, 4),
+    (4, 1),
 ))
 
 # Two NW Geese in place of two day-0 Melons (replays/eggs3.json: the leaders
@@ -709,9 +711,9 @@ MELON_MAX_YIELD = 6
 # day 19 and the opponent has no Melon planted; the first staple plantings of
 # the day take the two seeds.
 LATE_MELON_ACTIVE = True
-LATE_MELON_PLANTING_DAY = FINAL_DAY - CROP_CONFIGS["MELON"]["harvest_day"]
-LATE_MELON_COUNT = 4
-LATE_MELON_MIN_PRICE = 120
+LATE_MELON_PLANTING_DAY = MELON_HARVEST_DAY
+LATE_MELON_COUNT = 12
+LATE_MELON_MIN_PRICE = 0
 
 # An early second Melon wave, a day ahead of the ladder's. Many opponents
 # replant Melon right after the day-10 harvest and sell again on day 20; two
@@ -719,21 +721,13 @@ LATE_MELON_MIN_PRICE = 120
 # (0,0) and (1,0): (0,0) is empty on days 7-10 (NW Carrot-or-empty window)
 # and (1,0) holds a day-7 Carrot, harvested early on day 9 (from age 2, the
 # engine's first_yield_day) to free it. No NE Strawberry is displaced.
-# Hand 3, their owner, keeps them; on day 19 it harvests them before its
-# Goose round (after the Wheat pickup), since the round took it to h15 and
-# (0,0) went unharvested (seed 2). Handing them to hand 2 cost more: on
-# day 9 its own opening Melons went dry (51 sold on day 10, not 59), and it
-# left (0,0) dry every other day. The day-19 harvest sells with the
-# overnight deposit at day 20's opening, ahead of a day-10 wave harvested on
-# day 20.
-# Only against an opponent opening with few Melons: the day-10 replanters
-# open with 5 (we open with 10). Against a 5-Melon opener that replants 12 on
-# day 10 (opp_melon_wave_v1) the pair gained +575.8 a game on seeds 1-5;
-# against our own lineage, which does not replant, it cost ~500.
-EARLY_MELON_ACTIVE = True
+# Hand 2 keeps them from planting to harvest: hand 3 runs the far-row Geese
+# and did not reach (0,0) on day 19 (seed 2). Hand 2's six plain crop tiles
+# are the next row. The day-19 harvest sells with the overnight deposit, at
+# day 20's opening, still ahead of a day-10 wave harvested on day 20.
+EARLY_MELON_ACTIVE = False
 EARLY_MELON_TILES = ((0, 0), (1, 0))
-EARLY_MELON_HAND_INDEX = 3
-EARLY_MELON_MAX_OPPONENT_OPENING_MELONS = 6
+EARLY_MELON_HAND_INDEX = 2
 EARLY_MELON_PLANTING_DAY = MELON_HARVEST_DAY - 1
 EARLY_MELON_HARVEST_DAY = (
     EARLY_MELON_PLANTING_DAY + CROP_CONFIGS["MELON"]["harvest_day"]
@@ -1669,6 +1663,20 @@ def agent(obs):
             MELON_RELIEF_TILES
         )
 
+    # Early second Melon wave: hand 2 keeps its tiles, planting to harvest.
+    if (
+        EARLY_MELON_ACTIVE
+        and EARLY_MELON_PLANTING_DAY <= obs["day"] <= EARLY_MELON_HARVEST_DAY
+    ):
+        for hand_tiles in current_hand_work_tiles_each:
+            for position in EARLY_MELON_TILES:
+                if position in hand_tiles:
+                    hand_tiles.remove(position)
+
+        current_hand_work_tiles_each[EARLY_MELON_HAND_INDEX].extend(
+            EARLY_MELON_TILES
+        )
+
     # On Melon day hand 3 only harvests and banks Melon; the NW Geese go to
     # the NE crop hand whose tiles are nearest them. NE Strawberry (planted
     # days 7-9) first produce on the night of day 16-18, so a day-10 watering
@@ -2235,7 +2243,7 @@ def agent(obs):
         # On LATE_MELON_PLANTING_DAY, a staple planting takes a late Melon
         # seed while the pair is still short.
         if (
-            crop in STAPLE_CROPS
+            crop in STAPLE_CROPS + ("STRAWBERRY",)
             and late_melons_to_plant[0] > 0
             and seed_counts.get("MELON", 0) > 0
         ):
@@ -3127,27 +3135,6 @@ def agent(obs):
             and hand_index == nw_early_geese_hand_index
         )
 
-        # Its placed coops nearest-first: from the shed that is the usual
-        # (4,0) then (3,0), but coming from the early Melons at (0,0) on day
-        # 19 the fixed order walked past (3,0) and reached it too late to
-        # feed.
-        if is_nw_geese_keeper:
-            ordered_targets = (
-                [
-                    target
-                    for target in ordered_targets
-                    if target not in animal_positions
-                ]
-                + sorted(
-                    (
-                        target
-                        for target in ordered_targets
-                        if target in animal_positions
-                    ),
-                    key=lambda target: distance_between(hand_position, target),
-                )
-            )
-
         for target in ordered_targets:
             goose_action = choose_goose_tile_action(
                 hand_position,
@@ -3424,6 +3411,7 @@ def agent(obs):
                 isinstance(tile, dict)
                 and tile.get("kind") == "PLANT"
                 and tile.get("crop") == "MELON"
+                and crop_is_harvestable(tile)
             ):
                 return True
 
@@ -3705,62 +3693,12 @@ def agent(obs):
 
         return ["PLACE", "MELON", melon_carried]
 
-    def choose_early_melon_harvest_action(
-            hand_position,
-            hand_inventory,
-            hand_index,
-    ):
-        # Day 19: hand 3 harvests the early pair (watered to 6 first) before
-        # its Goose round. Nothing is planted on the first tile until both
-        # are in, as this runs ahead of the crop routine.
-        if obs["day"] != EARLY_MELON_HARVEST_DAY:
-            return None
-
-        targets = [
-            position
-            for position in EARLY_MELON_TILES
-            if (
-                isinstance(tile_at(farm, position), dict)
-                and tile_at(farm, position).get("crop") == "MELON"
-                and tile_at(farm, position).get("planted_day")
-                    == EARLY_MELON_PLANTING_DAY
-                and crop_is_harvestable(tile_at(farm, position))
-            )
-        ]
-
-        if not targets:
-            return None
-
-        # Take the Geese's Wheat first: the round passes the coops on the
-        # way back from (0,0).
-        unfed_geese = any(
-            target in animal_positions
-            and not animal_tiles[target].get("fed_today", False)
-            for target in goose_hand_tile_by_index.get(hand_index, ())
-        )
-
-        if (
-            hand_position in SHED_ACCESS_TILES
-            and hand_inventory.get("WHEAT", 0) == 0
-            and unfed_geese
-        ):
-            return None
-
-        if hand_position in targets:
-            tile = tile_at(farm, hand_position)
-
-            if (
-                not tile["watered_today"]
-                and tile.get("yield_units", 0) < MELON_MAX_YIELD
-            ):
-                return ["WATER"]
-
-            return ["HARVEST"]
-
-        return move_to(hand_position, nearest_position(hand_position, targets))
-
     def choose_melon_return_action(hand_position, hand_inventory, assigned_tiles):
-        if obs["day"] != MELON_HARVEST_DAY:
+        if obs["day"] not in (
+            MELON_HARVEST_DAY,
+            LATE_MELON_PLANTING_DAY + CROP_CONFIGS["MELON"]["harvest_day"],
+            LATE_MELON_PLANTING_DAY + CROP_CONFIGS["MELON"]["harvest_day"] + 1,
+        ):
             return None
 
         melon_carried = hand_inventory.get("MELON", 0)
@@ -3976,7 +3914,9 @@ def agent(obs):
             isinstance(tile, dict)
             and tile.get("kind") == "PLANT"
             and tile.get("crop") == "MELON"
-            and tile.get("planted_day") == LATE_MELON_PLANTING_DAY
+            and LATE_MELON_PLANTING_DAY
+                <= tile.get("planted_day", -1)
+                <= LATE_MELON_PLANTING_DAY + 1
         )
     )
     # The opponent test asks whether they run a Melon wave of their own, so
@@ -3995,9 +3935,8 @@ def agent(obs):
     )
     late_melon_phase_active = (
         LATE_MELON_ACTIVE
-        and obs["day"] == LATE_MELON_PLANTING_DAY
+        and LATE_MELON_PLANTING_DAY <= obs["day"] <= LATE_MELON_PLANTING_DAY + 1
         and obs["market"]["prices"]["MELON"] > LATE_MELON_MIN_PRICE
-        and not opponent_melon_wave
         and late_melons_planted < LATE_MELON_COUNT
     )
     # Counted down as hands plant this turn, so two hands cannot both take
@@ -4009,18 +3948,6 @@ def agent(obs):
     ]
 
     # Early second Melon wave (EARLY_MELON_*): tiles still to plant today.
-    # The opponent's opening Melons all still stand on day 9.
-    opponent_opening_melons = sum(
-        1
-        for row in opponent_farm["tiles"]
-        for tile in row
-        if (
-            isinstance(tile, dict)
-            and tile.get("kind") == "PLANT"
-            and tile.get("crop") == "MELON"
-            and tile.get("planted_day") == 0
-        )
-    )
     early_melons_to_plant = (
         [
             position
@@ -4033,8 +3960,6 @@ def agent(obs):
         if (
             EARLY_MELON_ACTIVE
             and obs["day"] == EARLY_MELON_PLANTING_DAY
-            and opponent_opening_melons
-                <= EARLY_MELON_MAX_OPPONENT_OPENING_MELONS
         )
         else []
     )
@@ -4955,17 +4880,6 @@ def agent(obs):
 
         if (
             hand_action is None
-            and EARLY_MELON_ACTIVE
-            and hand_index == EARLY_MELON_HAND_INDEX
-        ):
-            hand_action = choose_early_melon_harvest_action(
-                tuple(hand_position),
-                hand_inventory,
-                hand_index,
-            )
-
-        if (
-            hand_action is None
             and hand_index in goose_hand_tile_by_index
         ):
             hand_action = choose_goose_hand_action(
@@ -5278,7 +5192,7 @@ def agent(obs):
 
         if crop == "MELON" and late_melons_to_plant[0] > 0:
             target_seed_count = late_melons_to_plant[0]
-            last_planting_day = LATE_MELON_PLANTING_DAY
+            last_planting_day = LATE_MELON_PLANTING_DAY + 1
 
         if crop == "MELON" and early_melons_to_plant:
             target_seed_count = len(early_melons_to_plant)

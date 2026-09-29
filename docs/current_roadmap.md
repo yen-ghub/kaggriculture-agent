@@ -6,25 +6,32 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/sheep_feed_loop_fix_v1.py`
+`baselines/final_day_melon_bank_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`sheep_feed_loop_fix_v1` with the final day's Melon banked as soon as a hand's
+own ripe Melons are in (the liquidation rule had held it to h22, the same hour
+as the opponent's). Twenty-seed gate **40W--0L--0T, 100.0%, +1,024.7 per
+game**.
+
+**Next, in order:**
+
+- The leftover it brought back: Wheat 2.0, Carrot 1.4 a game (~150 coins).
+- Late Melons on the SW Wheat block's near tiles first: the block hand still
+  banks at h21 (its last Melon was on the far row).
+- Check the Goose and livestock-service routines for the same empty-shed
+  bounce as the Sheep round had.
+- The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
+  fewer hands on days 5-9.
+- NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/sheep_feed_loop_fix_v1.py` is its direct predecessor. It is
 `early_melon_planter_v1` with one fix: the Sheep round no longer bounces
 between the shed and its animals when the shed has no feed Wheat (seed 1, day
 4: hand 0 walked (4,4)<->(3,4) for 13 hours while two ripe crops rotted); it
 lets the crop routine work until Wheat arrives. Twenty-seed gate
 **27W--13L--0T, 67.5%, +351.8 per game**.
-
-**Next, in order:**
-
-- Check the Goose and livestock-service routines for the same empty-shed
-  bounce.
-- Late Melons: plant them nearest the shed first (seed 6: 18 of 24 reached
-  the shed an hour after the opponent's).
-- The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
-  fewer hands on days 5-9.
-- NW Wheat rot on day 16 (planting-day stagger, untried).
 
 `baselines/early_melon_planter_v1.py` is its direct predecessor. It is
 `early_melon_pair_v1` widened to every NW tile free on day 9 ((0,0), (1,0),

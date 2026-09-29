@@ -3960,3 +3960,25 @@ shed at h23 (sold at 62, the opponent's 18 at 122 at h22). Seed 5 -92.
 Open: the Goose (`choose_goose_tile_action`) and livestock-service routines
 have the same shape (shed trip, then walk to the animal when the shed is
 empty) and may bounce the same way; not yet seen in a trace.
+
+## Accepted: bank the late Melons as soon as they are in
+
+**Status: accepted, frozen as `baselines/final_day_melon_bank_v1.py`.**
+Twenty-seed gate against `sheep_feed_loop_fix_v1`: **40W--0L--0T, 100.0%,
+average 87,308.4 vs 86,283.7 (+1,024.7 per game)**, zero errors.
+
+The user proposed planting late Melons nearest the shed first (seed 6: 18 of
+24 reached the shed at h23 for 62, the opponent's at h22 for 122). The trace
+showed they were already near it -- mostly the SW Wheat block's (4,8),
+(3,8), (3,9), 3-4 steps from the SW shed tile, harvested by h15 -- but sold at
+h22: the final-day liquidation holds the pack until the last hour the hand
+can still walk back, so both players' late Melons reached the market in the
+same hour. `choose_final_day_melon_action` (after the liquidation check, for
+every hand, the block hand's tiles being the block) walks carried Melon to
+the shed and sells it once the hand's own ripe Melons are all in. Seeds 1/6:
++20 -> +1,039, 0 -> +634 (seed 1: 6 at h17 for 158, 17 at h21 for 122).
+
+Open: Wheat leftover 2.0 and Carrot 1.4 a game are back (0.0 before), ~150
+coins: a hand banking Melon late leaves late Wheat/Carrot in the pack or shed.
+The block hand still banks at h21 (its last Melon, on the far row (3,9), was
+planted last); planting the block's near tiles first would bring it earlier.

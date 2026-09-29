@@ -683,7 +683,12 @@ its `max_lifespan_step`, separately from this yield curve.
 Wheat or Carrot can be pulled early from age 2 with whatever it holds (a
 day-7 Carrot pulled on day 9 gave 1). `early_melon_pair_v1` uses this to free
 a tile. A Melon cannot be harvested before age 10, and its lifespan runs to
-`(planted_day + 13) * 24`. So the
+`(planted_day + 13) * 24`.
+
+A plant's growth days are calendar days, so for yield a Melon needs watering
+on each day of ages 6-10; watering on alternate days keeps it alive (two dry
+days kill it) but costs a unit per dry day in the window (seed 2: (0,3) kept
+alive on alternate days sold at 4, not 6). So the
 latest planting that still sells is day 19 (harvest on day 29, the final day,
 at 6 units if watered through age 10); `late_melon_pair_v1` plants two then.
 

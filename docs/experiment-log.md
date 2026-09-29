@@ -3873,3 +3873,55 @@ We still lost those games by 6-8k, on Wheat (+7k to them), Strawberry and Milk
   sold d20.h15 to d22 (the replay: 72 from d20.h06). We beat it by ~2.4-3.9k a
   game, where the real bot beat us by 6-8k: it is only a Melon-timing
   opponent. `tools/vs_opponent.py` compares agents' margins against it.
+
+## Rejected: an NE Melon pair on the unlock day
+
+User's idea: two more Melons against the 5-Melon openers, planted on NE's
+unlock day (the NE hands' first two Strawberry plantings), ripe on day
+16-17. Seeds 1-5 against `opp_melon_wave_v1`: **+2,650.8 per game against
++2,958.9 for `early_melon_pair_v1` (-308)**; mirror identical. By product
+(seeds 1-5 summed, revenue at quoted prices): Melon ours +8.7k, theirs -8.1k
+(their day-20 wave sold 20-30 lower a unit) -- but Strawberry theirs +19.6k,
+ours +5.5k. Our early NE Strawberry are the first on the market and hold the
+price down for everyone; two fewer raised the opponent's Strawberry price.
+Left in the code with `NE_MELON_ACTIVE = False`.
+
+Found on the way and kept: Melon added to `RIPE_WATER_CROPS`. A ripe NE
+Melon stayed on the water list for three days while its hand harvested the
+first NE Strawberry, and rotted on day 20. No effect in the mirror (seeds 1-5
+identical).
+
+## Accepted: early Melons on every free NW tile, with a day-9 planter
+
+**Status: accepted, frozen as `baselines/early_melon_planter_v1.py`.**
+Against `opp_melon_wave_v1`, twenty seeds, both positions: **+4,716.4 per
+game against +3,922.1 for `early_melon_pair_v1` (+794.3)**, ahead on 14 of
+20 seeds. Mirror identical (seeds 1-4; nothing fires against a 10-Melon
+opener).
+
+### What changed (user-directed, in steps)
+
+- `EARLY_MELON_TILES` (0,0), (1,0), (0,3), (1,4): every NW tile free on day
+  9. A tile reserved for an animal is skipped, so on Milk seeds (1,4) goes to
+  the staged Cow (seed 2).
+- A day-9 planter: the first Melon-crew hand (index 8, 34) hired a day early
+  owns the tiles for the day. Every NW hand's day 9 is full (seed 2: hand 3's
+  Goose round ran to h15 and it planted (0,0) at h23). The planter harvested
+  the (1,0) Carrot at h11, planted and watered (1,0), (0,0) and (0,3) by h22.
+- From day 10 each tile goes back to its owner (hand 3 (0,0)/(1,0), hand 0
+  (1,4)), except (0,3), kept by hand 1 (`EARLY_MELON_KEEPERS`).
+- `choose_early_melon_action`, for each owner, ahead of its animal round and
+  after its animals' Wheat pickup: water an early Melon first if it was dry
+  yesterday (day 10 is the crew's, so it is skipped then), water it daily
+  through the growth window (days 15-18), harvest first on day 19.
+
+### Versions on the way (seeds 1-5 against the test opponent)
+
+- Four tiles, no planter: no NW hand had time on day 9; only the pair was
+  planted.
+- Planter, hand 3 keeping all four: (0,3) missed days 10-11 (weed day 12).
+- Planter, each owner keeping its own: -3,689.6 per game. Hand 0 (Sheep and
+  the staged Cow) watered (0,3) first and missed the Cow, which escaped on day
+  12 (seed 4, Milk 231 against 288). Planting (0,3) also re-rolled towns
+  (seed 4: both sides ~90k -> 121-131k).
+- (0,3) to hand 1 (this): +2,894.9 on seeds 1-5 (level), +4,716.4 on twenty.

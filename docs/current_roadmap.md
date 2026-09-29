@@ -6,10 +6,30 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/early_melon_pair_v1.py`
+`baselines/early_melon_planter_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`early_melon_pair_v1` widened to every NW tile free on day 9 ((0,0), (1,0),
+(0,3), and (1,4) unless the staged Cow has it), planted by a Melon-crew hand
+hired a day early, then kept by hand 3, hand 1 ((0,3)) and hand 0 ((1,4)),
+each watering a dry one first and harvesting first on day 19. Against
+`opp_melon_wave_v1` **+794.3 per game** over `early_melon_pair_v1` (twenty
+seeds); identical in the mirror. Also in it: Melon under the ripe-harvest rule.
+
+**Rejected: an NE Melon pair on the unlock day** (-308 against the test
+opponent): fewer early NE Strawberry raised the opponent's Strawberry price
+by more than the Melons took from their wave.
+
+**Next, in order:**
+
+- The replays' real gap: the 5-Melon bots beat us by 6-8k on Wheat (+7k, 43
+  Wheat plants on day 25), Strawberry and Milk (8 Cows by day 9, fewer hands on
+  days 5-9). Worth a study of their hand counts and Wheat acreage.
+- Late Melon tuning: six, spreading the sale over days 27-29, a lower floor.
+- NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/early_melon_pair_v1.py` is its direct predecessor. It is
 `late_melon_four_v2` with an early Melon pair: on day 9, if the opponent opened
 with 6 Melons or fewer, hand 3 plants two on (0,0)/(1,0), harvests them first
 on day 19 and sells them at day 20's opening, ahead of a day-10 replanting
@@ -22,14 +42,6 @@ opponent. For those, run `python tools/vs_opponent.py 1-20 <test opponent>
 main <predecessor>` and compare average margins. `opp_melon_wave_v1` is the
 first test opponent; it is our own agent with the ladder's Melon pattern, so
 it measures Melon timing only.
-
-**Next, in order:**
-
-- The replays' real gap: the 5-Melon bots beat us by 6-8k on Wheat (+7k, 43
-  Wheat plants on day 25), Strawberry and Milk (8 Cows by day 9, fewer hands on
-  days 5-9). Worth a study of their hand counts and Wheat acreage.
-- Late Melon tuning: six, spreading the sale over days 27-29, a lower floor.
-- NW Wheat rot on day 16 (planting-day stagger, untried).
 
 `baselines/late_melon_four_v2.py` is its direct predecessor:
 `late_melon_four_v1` with the late-Melon opponent test also ignoring opponent

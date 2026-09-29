@@ -6,10 +6,27 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/early_melon_planter_v1.py`
+`baselines/sheep_feed_loop_fix_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
+`early_melon_planter_v1` with one fix: the Sheep round no longer bounces
+between the shed and its animals when the shed has no feed Wheat (seed 1, day
+4: hand 0 walked (4,4)<->(3,4) for 13 hours while two ripe crops rotted); it
+lets the crop routine work until Wheat arrives. Twenty-seed gate
+**27W--13L--0T, 67.5%, +351.8 per game**.
+
+**Next, in order:**
+
+- Check the Goose and livestock-service routines for the same empty-shed
+  bounce.
+- Late Melons: plant them nearest the shed first (seed 6: 18 of 24 reached
+  the shed an hour after the opponent's).
+- The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
+  fewer hands on days 5-9.
+- NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/early_melon_planter_v1.py` is its direct predecessor. It is
 `early_melon_pair_v1` widened to every NW tile free on day 9 ((0,0), (1,0),
 (0,3), and (1,4) unless the staged Cow has it), planted by a Melon-crew hand
 hired a day early, then kept by hand 3, hand 1 ((0,3)) and hand 0 ((1,4)),
@@ -20,14 +37,6 @@ seeds); identical in the mirror. Also in it: Melon under the ripe-harvest rule.
 **Rejected: an NE Melon pair on the unlock day** (-308 against the test
 opponent): fewer early NE Strawberry raised the opponent's Strawberry price
 by more than the Melons took from their wave.
-
-**Next, in order:**
-
-- The replays' real gap: the 5-Melon bots beat us by 6-8k on Wheat (+7k, 43
-  Wheat plants on day 25), Strawberry and Milk (8 Cows by day 9, fewer hands on
-  days 5-9). Worth a study of their hand counts and Wheat acreage.
-- Late Melon tuning: six, spreading the sale over days 27-29, a lower floor.
-- NW Wheat rot on day 16 (planting-day stagger, untried).
 
 `baselines/early_melon_pair_v1.py` is its direct predecessor. It is
 `late_melon_four_v2` with an early Melon pair: on day 9, if the opponent opened

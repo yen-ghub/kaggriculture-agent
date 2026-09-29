@@ -3925,3 +3925,38 @@ opener).
   12 (seed 4, Milk 231 against 288). Planting (0,3) also re-rolled towns
   (seed 4: both sides ~90k -> 121-131k).
 - (0,3) to hand 1 (this): +2,894.9 on seeds 1-5 (level), +4,716.4 on twenty.
+
+## Accepted: the Sheep round stops chasing feed that is not there
+
+**Status: accepted, frozen as `baselines/sheep_feed_loop_fix_v1.py`.**
+Twenty-seed gate against `early_melon_planter_v1`: **27W--13L--0T, 67.5%,
+average 90,432.4 vs 90,080.6 (+351.8 per game)**, zero errors.
+
+### The glitch (user's find)
+
+Seed 1, day 4, h10-h23: hand 0 walked (4,4) <-> (3,4) all afternoon, and a
+ripe Carrot on (0,3) and a ripe Wheat on (1,4) rotted. The day-4 Sheep had
+taken the feed cash, so the shed held no Wheat. `choose_sheep_hand_action`:
+more unfed animals than Wheat carried -> walk to the shed; at the shed
+nothing to pick up -> fall through to "walk to the animal needing
+attention" (the unfed Sheep) -> one step off the shed with no Wheat -> walk
+back. The crop routine never got the turn.
+
+### The fix
+
+The shed trip for feed runs only when the shed has Wheat; an unfed animal
+is a target only with Wheat in hand; care is sought only for animals already
+fed (care follows feeding). Otherwise the turn goes on to the crop routine.
+Seed 1 after: hand 0 harvested the (1,4) Wheat at 4, fed the day-4 Sheep at
+h18 once Wheat arrived, replanted (1,4); the (0,3) Carrot was still not
+reached by h23.
+
+### Losses
+
+Seed 6, -1,164 both positions, town re-rolled (own +1,892, taken -3,056):
+day 29's late Melons landed on different tiles and 18 of our 24 reached the
+shed at h23 (sold at 62, the opponent's 18 at 122 at h22). Seed 5 -92.
+
+Open: the Goose (`choose_goose_tile_action`) and livestock-service routines
+have the same shape (shed trip, then walk to the animal when the shed is
+empty) and may bounce the same way; not yet seen in a trace.

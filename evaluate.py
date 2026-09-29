@@ -68,6 +68,7 @@ from baselines.late_melon_four_v2 import agent as late_melon_four_v2_agent
 from baselines.early_melon_pair_v1 import agent as early_melon_pair_v1_agent
 from baselines.opp_melon_wave_v1 import agent as opp_melon_wave_v1_agent
 from baselines.early_melon_planter_v1 import agent as early_melon_planter_v1_agent
+from baselines.sheep_feed_loop_fix_v1 import agent as sheep_feed_loop_fix_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -205,9 +206,12 @@ OPPONENTS = {
     # Direct predecessor of early_melon_planter_v1 (plays identically against
     # it in the mirror; +794.3 per game behind it against opp_melon_wave_v1).
     # "early_melon_pair_v1": early_melon_pair_v1_agent,
+    # Direct predecessor of sheep_feed_loop_fix_v1, and the opponent of its
+    # twenty-seed gate (27W-13L, +351.8 per game).
+    # "early_melon_planter_v1": early_melon_planter_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "early_melon_planter_v1": early_melon_planter_v1_agent,
+    "sheep_feed_loop_fix_v1": sheep_feed_loop_fix_v1_agent,
     # TEST OPPONENT (not a baseline): our agent with the ladder's Melon
     # pattern -- 5 opening Melons, 12 replanted on days 10-11 (built by
     # tools/make_opp_melon_wave.py). For Melon-timing changes; compare margins

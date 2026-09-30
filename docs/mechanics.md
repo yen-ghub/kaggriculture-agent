@@ -886,6 +886,10 @@ day boundary (overflow beyond `shedCapacity`, default 100, is discarded), and
 `_inv_add` imposes no per-hand carry limit. Carrying produce costs nothing and
 risks nothing as long as the day's accumulation stays under the shed cap.
 
+The cap binds in practice: on seeds 2 and 4 the baseline's day-21 drop
+reaches 98 of 100, and 8 more Eggs in the packs that night discarded 8
+Strawberries (worth ~190 each; the Eggs survived).
+
 Walking to the shed to deposit therefore buys only one thing: selling a day
 earlier. That is worth doing for a steeply glutted product such as Milk, and
 not worth doing for a flat one such as Egg. Holding Eggs until the overnight
@@ -1208,6 +1212,15 @@ day): a Goose fed and cared for daily lays 2 Eggs a day. An animal unfed two
 days in a row escapes (the structure stays). **Every animal gets
 `fertilizer_available` = True every night, fed or not; the flag does not
 accumulate**, so a day's Fertilizer not collected that day is lost.
+
+A Goose therefore lays at most 2 Eggs a night (the care bonus is at most 1:
+it counts fed-and-cared days since the last production, which is every
+night) and holds 4, so its Eggs can wait one day with nothing lost: collected
+every second day it gives 4 at a time (`goose_alternate_harvest_v1`). Feed
+and care still have to be daily (an unfed production night pays no care
+bonus and resets it). A Cow makes 1 + up to 2 (two fed-and-cared days) = 3
+every second night and holds 6; a Sheep 1 + 3 = 4 every third night, holding
+6, so it cannot wait a cycle.
 
 All of this (yield, care bonus, escape, Fertilizer) happens in the day-end
 refresh. The episode ends during the final day (`DONE` at step

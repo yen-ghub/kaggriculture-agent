@@ -6,30 +6,38 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/final_day_trip_check_v1.py`
+`baselines/goose_alternate_harvest_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`final_day_harvest_pool_v1` with one day-29 time check for every crop routine
-and the pool: a ripe crop is worked only if walk + waterings + harvest + walk
-back + one PLACE per carried product fits before the liquidation rule turns
-the hand home; a ripe crop is watered only while that leaves room for the
-hand's other reachable ripe crops (up to its last ripe Melon, where the Melon
-bank sends it home); nothing is watered to keep it alive. Twenty-seed gate
-**36W--2L--2T, 92.5%, +297.3 per game** (Wheat leftover 0.0).
+`final_day_trip_check_v1` with Goose Eggs collected every second day (4 at a
+time, the coop's cap) instead of 2 daily, the two coops of each pair on
+alternate days (tile parity) so the overnight Egg drop stays ~8 a night;
+feed, care and Fertilizer stay daily. Twenty-seed gate **38W--2L--0T,
+95.0%, +495.9 per game** (harvests 434.6 -> 401.0).
 
 **Next, in order:**
 
+- Milk the same way: a Cow holds 6 and makes ~3 every second night, so it
+  could be milked every fourth day (Sheep cannot: 4 Wool per 3 nights, cap
+  6). Milk gluts, so read sale hours, and watch the 100-unit shed cap.
+- The shed cap: the baseline's day-21 overnight drop is at 98 of 100 on
+  seeds 2/4; anything that adds to one night's drop loses produce
+  (Eggs are dropped before Strawberry and survive; Strawberry is discarded).
 - Ripe crops still left in the ground on day 29 (62 units over seeds 1-6,
-  was 104; the far NE corners (8,1)-(9,2)): move Wheat's last planting day
-  to 24 and Carrot's to 25 so they ripen by day 28 and go in overnight, or
-  hire a 13th hand on day 29.
-- The gate's 2 losses were not traced.
+  the far NE corners (8,1)-(9,2)): move Wheat's last planting day to 24 and
+  Carrot's to 25, or hire a 13th hand on day 29.
 - Check the Goose and livestock-service routines for the same empty-shed
   bounce as the Sheep round had.
 - The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
   fewer hands on days 5-9.
 - NW Wheat rot on day 16 (planting-day stagger, untried).
+
+`baselines/final_day_trip_check_v1.py` is its direct predecessor:
+`final_day_harvest_pool_v1` with one day-29 time check (a ripe crop is worked
+or watered only while it still reaches the shed before the liquidation rule
+turns the hand home). Twenty-seed gate **36W--2L--2T, 92.5%, +297.3 per
+game**.
 
 `baselines/final_day_harvest_pool_v1.py` is its direct predecessor:
 `final_day_melon_bank_v1` with a final-day harvest pool (idle hands harvest

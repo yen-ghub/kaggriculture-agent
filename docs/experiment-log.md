@@ -4073,3 +4073,31 @@ seeds 1/2/4 only +31..+49). Fix: the run ends at the hand's last ripe Melon.
 Head-to-head seeds 1-4: +227/+187, +156/+156, +827/+827, +107/+177. Ripe
 units left in the ground, seeds 1-6: 104 -> 62; every day-29 watering on
 seeds 1-4 now ends in a harvest.
+
+## Accepted: Goose Eggs every second day, the coops of a pair alternating
+
+**Status: accepted, frozen as `baselines/goose_alternate_harvest_v1.py`.**
+Twenty-seed gate against `final_day_trip_check_v1`: **38W--2L--0T, 95.0%,
+average 87,409.4 vs 86,913.5 (+495.9 per game)**, zero errors. Harvests
+401.0 (was 434.6), Strawberry sold 239.7 (+1.5), Fertilizer 232.3 (+2.5),
+Eggs unchanged (160.7). The 2 losses were not traced.
+
+User's idea: a coop holds 4 Eggs, so it need not be emptied daily; hand 3
+could alternate between its two coops. Engine: a fed and cared Goose lays 2
+a night (care bonus at most 1 with a nightly production), max_held 4. Every
+Goose harvest in the baseline took exactly 2 (seeds 1-3: hand 3 20 per coop,
+hands 5/7 17, farmer/hand 4 18). Feed, care and Fertilizer must stay daily,
+so only the HARVEST can alternate: ~1 action a day for hand 3, half for each
+other Goose hand.
+
+`animal_harvest_due(tile, position)` replaces every animal-harvest threshold
+check. A Goose is harvested on its day ((x + y) % 2 == day % 2), or any day
+it would overflow tonight (yield + 2 > 4), and everything on the final day.
+
+First version, "harvest when it would overflow" (all Geese in step): seeds
+1-4 head-to-head +391/+351, -1,035/-1,035, +851/+851, -1,516/-1,536. Seeds 2
+and 4 lost 8 Strawberries at the day-21 overnight drop: the shed cap is 100,
+the baseline's drop was at 98, and the in-step Geese put 16 Eggs in the packs
+that night instead of 8 (seed 4: 38 Strawberries sold at d22 h01 against
+the baseline's 46). With the coops of each pair alternating: +471/+431,
++945/+945, +626/+626, -34/-34; the overflow was gone.

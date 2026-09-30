@@ -70,6 +70,7 @@ from baselines.opp_melon_wave_v1 import agent as opp_melon_wave_v1_agent
 from baselines.early_melon_planter_v1 import agent as early_melon_planter_v1_agent
 from baselines.sheep_feed_loop_fix_v1 import agent as sheep_feed_loop_fix_v1_agent
 from baselines.final_day_melon_bank_v1 import agent as final_day_melon_bank_v1_agent
+from baselines.final_day_harvest_pool_v1 import agent as final_day_harvest_pool_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -213,9 +214,12 @@ OPPONENTS = {
     # Direct predecessor of final_day_melon_bank_v1, and the opponent of its
     # twenty-seed gate (40W-0L, +1,024.7 per game).
     # "sheep_feed_loop_fix_v1": sheep_feed_loop_fix_v1_agent,
+    # Direct predecessor of final_day_harvest_pool_v1, and the opponent of its
+    # twenty-seed gate (40W-0L, +826.4 per game).
+    # "final_day_melon_bank_v1": final_day_melon_bank_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "final_day_melon_bank_v1": final_day_melon_bank_v1_agent,
+    "final_day_harvest_pool_v1": final_day_harvest_pool_v1_agent,
     # TEST OPPONENT (not a baseline): our agent with the ladder's Melon
     # pattern -- 5 opening Melons, 12 replanted on days 10-11 (built by
     # tools/make_opp_melon_wave.py). For Melon-timing changes; compare margins

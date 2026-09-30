@@ -6,25 +6,37 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/final_day_melon_bank_v1.py`
+`baselines/final_day_harvest_pool_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`sheep_feed_loop_fix_v1` with the final day's Melon banked as soon as a hand's
-own ripe Melons are in (the liquidation rule had held it to h22, the same hour
-as the opponent's). Twenty-seed gate **40W--0L--0T, 100.0%, +1,024.7 per
-game**.
+`final_day_melon_bank_v1` with a final-day harvest pool: on day 29 a hand with
+no work of its own left harvests another hand's ripe crop if it can still
+bring it back to the shed in time. Twenty-seed gate **40W--0L--0T, 100.0%,
++826.4 per game** (mostly earlier late-Melon sales; Wheat/Carrot leftover
+0.8/0.0).
 
 **Next, in order:**
 
-- The leftover it brought back: Wheat 2.0, Carrot 1.4 a game (~150 coins).
-- Late Melons on the SW Wheat block's near tiles first: the block hand still
-  banks at h21 (its last Melon was on the far row).
+- Ripe crops still left in the ground on day 29 (~17 units a seed, the
+  far corners): move Wheat's last planting day to 24 and Carrot's to 25 so
+  they ripen by day 28 and go in overnight, or hire a 13th hand on day 29.
 - Check the Goose and livestock-service routines for the same empty-shed
   bounce as the Sheep round had.
 - The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
   fewer hands on days 5-9.
 - NW Wheat rot on day 16 (planting-day stagger, untried).
+
+**Rejected since the last baseline** (details in the log): late Melons on the
+block's near tiles only (-40 over 3 seeds, sometimes one Melon fewer);
+block Melon-first harvest (no-op, already Melon-first); banking Melon only
+after all own ripe crops (-1k a seed).
+
+`baselines/final_day_melon_bank_v1.py` is its direct predecessor. It is
+`sheep_feed_loop_fix_v1` with the final day's Melon banked as soon as a hand's
+own ripe Melons are in (the liquidation rule had held it to h22, the same hour
+as the opponent's). Twenty-seed gate **40W--0L--0T, 100.0%, +1,024.7 per
+game**.
 
 `baselines/sheep_feed_loop_fix_v1.py` is its direct predecessor. It is
 `early_melon_planter_v1` with one fix: the Sheep round no longer bounces

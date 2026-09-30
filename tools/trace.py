@@ -49,7 +49,7 @@ from main import SHED_ACCESS_TILES
 
 # Keep this pointed at the current frozen baseline (docs/current_roadmap.md).
 # A stale default is how a diagnostic quietly starts measuring the wrong thing.
-DEFAULT_OPPONENT = "final_day_melon_bank_v1"
+DEFAULT_OPPONENT = "final_day_harvest_pool_v1"
 MOVES = ("NORTH", "SOUTH", "EAST", "WEST")
 PRODUCTS = (
     "WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON",

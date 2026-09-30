@@ -462,6 +462,13 @@ Returning carried produce requires one movement action per tile of Manhattan
 distance to the shed-access tile. It also requires one `PLACE` action for each
 distinct crop type being carried.
 
+A final-day harvest only pays if the whole trip fits: distance to the tile +
+1 `HARVEST` (+1 `WATER` if it still adds a unit) + distance back to a
+shed-access tile + 1 `PLACE` must be at most `23 - obs["hour"]`. Our hands
+start day 29 at the shed and are re-hired at h02-h04 (~20 actions), so a
+crop 5-9 steps out that ripens on day 29 (Wheat planted day 25, Carrot day
+26) is often unreachable in time for any hand (`final_day_harvest_pool_v1`).
+
 ## Cows and Milk
 
 A cow occupies a pasture tile. Establishing one requires two actions on that

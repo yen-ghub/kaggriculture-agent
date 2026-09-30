@@ -3982,3 +3982,58 @@ Open: Wheat leftover 2.0 and Carrot 1.4 a game are back (0.0 before), ~150
 coins: a hand banking Melon late leaves late Wheat/Carrot in the pack or shed.
 The block hand still banks at h21 (its last Melon, on the far row (3,9), was
 planted last); planting the block's near tiles first would bring it earlier.
+
+## Rejected: late Melons on the SW Wheat block's near tiles only
+
+The block hand planted late Melons only on block tiles within 4 steps of the
+SW shed tile (4,5): (4,8), (3,8), (4,9). Head-to-head against
+`final_day_melon_bank_v1`, seeds 1/3/6: +256/+216, 0, -256 (-40 in all). The
+Melons bank at h17 instead of h21, but when no near tile frees on day 19 one
+Melon does not go in at all (seed 6: 12 sold instead of 17-18).
+
+## Rejected (no-op): block hand harvests its Melons before its Wheat
+
+Seeds 3/6 tied exactly. The block hand's day 29 was already Melon-first. What
+sets its h21 sale: it is the 12th hire (starts h04), then three Melons at
+3 actions each (step, water to 6, harvest) and a 5-step walk back. Only an
+earlier hire or skipping the final watering (-3 units, ~300) would move it.
+
+## Rejected: bank Melon only after every own ripe crop is in, plus no final-day watering of unripe plants
+
+About -1,000 a seed against `final_day_melon_bank_v1` (seeds 1, 2, 4 about
+-1k, seed 3 +6); ripe units left in the ground on seeds 1-6 only 111 -> 106.
+Holding the Melon for the hand's other ripe crops pushes the sale back to
+~h21, level with the opponent's, undoing the previous win. The crops left in
+the ground are the season's last plantings (Wheat day 25, Carrot day 26)
+ripening on day 29 on the far corners (hand 6: (8,1) (9,1) (9,2); hand 7:
+(8,0) (9,0); hand 5: (9,4); hand 4: (8,3) (9,3); hand 2: (0,1) (1,1); hand 3:
+(0,0); hand 11: (4,9) (0,9)). Each owner has ~20 actions on day 29 and cannot
+reach all of them and still walk back.
+
+## Accepted: final-day harvest pool (idle hands harvest other hands' ripe crops)
+
+**Status: accepted, frozen as `baselines/final_day_harvest_pool_v1.py`.**
+Twenty-seed gate against `final_day_melon_bank_v1`: **40W--0L--0T, 100.0%,
+average 87,284.5 vs 86,458.1 (+826.4 per game)**, zero errors. Wheat leftover
+0.8 (was 2.0), Carrot 0.0 (was 1.4); Wheat sold 282.6 (+2.7), Carrot 33.3
+(+5.9), harvests 432.0 (+3.6).
+
+User's idea: on day 29 other hands have few ripe crops on their own tiles.
+A post-pass after the hand loop, final day only: every hand whose routines
+ended in PASS is matched nearest-first to a ripe PLANT tile (TILES_MANAGED
+plus the SW block, not an animal tile, `crop_is_harvestable`, yield > 0) that
+no hand stands on, if walk + harvest + walk to the nearest shed-access tile +
+place fits in the hours left. On the tile it waters first when
+`ripe_watering_adds_yield` and there is time, else harvests; the existing
+liquidation and Melon-bank rules bring the pack home. Days 0-28 unchanged.
+
+Head-to-head seeds 1-4: +1,007/+967, +1,023/+1,023, +203/+203, +719/+729.
+Most of it is Melon timing, not the far corners: seed 1 sold the same 83
+Melons at 176.7 against 167.9 (+731) -- an idle hand takes a late Melon off
+the Wheat block and, having no own ripe Melons, banks it hours before the
+block hand's h21 -- plus 3 more Wheat and 3 more Carrot (+268). Ripe units
+left in the ground, seeds 1-6: 111 -> 104. The far corners (e.g. (9,1)) stay:
+hands go idle mid-afternoon, too late for the round trip.
+
+Open: ~17 ripe units a seed still in the ground; the fix has to act before
+day 29 (last planting days one earlier, or an extra day-29 hire).

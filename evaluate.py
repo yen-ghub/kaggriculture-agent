@@ -75,6 +75,7 @@ from baselines.final_day_trip_check_v1 import agent as final_day_trip_check_v1_a
 from baselines.goose_alternate_harvest_v1 import agent as goose_alternate_harvest_v1_agent
 from baselines.opening_sheep_swap_v1 import agent as opening_sheep_swap_v1_agent
 from baselines.ne_day9_melon_v1 import agent as ne_day9_melon_v1_agent
+from baselines.dry_plant_first_v1 import agent as dry_plant_first_v1_agent
 
 # Define variables
 SEEDS = list(range(1,21))
@@ -235,9 +236,12 @@ OPPONENTS = {
     # twenty-seed gate (25W-15L, +28.4 per game, NE Melons then ungated;
     # +2,319.2 against opp_melon_wave_v1 on seeds 1-5).
     # "opening_sheep_swap_v1": opening_sheep_swap_v1_agent,
+    # Direct predecessor of dry_plant_first_v1, and the opponent of its
+    # twenty-seed gate (35W-5L, +637.5 per game).
+    # "ne_day9_melon_v1": ne_day9_melon_v1_agent,
     # Current frozen baseline. Identical to main.py until main.py moves on, so
     # it would be self-play here.
-    "ne_day9_melon_v1": ne_day9_melon_v1_agent,
+    "dry_plant_first_v1": dry_plant_first_v1_agent,
     # TEST OPPONENT (not a baseline): our agent with the ladder's Melon
     # pattern -- 5 opening Melons, 12 replanted on days 10-11 (built by
     # tools/make_opp_melon_wave.py). For Melon-timing changes; compare margins

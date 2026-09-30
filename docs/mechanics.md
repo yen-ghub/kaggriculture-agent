@@ -1249,3 +1249,16 @@ at 218 all of day 6 on seeds 1, 2 and 5 while nobody sold; 12 units sold
 into it at 206/199 (two lots of 6), and the next 12 at d7 h01 fetched 185-187.
 The first seller of the day-6 Wool takes the better price
 (`opening_sheep_swap_v1`).
+
+## Confirmed: an ongoing crop is removed after its last production
+
+In `_daily_refresh_plants`, when an ongoing crop's production count reaches
+`max_yield` (Strawberry: the 4th, 16 days after planting), the engine sets
+`max_lifespan_step` to the end of the next day; the plant is then removed
+and the tile shows as a WEED, watered or not. Seed 1: day-5 Strawberries
+became WEED on night 21, day-6 ones on night 22. Count neglect deaths by a
+plant's second dry day, not by WEED tiles (`dry_plant_first_v1`).
+
+A plant dry since yesterday (`consecutive_unwatered >= 1`) dies tonight
+unless watered; a Strawberry's unharvested yield stays on the plant (capped
+at 4). So a dry plant outranks a Strawberry harvest.

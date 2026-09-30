@@ -6,31 +6,27 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/ne_day9_melon_v1.py`
+`baselines/dry_plant_first_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`opening_sheep_swap_v1` plus:
-
-- the farmer also banks the opening Sheep's day-9 Wool first thing (seed 1:
-  d9 h02/h06 for 181/172, against d10 h01 for 151 with the opponent's);
-- against openers with 6 Melons or fewer: on day 9, up to 2 NE tiles free
-  that day (empty or weed; which ones varies by seed) take a Melon, each
-  planted and watered by its own hand before its other work, ripe on day 19
-  ahead of a day-10 replanting wave; a Goose hand places, feeds and cares for
-  its new Goose first, picking up its Wheat with it.
-
-Mirror gate **25W--15L--0T, 62.5%, +28.4 per game** (run with the NE Melons
-still ungated). Against `opp_melon_wave_v1`, seeds 1-5: **+7,179.5 vs
-+4,860.3 per game (+2,319.2)**, every seed ahead.
+`ne_day9_melon_v1` with one change to the main crop routine: a plant dry
+since yesterday (it dies tonight) is reached before a Strawberry harvest,
+together with ripe one-time crops (which rot); not on the final day.
+Twenty-seed gate **35W--5L--0T, 87.5%, +637.5 per game** (Strawberry sold
+249.2 against 242.1).
 
 **Next, in order:**
 
+- The block hand's late-Melon banking waits for a far-row Melon: with a late
+  Melon on (3,9), all 17 block Melons sold at d29 h20-h21 for 106/62
+  (seed 1) against h15-h16 for 158/133 without it. Bank the near ones first,
+  or keep the far row out of the late Melons.
+- NE (9,4)'s day-6 Strawberry dies on night 9 on seeds 1/2 (both sides).
 - NE day-9 Melons reach 5, not 6; against the test opponent seed 1, (9,0)
   went unwatered from day 16 and died a day before ripening.
 - Milk every fourth day (a Cow holds 6, makes ~3 every second night).
-- The opening Cows miss 9-10 feed/care days a game against 4 since the
-  swap; the first Milk of a production day sells at h13 in one batch.
+- The opening Cows miss 9-10 feed/care days a game against 4 since the swap.
 - A test opponent with the public bots' near-shed Sheep.
 - Late Melon on an old Strawberry on day 19 when fewer than 4 tiles are free.
 - The shed cap (the day-21 drop reaches 98 of 100 on seeds 2/4).
@@ -38,6 +34,11 @@ still ungated). Against `opp_melon_wave_v1`, seeds 1-5: **+7,179.5 vs
 - Goose/livestock routines: the empty-shed bounce.
 - The 5-Melon bots' real edge: Wheat acreage, Milk, fewer hands on days 5-9.
 - NW Wheat rot on day 16.
+
+`baselines/ne_day9_melon_v1.py` is its direct predecessor: the day-9 Wool
+banked by the farmer, and day-9 NE Melons against openers with 6 Melons or
+fewer. Mirror gate **25W--15L, +28.4 per game**; +2,319.2 against
+`opp_melon_wave_v1` (seeds 1-5).
 
 `baselines/opening_sheep_swap_v1.py` is its direct predecessor: opening Sheep
 on (4,4)/(4,3), Cows on (3,4)/(3,3), the farmer banking the first Wool on

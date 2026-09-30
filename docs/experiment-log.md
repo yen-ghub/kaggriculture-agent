@@ -4188,3 +4188,38 @@ Melon-harvest day 10, when the hands work Melon first.
 
 Open: the NE Melons reach 5, not 6; against the test opponent on seed 1,
 (9,0) got no water on days 16-18 and died on day 18.
+
+## Accepted: a plant dry since yesterday comes before a Strawberry harvest
+
+**Status: accepted, frozen as `baselines/dry_plant_first_v1.py`.**
+Twenty-seed gate against `ne_day9_melon_v1`: **35W--5L--0T, 87.5%, average
+89,678.4 vs 89,040.9 (+637.5 per game)**, zero errors. Strawberry sold 249.2
+(the previous gate 242.1).
+
+User's find: hand 6 prioritised Strawberry harvests and let plants die from
+about day 16. Seed 1, day 16: at (6,1) it harvested and applied the off-day
+Fertilizer instead of watering (correct: watered on day 15, it may go one
+day dry). Day 17: the crop routine went to the nearest ripe Strawberry
+first -- harvested (7,1) (off-day Fertilizer again), watered (8,1) (tied
+with (6,1) on distance), (9,1), (9,2), harvested (9,3) -- and never returned
+to (6,1), which died that night; (7,1) died the next the same way. Seeds
+1-3 all lose the same two (seed 3: (5,1), (8,3)).
+
+A Strawberry's yield keeps on the plant; a plant dry since yesterday is lost
+tonight. `choose_hand_action` now walks first to water targets with
+`consecutive_unwatered >= 1`, together with ripe one-time crops (rot), before
+the harvest-first step; not on the final day (its own time check). The SW
+block routine already did this (`urgent_targets`).
+
+Neglect deaths (unwatered on their last day), seeds 1/2/3: 4 -> 3, 7 -> 5,
+4 -> 2 (the remaining ones are mostly end-of-life removals of day-6 plants on
+night 22, which the count cannot tell from neglect, plus (9,4)'s day-6
+Strawberry dying on night 9 on both sides). Head-to-head seeds 1-4: -1,265,
++1,411, +2,440, -182/+595; seeds 1, 3, 4 re-rolled. Seed 1's loss is a
+knock-on: (2,1) was not free on day 19, the fourth late Melon went on the
+block's far row (3,9), and the block hand, banking only once all its ripe
+Melons are in, sold all 17 at d29 h20-h21 for 106/62 against the baseline's
+h15-h16 for 158/133 (-1,490); Strawberry +12 units (+829).
+
+Note for death counts: a Strawberry ends its life 16 days after planting and
+is removed that night as a WEED, watered or not.

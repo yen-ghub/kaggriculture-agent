@@ -4037,3 +4037,39 @@ hands go idle mid-afternoon, too late for the round trip.
 
 Open: ~17 ripe units a seed still in the ground; the fix has to act before
 day 29 (last planting days one earlier, or an extra day-29 hire).
+
+## Accepted: final-day trip check (skip watering when there is no time)
+
+**Status: accepted, frozen as `baselines/final_day_trip_check_v1.py`.**
+Twenty-seed gate against `final_day_harvest_pool_v1`: **36W--2L--2T, 92.5%,
+average 87,321.6 vs 87,024.3 (+297.3 per game)**, zero errors. Wheat sold
+286.7 (+4.1), leftover 0.0 (was 0.8); Carrot 34.2 (+0.9). The 2 losses were
+not traced.
+
+User's idea: skip watering on day 29 when there is not enough time. Day-29
+WATER actions on seeds 1-4 (baseline): 12-17 a seed on ripe crops then
+harvested, but 0-2 a seed on a ripe crop then left in the ground (seeds 2/4:
+hand 7 watered (6,0) at h14, was turned home by the liquidation rule, 4 Wheat
+left) and 0-3 on Strawberry (useless: no refresh after day 29).
+
+`final_day_route_slack(hand, route, pack, waterings)`: actions to spare after
+the route before the liquidation rule turns the hand home at its last
+harvest, `23 - hour - (walk + waterings + harvests) - walk back - carried
+product types - 1`. On the final day, in `choose_hand_action`, the SW block
+routine and the harvest pool:
+
+- only ripe crops with slack >= 0 are targets (seed 1: hand 7 had walked to
+  its own (8,0), too far, and came home empty; now it PASSes and the pool
+  sends it to (8,1) for 4 Wheat);
+- a ripe crop is watered only while `final_day_ripe_slack` >= 1: the slack
+  of the longest nearest-first run of ripe tiles that fits;
+- no watering to keep a plant alive.
+
+First version: the run covered every ripe tile. Seed 1: hand 6 skipped
+watering its (6,1) Wheat and (7,1) Melon to make room for (8,1)-(9,2), then
+the Melon bank sent it home and it idled at the shed h16-h21 (-1 Melon,
+seeds 1/2/4 only +31..+49). Fix: the run ends at the hand's last ripe Melon.
+
+Head-to-head seeds 1-4: +227/+187, +156/+156, +827/+827, +107/+177. Ripe
+units left in the ground, seeds 1-6: 104 -> 62; every day-29 watering on
+seeds 1-4 now ends in a harvest.

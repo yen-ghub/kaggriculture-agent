@@ -4101,3 +4101,90 @@ the baseline's drop was at 98, and the in-step Geese put 16 Eggs in the packs
 that night instead of 8 (seed 4: 38 Strawberries sold at d22 h01 against
 the baseline's 46). With the coops of each pair alternating: +471/+431,
 +945/+945, +626/+626, -34/-34; the overflow was gone.
+
+## Accepted: opening Sheep beside the shed, first Wool banked on day 6
+
+**Status: accepted, frozen as `baselines/opening_sheep_swap_v1.py`.**
+Twenty-seed gate against `goose_alternate_harvest_v1`: **28W--12L--0T, 70.0%,
+average 94,017.5 vs 93,707.6 (+309.9 per game)**, zero errors. Against the
+test opponent `opp_melon_wave_v1` (20 seeds): **+4,860.3 vs +4,380.0 per
+game (+480.3)**. The swap changes the empty-tile timeline, so most towns
+re-roll (seeds 1, 3, 4 of 1-4); the losses were not traced.
+
+User's idea (some public opponents keep their Sheep beside the shed): swap
+the opening animals so the Sheep stand on (4,4)/(4,3) and the Cows on
+(3,4)/(3,3), and sell the first 12 Wool as early as possible. Baseline,
+seeds 1/2/5: hand 0 harvested the Wool at h07/h11 on day 6 and kept it for the
+overnight drop; both sides sold 12 at d7 h01 for 185, while Wool stood at 218
+all of day 6. Only the tile constants name these tiles.
+
+Versions (seeds 1-4 head-to-head unless stated):
+
+1. Swap alone: the Wool still waited for the overnight drop (hand 0's Sheep
+   round has no deposit step), and the Milk lost its in-passing drop on (4,4)
+   (seed 1, day 8: 12 at h16 for 169 against 6 at h06 for 196 + 6 at h15).
+2. + the farmer takes over the opening Sheep outright (the user meant only
+   the first harvest): -30,804 over seeds 1-4, every seat lost. The farmer
+   went from 18% to 6.4% idle; seed 2: Cows uncared 23 cow-days (baseline 4),
+   unfed 17 (2), 77 Fertilizer uncollected (35); Milk -18 units (-3,442),
+   Fertilizer -24.
+3. The farmer takes only the first Wool harvest (`farmer_first_wool_due`:
+   an opening Sheep's first yield day, placed day + 6; hand 0 skips it that
+   day) and places Wool in passing on a shed-access tile or a step from it;
+   the farmer steps from a Cow tile to (4,4) to drop Milk: +6,648, but seed
+   3 -592: after the (3,4) Cow the Milk step sent the round east from (4,4)
+   and (3,3) went unfed or uncared every second day from day 14.
+4. The Milk walk waits until both opening Cows are served (up to 2 steps):
+   +1,017/+1,030, -767/-767, +797/+797, +1,778/+1,778. Seed 2 (the only
+   like-for-like seed): Milk level, Wool +210, one late Melon fewer. Wool
+   sells d6 h02 x6 @206 and h06 x6 @199; the opponent's 12 follow at d7 h01.
+
+The missing late Melon (seeds 1, 2, 4: 3 against 4) is a knock-on: in the
+baseline, hand 6 left (7,1)'s day-7 Strawberry dry on day 18, it died, and
+the freed tile took the fourth late Melon on day 19; ours, ~2 hours ahead
+after the swap, watered it at d18 h22 and kept the Strawberry.
+
+## Accepted: day-9 Wool banked; day-9 NE Melons against few-Melon openers
+
+**Status: accepted, frozen as `baselines/ne_day9_melon_v1.py`.** Mirror
+gate against `opening_sheep_swap_v1`: **25W--15L--0T, 62.5%, 87,939.7 vs
+87,911.3 (+28.4 per game)**, run while the NE Melons still played in the
+mirror; the frozen version plays them only against openers with 6 Melons or
+fewer, so the mirror sees the day-9 Wool alone. Against `opp_melon_wave_v1`,
+seeds 1-5: **+7,179.5 vs +4,860.3 per game (+2,319.2)**, every seed ahead
+(seed 5 +7,712 vs +3,427). User's call to freeze on those.
+
+User's idea: bank the opening Sheep's day-9 Wool early too (the farmer, as
+on day 6) and use the money to plant 1-2 NE Melons. Seed 1, baseline: the
+farm had 311 all day 9, and NE (8,0) (empty) and (9,0) (weed) stood unused
+until day 10; hand 0 kept the day-9 Wool (4 each) for the overnight drop,
+sold 8 at d10 h01 for 151 with the opponent's.
+
+On the way:
+
+1. Day-10 version (the first reading of the request): Wool d9 h02/h06 for
+   181/172; NE Melons in on day 10 at h18/h22, only 5 and 3 units. Seeds 1-4
+   head-to-head +1,731; against the test opponent +1,042 a game.
+2. Day 9 (the user's intent: before the Melon harvest, ripe on day 19): the
+   NE Melon switch only converted Strawberry plantings, and the NE hands'
+   day-9 crop is Carrot -- nothing planted. Converting staples too: still
+   nothing, because the free tiles' owner, hand 7, spends day 9 on its new
+   Goose (coop on (5,1)) and reached (7,0) at h23.
+3. `choose_ne_melon_action`: the free NE tiles today, first in route order,
+   go to their owners ahead of other work (DIG a weed, PLANT, then WATER --
+   a new plant starts one day dry; the first version never watered and both
+   died). A Goose hand places, feeds and cares for its new Goose first; on
+   this day it takes the Goose's Wheat with the Goose (saved the h10-h16
+   walk back to the shed). Seed 1: Goose placed h10, fed/cared h11-h12,
+   Melons planted and watered h17-h22, 5 units each on day 19.
+4. Seed purchase: both day-9 Melon sets (NW early and NE) are bought for;
+   before, the NE target overwrote the NW one.
+
+Rejected on the way: skipping day-9 watering for a Strawberry watered on day
+8 (user's suggestion to free actions; `STRAWBERRY_SKIP_WATER_DAY`, left in
+as None). Seed 1: 7 Strawberries died on night 10 -- (2,0), (0,1), (1,1),
+(8,1), (9,1), (9,2), (9,3) -- skipped on day 9 and left dry again on the
+Melon-harvest day 10, when the hands work Melon first.
+
+Open: the NE Melons reach 5, not 6; against the test opponent on seed 1,
+(9,0) got no water on days 16-18 and died on day 18.

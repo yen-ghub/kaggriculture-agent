@@ -6,32 +6,48 @@ experiment. Detailed completed and rejected results belong in
 
 ## Current frozen baseline
 
-`baselines/goose_alternate_harvest_v1.py`
+`baselines/ne_day9_melon_v1.py`
 
 The active strategy in `main.py` should be compared against this baseline until
 a newer candidate passes the evaluation gates below. It is
-`final_day_trip_check_v1` with Goose Eggs collected every second day (4 at a
-time, the coop's cap) instead of 2 daily, the two coops of each pair on
-alternate days (tile parity) so the overnight Egg drop stays ~8 a night;
-feed, care and Fertilizer stay daily. Twenty-seed gate **38W--2L--0T,
-95.0%, +495.9 per game** (harvests 434.6 -> 401.0).
+`opening_sheep_swap_v1` plus:
+
+- the farmer also banks the opening Sheep's day-9 Wool first thing (seed 1:
+  d9 h02/h06 for 181/172, against d10 h01 for 151 with the opponent's);
+- against openers with 6 Melons or fewer: on day 9, up to 2 NE tiles free
+  that day (empty or weed; which ones varies by seed) take a Melon, each
+  planted and watered by its own hand before its other work, ripe on day 19
+  ahead of a day-10 replanting wave; a Goose hand places, feeds and cares for
+  its new Goose first, picking up its Wheat with it.
+
+Mirror gate **25W--15L--0T, 62.5%, +28.4 per game** (run with the NE Melons
+still ungated). Against `opp_melon_wave_v1`, seeds 1-5: **+7,179.5 vs
++4,860.3 per game (+2,319.2)**, every seed ahead.
 
 **Next, in order:**
 
-- Milk the same way: a Cow holds 6 and makes ~3 every second night, so it
-  could be milked every fourth day (Sheep cannot: 4 Wool per 3 nights, cap
-  6). Milk gluts, so read sale hours, and watch the 100-unit shed cap.
-- The shed cap: the baseline's day-21 overnight drop is at 98 of 100 on
-  seeds 2/4; anything that adds to one night's drop loses produce
-  (Eggs are dropped before Strawberry and survive; Strawberry is discarded).
-- Ripe crops still left in the ground on day 29 (62 units over seeds 1-6,
-  the far NE corners (8,1)-(9,2)): move Wheat's last planting day to 24 and
-  Carrot's to 25, or hire a 13th hand on day 29.
-- Check the Goose and livestock-service routines for the same empty-shed
-  bounce as the Sheep round had.
-- The 5-Melon bots' real edge: Wheat acreage (+7k), Milk (8 Cows by day 9),
-  fewer hands on days 5-9.
-- NW Wheat rot on day 16 (planting-day stagger, untried).
+- NE day-9 Melons reach 5, not 6; against the test opponent seed 1, (9,0)
+  went unwatered from day 16 and died a day before ripening.
+- Milk every fourth day (a Cow holds 6, makes ~3 every second night).
+- The opening Cows miss 9-10 feed/care days a game against 4 since the
+  swap; the first Milk of a production day sells at h13 in one batch.
+- A test opponent with the public bots' near-shed Sheep.
+- Late Melon on an old Strawberry on day 19 when fewer than 4 tiles are free.
+- The shed cap (the day-21 drop reaches 98 of 100 on seeds 2/4).
+- Ripe crops left in the ground on day 29 (the far NE corners).
+- Goose/livestock routines: the empty-shed bounce.
+- The 5-Melon bots' real edge: Wheat acreage, Milk, fewer hands on days 5-9.
+- NW Wheat rot on day 16.
+
+`baselines/opening_sheep_swap_v1.py` is its direct predecessor: opening Sheep
+on (4,4)/(4,3), Cows on (3,4)/(3,3), the farmer banking the first Wool on
+day 6. Twenty-seed gate **28W--12L--0T, 70.0%, +309.9 per game**; +480.3
+against `opp_melon_wave_v1`.
+
+`baselines/goose_alternate_harvest_v1.py` is its direct predecessor:
+`final_day_trip_check_v1` with Goose Eggs collected every second day, the two
+coops of a pair on alternate days. Twenty-seed gate **38W--2L--0T, 95.0%,
++495.9 per game**.
 
 `baselines/final_day_trip_check_v1.py` is its direct predecessor:
 `final_day_harvest_pool_v1` with one day-29 time check (a ripe crop is worked

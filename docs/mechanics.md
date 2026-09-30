@@ -1240,3 +1240,12 @@ Fertilizer). Unfed but not escaped, an animal still gives Fertilizer.
 Egg's glut side is a log curve (base 50, above_target 0.20, T 332): the price
 barely moves with volume (eggs3 sold 424 Eggs at 43). Fertilizer is linear
 both sides (base 100, 0.4 over T 200: ~0.2 a unit).
+
+## Observed: the first Wool day
+
+With both sides' opening Sheep placed on day 0, the first Wool (6 each,
+the cap, after six fed-and-cared days) is harvestable on day 6. Wool stood
+at 218 all of day 6 on seeds 1, 2 and 5 while nobody sold; 12 units sold
+into it at 206/199 (two lots of 6), and the next 12 at d7 h01 fetched 185-187.
+The first seller of the day-6 Wool takes the better price
+(`opening_sheep_swap_v1`).
